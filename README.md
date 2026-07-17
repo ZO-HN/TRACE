@@ -1,32 +1,32 @@
-# Fit-in 💪
+# React + TypeScript + Vite
 
-**Your all-in-one fitness coaching app.**
+This template provides a minimal setup to get React working in Vite with HMR and some Oxlint rules.
 
-Fit-in is a comprehensive fitness application designed for all fitness coaches — whether you're a personal trainer, yoga instructor, strength coach, or wellness mentor.
+Currently, two official plugins are available:
 
-## 🏋️ About
+- [@vitejs/plugin-react](https://github.com/vitejs/vite-plugin-react/blob/main/packages/plugin-react) uses [Oxc](https://oxc.rs)
+- [@vitejs/plugin-react-swc](https://github.com/vitejs/vite-plugin-react/blob/main/packages/plugin-react-swc) uses [SWC](https://swc.rs/)
 
-Fit-in empowers fitness coaches to manage their clients, design workout programs, track progress, and grow their coaching business — all from a single platform.
+## React Compiler
 
-## ✨ Features
+The React Compiler is not enabled on this template because of its impact on dev & build performances. To add it, see [this documentation](https://react.dev/learn/react-compiler/installation).
 
-- **Client Management** — Organize and manage all your clients in one place
-- **Workout Builder** — Create custom workout plans and training programs
-- **Progress Tracking** — Monitor client progress with detailed analytics
-- **Scheduling** — Book sessions and manage your coaching calendar
-- **Nutrition Plans** — Design meal plans tailored to each client's goals
-- **In-App Messaging** — Communicate directly with your clients
-- **Exercise Library** — Access a rich library of exercises with instructions
-- **Analytics Dashboard** — Gain insights into your coaching business
+## Expanding the Oxlint configuration
 
-## 🚀 Getting Started
+If you are developing a production application, we recommend enabling type-aware lint rules by installing `oxlint-tsgolint` and editing `.oxlintrc.json`:
 
-Coming soon — stay tuned for setup instructions.
+```json
+{
+  "$schema": "./node_modules/oxlint/configuration_schema.json",
+  "plugins": ["react", "typescript", "oxc"],
+  "options": {
+    "typeAware": true
+  },
+  "rules": {
+    "react/rules-of-hooks": "error",
+    "react/only-export-components": ["warn", { "allowConstantExport": true }]
+  }
+}
+```
 
-## 🤝 Contributing
-
-Contributions are welcome! Feel free to open issues or submit pull requests.
-
-## 📄 License
-
-This project is licensed under the MIT License.
+See the [Oxlint rules documentation](https://oxc.rs/docs/guide/usage/linter/rules) for the full list of rules and categories.
