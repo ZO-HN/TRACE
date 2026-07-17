@@ -1,5 +1,5 @@
 -- ==========================================
--- FITSYNC PATCH: 20260717000001_patch_schema_gaps.sql
+-- TRACE PATCH: 20260717000001_patch_schema_gaps.sql
 -- Fixes all critical issues identified in the architectural audit:
 -- 1. Add coach_trainee_relations junction table (consumes relation_status ENUM)
 -- 2. Add scope column to workout_templates + RLS

@@ -14,7 +14,7 @@ export type ExperienceTier = 'BEGINNER' | 'INTERMEDIATE' | 'ADVANCED';
  * NOTE: estimated_1rm is a generated column in set_logs —
  * it must NEVER appear in any write payload from this app.
  */
-export interface FitsyncProfile {
+export interface TraceProfile {
   id: string;
   email: string;
   role: UserRole;
@@ -31,9 +31,9 @@ export interface FitsyncProfile {
   updated_at: string;
 }
 
-export interface UseFitsyncUserReturn {
+export interface UseTraceUserReturn {
   user: User | null;
-  profile: FitsyncProfile | null;
+  profile: TraceProfile | null;
   isLoading: boolean;
   error: Error | null;
   // Derived permission states
@@ -45,9 +45,9 @@ export interface UseFitsyncUserReturn {
 // ==========================================
 // Hook Implementation
 // ==========================================
-export function useFitsyncUser(): UseFitsyncUserReturn {
+export function useTraceUser(): UseTraceUserReturn {
   const [user, setUser] = useState<User | null>(null);
-  const [profile, setProfile] = useState<FitsyncProfile | null>(null);
+  const [profile, setProfile] = useState<TraceProfile | null>(null);
   const [isLoading, setIsLoading] = useState<boolean>(true);
   const [error, setError] = useState<Error | null>(null);
 
@@ -63,7 +63,7 @@ export function useFitsyncUser(): UseFitsyncUserReturn {
           .single();
 
         if (profileError) throw profileError;
-        if (isMounted) setProfile(data as FitsyncProfile);
+        if (isMounted) setProfile(data as TraceProfile);
       } catch (err: unknown) {
         if (isMounted) {
           setError(err instanceof Error ? err : new Error('Failed to fetch profile'));
