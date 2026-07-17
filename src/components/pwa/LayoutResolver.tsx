@@ -1,11 +1,11 @@
-import { useFitsyncUser } from '../../hooks/useFitsyncUser';
+import { useTraceUser } from '../../hooks/useTraceUser';
 
 // ==========================================
 // Role-Based Layout Resolver
 // Replaces mock switcher with live DB state
 // ==========================================
 export default function LayoutResolver() {
-  const { isLoading, error, isCoach, isCoachedTrainee, isSoloTrainee, profile } = useFitsyncUser();
+  const { isLoading, error, isCoach, isCoachedTrainee, isSoloTrainee, profile } = useTraceUser();
 
   // Loading skeleton
   if (isLoading) {

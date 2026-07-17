@@ -1,5 +1,5 @@
 -- ==========================================
--- FITSYNC: PRODUCTION SUPABASE SCHEMAS
+-- TRACE: PRODUCTION SUPABASE SCHEMAS
 -- DDL MIGRATION, INDEXES, & RLS POLICIES
 -- ==========================================
 
