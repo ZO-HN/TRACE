@@ -1,13 +1,13 @@
-Fitsync: Platform Architecture & Product Feature Specs
+TRACE: Platform Architecture & Product Feature Specs
 
-This document defines the functional features, screen partitions, state patterns, and custom algorithmic pipelines that govern the single-app, dual-role Fitsync ecosystem.
+This document defines the functional features, screen partitions, state patterns, and custom algorithmic pipelines that govern the single-app, dual-role TRACE ecosystem.
 
 1. Frontend View Division & Responsive Layouts
 
-Fitsync uses a single, unified codebase that dynamically transforms based on screen size (device break criteria) and profile metadata retrieved during the authentication lifecycle.
+TRACE uses a single, unified codebase that dynamically transforms based on screen size (device break criteria) and profile metadata retrieved during the authentication lifecycle.
 
                       ┌─────────────────────────────────────────┐
-                      │      Fitsync App Launch & Auth          │
+                      │      TRACE App Launch & Auth            │
                       └────────────────────┬────────────────────┘
                                            │
                                            ▼
@@ -73,7 +73,7 @@ Restricts access to coaches. Enables workout builders for logging generic workou
 
 2. Core UX Strategy & Features
 
-Fitsync designs out the traditional pain points of fitness tracking software by lowering cognitive load on trainees and maximizing delivery speeds for coaches.
+TRACE designs out the traditional pain points of fitness tracking software by lowering cognitive load on trainees and maximizing delivery speeds for coaches.
 
 A. Trainee Interface (Reducing Gym Floor Friction)
 
@@ -107,7 +107,7 @@ Inactivity Warning: Zero logged biometrics or weight metrics for 7 consecutive d
 
 3. Serverless Page Builder Architecture
 
-To enable zero-budget operations, Fitsync uses a serverless dynamic page model for coach profiles, bypassing static builds and avoiding redeployment fees.
+To enable zero-budget operations, TRACE uses a serverless dynamic page model for coach profiles, bypassing static builds and avoiding redeployment fees.
 
                     [ Request: [app.com/coach-alpha](https://app.com/coach-alpha) ]
                                   │
@@ -167,11 +167,11 @@ A coach’s page setup is stored as a single JSONB document inside the landing_p
 
 B. Dynamic Component Rendering
 
-When users visit fitsync.com/[slug], Next.js reads the requested dynamic parameter, queries the schema matching slug, parses the JSON object on-the-fly, and mounts styled React blocks using zero additional server processing.
+When users visit trace.com/[slug], Next.js reads the requested dynamic parameter, queries the schema matching slug, parses the JSON object on-the-fly, and mounts styled React blocks using zero additional server processing.
 
 4. Sync & Client State Architectures
 
-Fitsync utilizes a decoupled state sync mechanism to ensure reliable operation in offline environments like gym basements, while maintaining fast, high-throughput interfaces on desktop views.
+TRACE utilizes a decoupled state sync mechanism to ensure reliable operation in offline environments like gym basements, while maintaining fast, high-throughput interfaces on desktop views.
 
                       [ Log Session Offline ]
                                  │
@@ -214,7 +214,7 @@ Coach portals utilize Server-Sent Events (SSE) to display client wearable data u
 
 5. RAG AI Fact-Checking & Token Compression Flow
 
-The FitSync Brain uses a localized prompt refiner alongside its RAG pipeline to ensure highly detailed, scientifically grounded responses with sub-second delivery times.
+The TRACE Brain uses a localized prompt refiner alongside its RAG pipeline to ensure highly detailed, scientifically grounded responses with sub-second delivery times.
 
                  [ User Prompt / Injury Flare ]
                                │
