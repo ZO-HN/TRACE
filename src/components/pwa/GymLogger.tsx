@@ -5,6 +5,7 @@ import { useExerciseCatalog } from '../../hooks/useExerciseCatalog';
 import { lookupExerciseId } from '../../lib/workout/catalog';
 import { createSessionDraft, sessionInsertFrom } from '../../lib/workout/session';
 import { useAssignedWorkout } from '../../hooks/useAssignedWorkout';
+import { useMediaUpload } from '../../hooks/useMediaUpload';
 
 // --- Types ---
 type SetData = {
@@ -113,6 +114,34 @@ export default function GymLogger({
     [],
   );
 
+  // Form-check clips: uploaded to R2 pre-completion; the object key rides
+  // along on the queued set log (set_logs.form_video_s3_key).
+  const media = useMediaUpload();
+  const [videoKeys, setVideoKeys] = useState<Record<string, string>>({});
+  const [uploadingSetId, setUploadingSetId] = useState<string | null>(null);
+  const fileInputRef = useRef<HTMLInputElement | null>(null);
+  const pendingSetIdRef = useRef<string | null>(null);
+
+  const attachClip = (setId: string) => {
+    pendingSetIdRef.current = setId;
+    fileInputRef.current?.click();
+  };
+
+  const onClipSelected = async (file: File | undefined) => {
+    const setId = pendingSetIdRef.current;
+    if (!file || !setId) return;
+    setUploadingSetId(setId);
+    try {
+      const { key } = await media.upload(file, 'form-video');
+      setVideoKeys((prev) => ({ ...prev, [setId]: key }));
+    } catch {
+      // media.error carries the message; surfaced next to the button below
+    } finally {
+      setUploadingSetId(null);
+      if (fileInputRef.current) fileInputRef.current.value = '';
+    }
+  };
+
   // Rest Timer State
   const [restTimerActive, setRestTimerActive] = useState(false);
   const [restSecondsRemaining, setRestSecondsRemaining] = useState(0);
@@ -154,6 +183,7 @@ export default function GymLogger({
         weightLbs: targetSet.weight,
         reps: targetSet.reps,
         rpe: targetSet.rpe,
+        formVideoKey: videoKeys[targetSet.id] ?? null,
       };
       if (isValidSetInput(input)) {
         // Parent session first (refreshes duration while unsynced), then the set.
@@ -291,12 +321,29 @@ export default function GymLogger({
                       </div>
                     </div>
                     
-                    {/* e1RM Badge */}
-                    <div className="flex justify-start px-[38px]">
+                    {/* e1RM Badge + form clip attach */}
+                    <div className="flex items-center justify-between px-[38px]">
                       <div className="inline-flex items-center gap-1 bg-primary/10 text-primary text-xs font-semibold px-2 py-1 rounded">
                         <svg xmlns="http://www.w3.org/2000/svg" width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M20.24 12.24a6 6 0 0 0-8.49-8.49L5 10.5V19h8.5z"/><line x1="16" y1="8" x2="2" y2="22"/><line x1="17.5" y1="15" x2="9" y2="6.5"/></svg>
                         e1RM: {e1RM} lbs
                       </div>
+                      {!set.completed && (
+                        <button
+                          onClick={() => attachClip(set.id)}
+                          disabled={uploadingSetId === set.id}
+                          className={`text-xs font-medium px-2 py-1 rounded transition-colors ${
+                            videoKeys[set.id]
+                              ? 'bg-green-500/15 text-green-400'
+                              : 'bg-border/40 text-gray-400 hover:text-gray-200'
+                          }`}
+                        >
+                          {uploadingSetId === set.id
+                            ? 'Uploading...'
+                            : videoKeys[set.id]
+                              ? 'Clip attached'
+                              : '+ Form clip'}
+                        </button>
+                      )}
                     </div>
                   </div>
                 );
@@ -305,6 +352,19 @@ export default function GymLogger({
           </div>
         ))}
       </div>
+
+      {/* Hidden capture input for form-check clips */}
+      <input
+        ref={fileInputRef}
+        type="file"
+        accept="video/*"
+        capture="environment"
+        className="hidden"
+        onChange={(e) => void onClipSelected(e.target.files?.[0])}
+      />
+      {media.error && (
+        <p className="px-4 pb-2 text-xs text-red-400 text-center">{media.error}</p>
+      )}
 
       {/* Rest Timer Overlay */}
       {restTimerActive && (
