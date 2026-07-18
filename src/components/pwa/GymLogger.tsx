@@ -4,6 +4,7 @@ import { isValidSetInput, toSetLogInsert } from '../../lib/outbox/mapSetLog';
 import { useExerciseCatalog } from '../../hooks/useExerciseCatalog';
 import { lookupExerciseId } from '../../lib/workout/catalog';
 import { createSessionDraft, sessionInsertFrom } from '../../lib/workout/session';
+import { useAssignedWorkout } from '../../hooks/useAssignedWorkout';
 
 // --- Types ---
 type SetData = {
@@ -74,8 +75,19 @@ const initialWorkout: Exercise[] = [
   }
 ];
 
-export default function GymLogger({ userId }: { userId: string }) {
+export default function GymLogger({
+  userId,
+  isCoached = false,
+}: {
+  userId: string;
+  isCoached?: boolean;
+}) {
   const [exercises, setExercises] = useState<Exercise[]>(initialWorkout);
+
+  // Real workout content (assigned template for coached, public for solo).
+  // Falls back to the built-in mock when nothing loads (offline / empty DB).
+  const { templateId, templateName, exercises: templateExercises } =
+    useAssignedWorkout(userId, isCoached);
 
   // Offline outbox: completed sets are queued locally and flushed to Supabase
   // by useOutboxSync when connectivity returns.
@@ -106,6 +118,18 @@ export default function GymLogger({ userId }: { userId: string }) {
   const [restSecondsRemaining, setRestSecondsRemaining] = useState(0);
   const timerRef = useRef<number | null>(null);
 
+  // Adopt template content once it loads — but never clobber logged work.
+  useEffect(() => {
+    if (!templateExercises) return;
+    setExercises((current) => {
+      const hasLoggedWork = current.some((e) => e.sets.some((s) => s.completed));
+      return hasLoggedWork ? current : (templateExercises as Exercise[]);
+    });
+    if (templateName) {
+      sessionRef.current = { ...sessionRef.current, sessionName: templateName };
+    }
+  }, [templateExercises, templateName]);
+
   // Handle Set Update
   const updateSet = (eIndex: number, sIndex: number, field: keyof SetData, value: string | boolean) => {
     const updated = [...exercises];
@@ -120,9 +144,12 @@ export default function GymLogger({ userId }: { userId: string }) {
       const input = {
         id: crypto.randomUUID(),
         sessionId: sessionRef.current.id,
+        // Template-loaded exercises carry their real DB UUID as their id;
+        // otherwise resolve via catalog name match, then placeholder.
         exerciseId:
           lookupExerciseId(catalogByName, exercise.name) ??
-          placeholderIds[exercise.id],
+          placeholderIds[exercise.id] ??
+          exercise.id,
         setNumber: sIndex + 1,
         weightLbs: targetSet.weight,
         reps: targetSet.reps,
@@ -130,7 +157,9 @@ export default function GymLogger({ userId }: { userId: string }) {
       };
       if (isValidSetInput(input)) {
         // Parent session first (refreshes duration while unsynced), then the set.
-        void ensureSessionQueued(sessionInsertFrom(sessionRef.current));
+        void ensureSessionQueued(
+          sessionInsertFrom(sessionRef.current, Date.now(), templateId),
+        );
         void enqueueSetLog(toSetLogInsert(input));
       }
     }
@@ -180,7 +209,9 @@ export default function GymLogger({ userId }: { userId: string }) {
       <div className="flex-1 overflow-y-auto w-full max-w-md mx-auto px-4 py-6 space-y-8">
         
         <div className="flex items-center justify-between mb-2">
-          <h1 className="text-2xl font-bold text-white">Current Workout</h1>
+          <h1 className="text-2xl font-bold text-white">
+            {templateName ?? 'Current Workout'}
+          </h1>
           {pendingCount > 0 && (
             <span className="inline-flex items-center gap-1.5 bg-primary/10 text-primary text-xs font-semibold px-2.5 py-1 rounded-full">
               <span className="w-1.5 h-1.5 rounded-full bg-primary animate-pulse" />

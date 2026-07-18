@@ -99,7 +99,7 @@ export default function LayoutResolver() {
                 Join Coach Call
               </button>
             )}
-            <GymLogger userId={profile!.id} />
+            <GymLogger userId={profile!.id} isCoached={isCoachedTrainee} />
             {isCoachedTrainee && profile!.coach_id && (
               <div className="mt-6">
                 <ChatPanel

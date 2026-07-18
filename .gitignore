@@ -15,6 +15,9 @@ dist-ssr
 # graphify generated knowledge graph (regenerable via `graphify update .`)
 graphify-out
 
+# Secrets — never commit
+supabase/functions/.env
+
 # Editor directories and files
 .vscode/*
 !.vscode/extensions.json

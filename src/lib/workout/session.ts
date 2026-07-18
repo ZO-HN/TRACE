@@ -23,10 +23,12 @@ export function createSessionDraft(
 export function sessionInsertFrom(
   draft: SessionDraft,
   nowMs: number = Date.now(),
+  templateId: string | null = null,
 ): WorkoutSessionInsert {
   return {
     id: draft.id,
     user_id: draft.userId,
+    template_id: templateId,
     session_name: draft.sessionName,
     completed_at: new Date(nowMs).toISOString(),
     duration_seconds: Math.max(0, Math.round((nowMs - draft.startedAtMs) / 1000)),
