@@ -5,6 +5,7 @@ import { useOutboxSync } from '../../hooks/useOutboxSync';
 import GymLogger from './GymLogger';
 import JitsiCall from '../call/JitsiCall';
 import ChatPanel from '../chat/ChatPanel';
+import RosterPanel from '../coach/RosterPanel';
 import { roomNameFor } from '../../lib/call/room';
 
 // ==========================================
@@ -70,8 +71,9 @@ export default function LayoutResolver() {
             >
               Launch Jitsi Call
             </button>
+            <RosterPanel coachId={profile!.id} />
             {!isDesktop && (
-              <p className="text-xs text-gray-500 text-center">
+              <p className="text-xs text-gray-500 text-center mt-4">
                 Full desktop studio available on a wider screen.
               </p>
             )}
