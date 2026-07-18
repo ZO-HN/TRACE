@@ -74,8 +74,40 @@ BEGIN
         }'::jsonb,
         TRUE
     )
-    ON CONFLICT (coach_id) DO UPDATE 
+    ON CONFLICT (coach_id) DO UPDATE
     SET slug = EXCLUDED.slug,
         layout_config = EXCLUDED.layout_config,
         is_published = EXCLUDED.is_published;
+END $$;
+
+-- 3. Public template with items (requires 20260719000001_template_items.sql)
+--    Gives solo trainees real workout content instead of the mock fallback.
+DO $$
+DECLARE
+    v_coach_id UUID := '00000000-0000-0000-0000-000000000001';
+    v_template_id UUID;
+    v_squat_id UUID;
+    v_rdl_id UUID;
+BEGIN
+    SELECT id INTO v_squat_id FROM public.exercises WHERE name = 'Barbell Back Squat' LIMIT 1;
+    SELECT id INTO v_rdl_id FROM public.exercises WHERE name = 'Romanian Deadlift' LIMIT 1;
+    IF v_squat_id IS NULL OR v_rdl_id IS NULL THEN
+        RAISE NOTICE 'Seed exercises missing; skipping template seed';
+        RETURN;
+    END IF;
+
+    SELECT id INTO v_template_id FROM public.workout_templates
+    WHERE creator_id = v_coach_id AND name = 'Foundation Lower Body' LIMIT 1;
+
+    IF v_template_id IS NULL THEN
+        INSERT INTO public.workout_templates (creator_id, name, description, week_number, day_number, is_active, scope)
+        VALUES (v_coach_id, 'Foundation Lower Body', 'Baseline lower-body strength day.', 1, 1, TRUE, 'PUBLIC')
+        RETURNING id INTO v_template_id;
+    END IF;
+
+    INSERT INTO public.template_items (template_id, exercise_id, position, target_sets, target_reps, target_rpe, rest_seconds)
+    VALUES
+        (v_template_id, v_squat_id, 1, 3, 8, 7, 120),
+        (v_template_id, v_rdl_id,   2, 3, 10, 7, 90)
+    ON CONFLICT (template_id, position) DO NOTHING;
 END $$;
