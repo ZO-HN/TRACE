@@ -15,10 +15,14 @@ This repository currently contains the early **PWA scaffold**: role-based layout
 
 ## Documentation
 
+Full index: [docs/README.md](docs/README.md).
+
 | Document | Purpose |
 | --- | --- |
 | [Architecture Spec](docs/trace_architecture.md) | Technical architecture: responsive partitioning, serverless page builder, offline sync, and the RAG pipeline. |
 | [Feature Catalog](docs/trace_features.md) | Product-level view of what each role can do and the core UX features. |
+| [Implementation Audit](docs/audit.md) | Built-vs-spec gap analysis and the executive technical recommendations to reach a functional build. |
+| [Offline Sync Spec](docs/specs/offline-sync-outbox.md) | Draft spec for the offline session-logging outbox. |
 
 ## Tech Stack
 
