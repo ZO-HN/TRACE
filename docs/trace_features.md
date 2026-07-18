@@ -29,7 +29,7 @@ TRACE resolves the active role from the user's profile at launch and exposes a t
 - **Sweat-Resistant Logging** — Large, accessible 48px touch targets minimize input errors. Screens pre-populate with values from previous sessions to eliminate guesswork:
   - Prepopulated Weight = Previous Weight
   - Prepopulated Reps = Previous Reps
-- **Media-Lean Video Pipeline** — Form-check clips are downscaled on-device to 720p and capped under 50MB before uploading directly to Supabase storage, saving user bandwidth.
+- **Media-Lean Video Pipeline** — Form-check clips are downscaled on-device to 720p and capped under 50MB before uploading directly to object storage (Cloudflare R2), saving user bandwidth. See [ADR 0001](adr/0001-media-storage.md) for why media lives in R2 rather than Supabase Storage.
 - **Automated Rest Alerts** — Checking off a set launches a floating timer. When it completes, progress notifications fire via audio and vibration.
 - **Macro Quick-Logger** — Users type macro totals directly (e.g., "80g Protein") or snap a photo of their plate — no slow ingredient-search loops.
 
