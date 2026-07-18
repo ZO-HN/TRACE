@@ -1,4 +1,6 @@
-import { useState, useEffect, useRef } from 'react';
+import { useState, useEffect, useRef, useMemo } from 'react';
+import { useOutboxStore } from '../../lib/outbox/outboxStore';
+import { isValidSetInput, toSetLogInsert } from '../../lib/outbox/mapSetLog';
 
 // --- Types ---
 type SetData = {
@@ -71,7 +73,26 @@ const initialWorkout: Exercise[] = [
 
 export default function GymLogger() {
   const [exercises, setExercises] = useState<Exercise[]>(initialWorkout);
-  
+
+  // Offline outbox: completed sets are queued locally and flushed to Supabase
+  // by useOutboxSync when connectivity returns.
+  const enqueue = useOutboxStore((s) => s.enqueue);
+  const pendingCount = useOutboxStore(
+    (s) => s.items.filter((i) => i.status !== 'synced').length,
+  );
+
+  // Client-side identifiers for this session. NOTE: these are placeholders
+  // until GymLogger loads a real workout_session and exercise catalog from
+  // Supabase — required for the flushed set_logs to satisfy their foreign keys.
+  const sessionIdRef = useRef<string>(crypto.randomUUID());
+  const exerciseIds = useMemo(
+    () =>
+      Object.fromEntries(
+        initialWorkout.map((e) => [e.id, crypto.randomUUID()]),
+      ) as Record<string, string>,
+    [],
+  );
+
   // Rest Timer State
   const [restTimerActive, setRestTimerActive] = useState(false);
   const [restSecondsRemaining, setRestSecondsRemaining] = useState(0);
@@ -82,10 +103,23 @@ export default function GymLogger() {
     const updated = [...exercises];
     const targetSet = updated[eIndex].sets[sIndex];
     targetSet[field] = value as never;
-    
-    // If completing the set, trigger rest timer
+
+    // If completing the set, trigger rest timer and queue the log offline.
     if (field === 'completed' && value === true) {
       startRestTimer(90); // Default 90 seconds rest
+
+      const input = {
+        id: crypto.randomUUID(),
+        sessionId: sessionIdRef.current,
+        exerciseId: exerciseIds[updated[eIndex].id],
+        setNumber: sIndex + 1,
+        weightLbs: targetSet.weight,
+        reps: targetSet.reps,
+        rpe: targetSet.rpe,
+      };
+      if (isValidSetInput(input)) {
+        void enqueue(toSetLogInsert(input));
+      }
     }
 
     setExercises(updated);
@@ -132,7 +166,15 @@ export default function GymLogger() {
       {/* Scrollable Exercises List */}
       <div className="flex-1 overflow-y-auto w-full max-w-md mx-auto px-4 py-6 space-y-8">
         
-        <h1 className="text-2xl font-bold text-white mb-2">Current Workout</h1>
+        <div className="flex items-center justify-between mb-2">
+          <h1 className="text-2xl font-bold text-white">Current Workout</h1>
+          {pendingCount > 0 && (
+            <span className="inline-flex items-center gap-1.5 bg-primary/10 text-primary text-xs font-semibold px-2.5 py-1 rounded-full">
+              <span className="w-1.5 h-1.5 rounded-full bg-primary animate-pulse" />
+              {pendingCount} queued
+            </span>
+          )}
+        </div>
         
         {exercises.map((exercise, eIndex) => (
           <div key={exercise.id} className="bg-surface rounded-xl border border-border overflow-hidden">
