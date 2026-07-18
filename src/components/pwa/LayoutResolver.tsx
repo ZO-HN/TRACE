@@ -1,7 +1,10 @@
+import { useState } from 'react';
 import { useTraceUser } from '../../hooks/useTraceUser';
 import { useDeviceSize } from '../../hooks/useDeviceSize';
 import { useOutboxSync } from '../../hooks/useOutboxSync';
 import GymLogger from './GymLogger';
+import JitsiCall from '../call/JitsiCall';
+import { roomNameFor } from '../../lib/call/room';
 
 // ==========================================
 // Role-Based Layout Resolver
@@ -10,6 +13,7 @@ import GymLogger from './GymLogger';
 export default function LayoutResolver() {
   const { isLoading, error, isCoach, isCoachedTrainee, isSoloTrainee, profile } = useTraceUser();
   const { isDesktop } = useDeviceSize();
+  const [inCall, setInCall] = useState(false);
 
   // Keep the offline outbox flushing to Supabase whenever connectivity returns.
   useOutboxSync();
@@ -59,7 +63,10 @@ export default function LayoutResolver() {
               </h1>
               <p className="text-sm text-gray-400">Manage your roster and sessions.</p>
             </div>
-            <button className="w-full bg-primary hover:bg-primary-hover text-white font-semibold py-4 px-4 rounded-xl flex items-center justify-center gap-2 mb-6 transition-colors">
+            <button
+              onClick={() => setInCall(true)}
+              className="w-full bg-primary hover:bg-primary-hover text-white font-semibold py-4 px-4 rounded-xl flex items-center justify-center gap-2 mb-6 transition-colors"
+            >
               Launch Jitsi Call
             </button>
             {!isDesktop && (
@@ -81,11 +88,28 @@ export default function LayoutResolver() {
                 {isCoachedTrainee ? 'Assigned by your coach.' : 'Log your session.'}
               </p>
             </div>
+            {isCoachedTrainee && (
+              <button
+                onClick={() => setInCall(true)}
+                className="w-full bg-surface border border-border hover:border-primary text-gray-200 font-medium py-3 px-4 rounded-xl mb-4 transition-colors"
+              >
+                Join Coach Call
+              </button>
+            )}
             <GymLogger userId={profile!.id} />
           </div>
         )}
 
       </main>
+
+      {/* Shared per-coach room: the coach hosts it, coached trainees join it */}
+      {inCall && profile && (isCoach || profile.coach_id) && (
+        <JitsiCall
+          roomName={roomNameFor(isCoach ? profile.id : profile.coach_id!)}
+          displayName={`${profile.first_name} ${profile.last_name}`}
+          onClose={() => setInCall(false)}
+        />
+      )}
     </div>
   );
 }
