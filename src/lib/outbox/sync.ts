@@ -43,13 +43,20 @@ export interface FlushResult {
  * Flush every pending/failed item exactly once. Already-synced items are
  * skipped, so re-running is a no-op. Upserts use onConflict:'id' so a retry
  * that actually reached the DB last time is also idempotent at the DB layer.
+ *
+ * Sessions flush before set_logs: set_logs.session_id has a foreign key to
+ * workout_sessions, so the parent row must land first.
  */
 export async function flushOutbox(deps: FlushDeps): Promise<FlushResult> {
   const now = deps.now ?? (() => new Date().toISOString());
   const items = await deps.getItems();
-  const pending = items.filter(
-    (i) => i.status === 'pending' || i.status === 'failed',
-  );
+  const pending = items
+    .filter((i) => i.status === 'pending' || i.status === 'failed')
+    .sort((a, b) => {
+      const rank = (i: OutboxItem) =>
+        (i.table ?? 'set_logs') === 'workout_sessions' ? 0 : 1;
+      return rank(a) - rank(b);
+    });
 
   let synced = 0;
   let failed = 0;
@@ -58,7 +65,7 @@ export async function flushOutbox(deps: FlushDeps): Promise<FlushResult> {
     await deps.saveItem({ ...item, status: 'syncing', updated_at: now() });
 
     const { error } = await deps.supabase
-      .from('set_logs')
+      .from(item.table ?? 'set_logs')
       .upsert(item.payload, { onConflict: 'id' });
 
     if (error) {

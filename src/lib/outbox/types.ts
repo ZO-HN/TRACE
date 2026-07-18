@@ -20,11 +20,32 @@ export interface SetLogInsert {
   form_video_s3_key?: string | null;
 }
 
+/**
+ * Insert payload for public.workout_sessions.
+ *
+ * RLS on workout_sessions allows owners INSERT + SELECT only (no UPDATE),
+ * so sessions are insert-once: never re-flush after a successful sync.
+ */
+export interface WorkoutSessionInsert {
+  id: string; // client-generated UUID
+  user_id: string;
+  template_id?: string | null;
+  session_name: string;
+  completed_at?: string; // ISO; DB defaults to NOW() if omitted
+  duration_seconds: number;
+  rpe_average?: number | null;
+  compliance_score?: number | null;
+}
+
 export type OutboxStatus = 'pending' | 'syncing' | 'synced' | 'failed';
+
+export type OutboxTable = 'workout_sessions' | 'set_logs';
 
 export interface OutboxItem {
   id: string; // mirrors payload.id — the idempotency key
-  payload: SetLogInsert;
+  /** Target table. Items persisted before this field existed are set_logs. */
+  table?: OutboxTable;
+  payload: SetLogInsert | WorkoutSessionInsert;
   status: OutboxStatus;
   attempts: number;
   updated_at: string; // ISO timestamp

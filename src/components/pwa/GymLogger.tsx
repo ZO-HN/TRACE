@@ -1,6 +1,9 @@
 import { useState, useEffect, useRef, useMemo } from 'react';
 import { useOutboxStore } from '../../lib/outbox/outboxStore';
 import { isValidSetInput, toSetLogInsert } from '../../lib/outbox/mapSetLog';
+import { useExerciseCatalog } from '../../hooks/useExerciseCatalog';
+import { lookupExerciseId } from '../../lib/workout/catalog';
+import { createSessionDraft, sessionInsertFrom } from '../../lib/workout/session';
 
 // --- Types ---
 type SetData = {
@@ -71,21 +74,26 @@ const initialWorkout: Exercise[] = [
   }
 ];
 
-export default function GymLogger() {
+export default function GymLogger({ userId }: { userId: string }) {
   const [exercises, setExercises] = useState<Exercise[]>(initialWorkout);
 
   // Offline outbox: completed sets are queued locally and flushed to Supabase
   // by useOutboxSync when connectivity returns.
-  const enqueue = useOutboxStore((s) => s.enqueue);
+  const enqueueSetLog = useOutboxStore((s) => s.enqueueSetLog);
+  const ensureSessionQueued = useOutboxStore((s) => s.ensureSessionQueued);
   const pendingCount = useOutboxStore(
     (s) => s.items.filter((i) => i.status !== 'synced').length,
   );
 
-  // Client-side identifiers for this session. NOTE: these are placeholders
-  // until GymLogger loads a real workout_session and exercise catalog from
-  // Supabase — required for the flushed set_logs to satisfy their foreign keys.
-  const sessionIdRef = useRef<string>(crypto.randomUUID());
-  const exerciseIds = useMemo(
+  // Client-first session: the row is created with a client UUID so offline
+  // set_logs can reference it; the parent row flushes before its sets.
+  const sessionRef = useRef(createSessionDraft(userId, 'Current Workout'));
+
+  // Real exercise ids from the DB catalog (matched by name). Until the
+  // catalog loads (e.g. offline cold start), fall back to placeholder ids —
+  // those items retry and only succeed once real ids exist.
+  const { byName: catalogByName } = useExerciseCatalog();
+  const placeholderIds = useMemo(
     () =>
       Object.fromEntries(
         initialWorkout.map((e) => [e.id, crypto.randomUUID()]),
@@ -108,17 +116,22 @@ export default function GymLogger() {
     if (field === 'completed' && value === true) {
       startRestTimer(90); // Default 90 seconds rest
 
+      const exercise = updated[eIndex];
       const input = {
         id: crypto.randomUUID(),
-        sessionId: sessionIdRef.current,
-        exerciseId: exerciseIds[updated[eIndex].id],
+        sessionId: sessionRef.current.id,
+        exerciseId:
+          lookupExerciseId(catalogByName, exercise.name) ??
+          placeholderIds[exercise.id],
         setNumber: sIndex + 1,
         weightLbs: targetSet.weight,
         reps: targetSet.reps,
         rpe: targetSet.rpe,
       };
       if (isValidSetInput(input)) {
-        void enqueue(toSetLogInsert(input));
+        // Parent session first (refreshes duration while unsynced), then the set.
+        void ensureSessionQueued(sessionInsertFrom(sessionRef.current));
+        void enqueueSetLog(toSetLogInsert(input));
       }
     }
 
