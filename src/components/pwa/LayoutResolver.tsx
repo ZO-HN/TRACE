@@ -4,6 +4,7 @@ import { useDeviceSize } from '../../hooks/useDeviceSize';
 import { useOutboxSync } from '../../hooks/useOutboxSync';
 import GymLogger from './GymLogger';
 import JitsiCall from '../call/JitsiCall';
+import ChatPanel from '../chat/ChatPanel';
 import { roomNameFor } from '../../lib/call/room';
 
 // ==========================================
@@ -97,6 +98,15 @@ export default function LayoutResolver() {
               </button>
             )}
             <GymLogger userId={profile!.id} />
+            {isCoachedTrainee && profile!.coach_id && (
+              <div className="mt-6">
+                <ChatPanel
+                  myId={profile!.id}
+                  peerId={profile!.coach_id}
+                  peerLabel="Your Coach"
+                />
+              </div>
+            )}
           </div>
         )}
 
