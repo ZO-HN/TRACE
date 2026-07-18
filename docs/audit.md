@@ -17,15 +17,19 @@ Every plan must be built on the real stack. The Next.js serverless page model is
 
 ## 2. Current State by Axiom
 
+> **Status update (2026-07-19):** the build sequence in §4.6 has been executed. The table reflects the post-implementation state; the original findings below it are kept for history.
+
 | Axiom | Status | Reality |
 | --- | --- | --- |
 | Single codebase, dual role | **Built** | One Vite app; roles resolved from Supabase profile. |
 | Role-based resolution (coach / coached / solo) | **Built** | `useTraceUser.ts` derives role booleans from `role` + `coach_id`. |
-| Viewport partition (≥1024 coach / <1024 trainee) | **Not built** | No `innerWidth`/`matchMedia`/`1024` logic anywhere; `useDeviceSize.ts` is an empty file. Rendering keys on role only. |
-| Mobile trainee logger | **Scaffold** | `GymLogger.tsx` is fully written but **never imported** and runs on hardcoded mock data. |
-| Offline outbox / IndexedDB sync | **Not built** | No `zustand`, no `idb`/SQLite, no outbox. Session state is volatile and lost on reload. |
-| WebRTC (Jitsi) | **Not built** | A non-functional "Launch Jitsi Call" button; no integration. |
-| 1-on-1 chat | **Not built** | Static placeholder copy only. |
+| Viewport partition (≥1024 coach / <1024 trainee) | **Built** | `useDeviceSize` (`matchMedia` on the `lg` breakpoint) composed with role in `LayoutResolver`. |
+| Mobile trainee logger | **Built** (mock template) | `GymLogger` mounted for trainees, queues real `set_logs`/`workout_sessions` payloads (lbs→kg, catalog ids). Workout content itself is still the mock template until template loading lands. |
+| Offline outbox / IndexedDB sync | **Built** | Zustand + `idb` outbox; sessions flush before sets; idempotent upserts with backoff on the `online` event. |
+| WebRTC (Jitsi) | **Built** (v1) | `JitsiCall` via meet.jit.si external API; per-coach room, coach hosts / coached trainee joins. Open-room limitation documented. |
+| 1-on-1 chat | **Built** (migration pending) | `direct_messages` migration drafted + realtime `ChatPanel` for coached trainees. Requires the migration to be applied; coach-side UI awaits a roster picker. |
+| Media (video/photos) | **Built** (deploy pending) | Direct-to-R2 presigned upload path (`r2-presign` edge function + client lib). See [ADR 0001](adr/0001-media-storage.md). |
+| Coach public pages (`/:slug`) | **Built** | `react-router` + `CoachPage` rendering validated `layout_config`. |
 
 ### How routing works today
 
