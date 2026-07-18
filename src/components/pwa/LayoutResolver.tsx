@@ -1,11 +1,18 @@
 import { useTraceUser } from '../../hooks/useTraceUser';
+import { useDeviceSize } from '../../hooks/useDeviceSize';
+import { useOutboxSync } from '../../hooks/useOutboxSync';
+import GymLogger from './GymLogger';
 
 // ==========================================
 // Role-Based Layout Resolver
-// Replaces mock switcher with live DB state
+// Resolves views on two axes: profile role x viewport size.
 // ==========================================
 export default function LayoutResolver() {
   const { isLoading, error, isCoach, isCoachedTrainee, isSoloTrainee, profile } = useTraceUser();
+  const { isDesktop } = useDeviceSize();
+
+  // Keep the offline outbox flushing to Supabase whenever connectivity returns.
+  useOutboxSync();
 
   // Loading skeleton
   if (isLoading) {
@@ -55,35 +62,26 @@ export default function LayoutResolver() {
             <button className="w-full bg-primary hover:bg-primary-hover text-white font-semibold py-4 px-4 rounded-xl flex items-center justify-center gap-2 mb-6 transition-colors">
               Launch Jitsi Call
             </button>
-            <p className="text-xs text-gray-500 text-center">
-              Full desktop studio available on a wider screen.
-            </p>
+            {!isDesktop && (
+              <p className="text-xs text-gray-500 text-center">
+                Full desktop studio available on a wider screen.
+              </p>
+            )}
           </div>
         )}
 
-        {/* COACHED TRAINEE LAYOUT */}
-        {isCoachedTrainee && (
+        {/* TRAINEE LAYOUT (coached or solo) — the high-tension gym-floor logger */}
+        {(isCoachedTrainee || isSoloTrainee) && (
           <div className="animate-in fade-in slide-in-from-bottom-2 duration-300">
-            <div className="mb-6">
-              <h1 className="text-2xl font-bold text-white mb-1">Today's Plan</h1>
-              <p className="text-sm text-gray-400">Assigned by your coach.</p>
+            <div className="mb-4">
+              <h1 className="text-2xl font-bold text-white mb-1">
+                {isCoachedTrainee ? "Today's Plan" : 'Workout'}
+              </h1>
+              <p className="text-sm text-gray-400">
+                {isCoachedTrainee ? 'Assigned by your coach.' : 'Log your session.'}
+              </p>
             </div>
-            <div className="bg-surface border border-border p-4 rounded-xl">
-              <p className="text-gray-400 text-sm">Your assigned workouts will appear here.</p>
-            </div>
-          </div>
-        )}
-
-        {/* SOLO TRAINEE LAYOUT */}
-        {isSoloTrainee && (
-          <div className="animate-in fade-in slide-in-from-bottom-2 duration-300">
-            <div className="mb-6">
-              <h1 className="text-2xl font-bold text-white mb-1">Workout Directory</h1>
-              <p className="text-sm text-gray-400">Choose a template to begin.</p>
-            </div>
-            <div className="bg-surface border border-border p-4 rounded-xl">
-              <p className="text-gray-400 text-sm">Public templates will load here.</p>
-            </div>
+            <GymLogger />
           </div>
         )}
 
