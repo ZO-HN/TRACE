@@ -48,8 +48,16 @@ describe('toSetLogInsert', () => {
       reps: 10,
       rpe: 7,
       is_completed: true,
+      form_video_s3_key: null,
     });
     expect('estimated_1rm' in payload).toBe(false);
+  });
+
+  it('carries an attached form-clip R2 key', () => {
+    expect(
+      toSetLogInsert({ ...base, formVideoKey: 'form-video/u1/abc.mp4' })
+        .form_video_s3_key,
+    ).toBe('form-video/u1/abc.mp4');
   });
 
   it('treats empty RPE as null', () => {

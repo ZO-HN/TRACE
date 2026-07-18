@@ -12,6 +12,8 @@ export interface SetInput {
   weightLbs: string | number;
   reps: string | number;
   rpe?: string | number | null;
+  /** R2 object key of an uploaded form-check clip (see ADR 0001). */
+  formVideoKey?: string | null;
 }
 
 function toNumber(value: string | number): number {
@@ -49,5 +51,6 @@ export function toSetLogInsert(input: SetInput): SetLogInsert {
     reps: Math.trunc(toNumber(input.reps)),
     rpe: Number.isFinite(rpe as number) ? rpe : null,
     is_completed: true,
+    form_video_s3_key: input.formVideoKey ?? null,
   };
 }
