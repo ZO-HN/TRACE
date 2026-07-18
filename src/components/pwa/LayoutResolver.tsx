@@ -81,7 +81,7 @@ export default function LayoutResolver() {
                 {isCoachedTrainee ? 'Assigned by your coach.' : 'Log your session.'}
               </p>
             </div>
-            <GymLogger />
+            <GymLogger userId={profile!.id} />
           </div>
         )}
 
