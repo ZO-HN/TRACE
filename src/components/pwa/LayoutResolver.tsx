@@ -6,6 +6,7 @@ import GymLogger from './GymLogger';
 import JitsiCall from '../call/JitsiCall';
 import ChatPanel from '../chat/ChatPanel';
 import RosterPanel from '../coach/RosterPanel';
+import TemplateBuilder from '../coach/TemplateBuilder';
 import { roomNameFor } from '../../lib/call/room';
 
 // ==========================================
@@ -71,6 +72,9 @@ export default function LayoutResolver() {
             >
               Launch Jitsi Call
             </button>
+            <div className="mb-4">
+              <TemplateBuilder coachId={profile!.id} />
+            </div>
             <RosterPanel coachId={profile!.id} />
             {!isDesktop && (
               <p className="text-xs text-gray-500 text-center mt-4">
