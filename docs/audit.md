@@ -27,9 +27,14 @@ Every plan must be built on the real stack. The Next.js serverless page model is
 | Mobile trainee logger | **Built** (mock template) | `GymLogger` mounted for trainees, queues real `set_logs`/`workout_sessions` payloads (lbs→kg, catalog ids). Workout content itself is still the mock template until template loading lands. |
 | Offline outbox / IndexedDB sync | **Built** | Zustand + `idb` outbox; sessions flush before sets; idempotent upserts with backoff on the `online` event. |
 | WebRTC (Jitsi) | **Built** (v1) | `JitsiCall` via meet.jit.si external API; per-coach room, coach hosts / coached trainee joins. Open-room limitation documented. |
-| 1-on-1 chat | **Built** (migration pending) | `direct_messages` migration drafted + realtime `ChatPanel` for coached trainees. Requires the migration to be applied; coach-side UI awaits a roster picker. |
-| Media (video/photos) | **Built** (deploy pending) | Direct-to-R2 presigned upload path (`r2-presign` edge function + client lib). See [ADR 0001](adr/0001-media-storage.md). |
+| 1-on-1 chat | **Built** (migration pending) | `direct_messages` migration + realtime `ChatPanel`; wired for both sides (trainee panel + coach roster cards). |
+| Media (video/photos) | **Built** (deploy pending) | Direct-to-R2 presigned upload; `GymLogger` form-clip capture writes the key to `set_logs.form_video_s3_key`. See [ADR 0001](adr/0001-media-storage.md). |
 | Coach public pages (`/:slug`) | **Built** | `react-router` + `CoachPage` rendering validated `layout_config`. |
+| Coach roster + telemetry | **Built** | `get_coach_roster_telemetry` RPC → readiness-banded cards with per-trainee chat. |
+| Coach template builder | **Built** | Author `workout_templates` + `template_items` in-app; trainee logger loads real content. |
+| TRACE Brain (AI chat) | **Built** (RAG pending) | Persisted chat + `trace-brain` function; RAG/LLM pipeline is a documented placeholder. |
+| Deployment hardening | **Built** | Fail-fast env screen, error boundary, PWA manifest, SPA `_redirects`. |
+| RLS coverage | **Built** | ai_* + biometrics RLS added (were unprotected); see migration `20260719000002`. |
 
 ### How routing works today
 

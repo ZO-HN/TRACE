@@ -16,12 +16,24 @@ npx supabase db push
 #    (db push does not run seed.sql; use the SQL editor or:)
 npx supabase db push --include-seed
 
-# 5. Set the R2 secrets for the edge function (reads supabase/functions/.env)
+# 5. Set the R2 secrets for the edge functions (reads supabase/functions/.env)
 npx supabase secrets set --env-file supabase/functions/.env
 
-# 6. Deploy the presign function
+# 6. Deploy the edge functions
 npx supabase functions deploy r2-presign
+npx supabase functions deploy trace-brain
 ```
+
+`trace-brain` uses `SUPABASE_SERVICE_ROLE_KEY` (auto-injected) to write ASSISTANT
+turns; no extra secret is needed until the RAG/LLM pipeline is wired.
+
+### Migrations applied by `db push`
+
+1. `20260717000000_init_trace.sql` — core schema, trigger, base RLS
+2. `20260717000001_patch_schema_gaps.sql` — relations, template scope, set_logs RLS, RPCs
+3. `20260719000000_direct_messages.sql` — 1-on-1 chat + realtime
+4. `20260719000001_template_items.sql` — template → exercise items
+5. `20260719000002_ai_biometrics_rls.sql` — **security**: RLS for ai_* + biometrics
 
 Then configure the **R2 bucket CORS** (dashboard → R2 → bucket → Settings → CORS):
 
