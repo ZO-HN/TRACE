@@ -8,11 +8,13 @@ import { indexByName, type ExerciseRow } from '../lib/workout/catalog';
 
 export interface ExerciseCatalog {
   byName: Record<string, string>;
+  rows: ExerciseRow[];
   isLoaded: boolean;
 }
 
 export function useExerciseCatalog(): ExerciseCatalog {
   const [byName, setByName] = useState<Record<string, string>>({});
+  const [rows, setRows] = useState<ExerciseRow[]>([]);
   const [isLoaded, setIsLoaded] = useState(false);
 
   useEffect(() => {
@@ -22,9 +24,11 @@ export function useExerciseCatalog(): ExerciseCatalog {
       try {
         const { data, error } = await supabase
           .from('exercises')
-          .select('id, name');
+          .select('id, name')
+          .order('name');
         if (!cancelled && !error && data) {
           setByName(indexByName(data as ExerciseRow[]));
+          setRows(data as ExerciseRow[]);
           setIsLoaded(true);
         }
       } catch {
@@ -37,5 +41,5 @@ export function useExerciseCatalog(): ExerciseCatalog {
     };
   }, []);
 
-  return { byName, isLoaded };
+  return { byName, rows, isLoaded };
 }
