@@ -12,12 +12,12 @@ ON CONFLICT (id) DO NOTHING;
 -- 2. Create Coach Profile & Published Landing Page
 DO $$
 DECLARE
-    coach_id UUID := '00000000-0000-0000-0000-000000000001';
+    v_coach_id UUID := '00000000-0000-0000-0000-000000000001';
 BEGIN
     -- Ensure seed coach user exists in auth.users
     INSERT INTO auth.users (id, email, raw_user_meta_data, role, aud, email_confirmed_at)
     VALUES (
-        coach_id,
+        v_coach_id,
         'coach.john@example.com',
         '{"first_name": "John", "last_name": "Doe", "role": "coach"}'::jsonb,
         'authenticated',
@@ -29,12 +29,12 @@ BEGIN
     -- Ensure profile is marked as coach (in case it already existed but got synced differently)
     UPDATE public.profiles 
     SET role = 'coach'::public.user_role 
-    WHERE id = coach_id;
+    WHERE id = v_coach_id;
 
     -- Ensure coach extensions entry exists
     INSERT INTO public.coach_extensions (coach_id, business_name, certifications, biography, specialties, is_public)
     VALUES (
-        coach_id,
+        v_coach_id,
         'Doe Athletics',
         ARRAY['NASM-PES', 'CSCS'],
         'Over a decade of coaching elite athletes and weekend warriors.',
@@ -46,7 +46,7 @@ BEGIN
     -- Insert Published Landing Page for "/john"
     INSERT INTO public.landing_pages (coach_id, slug, layout_config, is_published)
     VALUES (
-        coach_id,
+        v_coach_id,
         'john',
         '{
             "theme": {
