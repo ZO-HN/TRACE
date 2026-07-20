@@ -39,11 +39,16 @@ CREATE POLICY "Participants can read their own conversations"
     ON public.direct_messages FOR SELECT
     USING (auth.uid() = sender_id OR auth.uid() = recipient_id);
 
--- Only the recipient may mark a message read (read_at).
+-- Only the recipient may mark a message read (read_at). RLS gates the row;
+-- column privileges restrict WHICH columns can change (RLS cannot). Without
+-- this, a recipient could rewrite content/sender_id of a received message.
 CREATE POLICY "Recipients can mark messages read"
     ON public.direct_messages FOR UPDATE
     USING (auth.uid() = recipient_id)
     WITH CHECK (auth.uid() = recipient_id);
+
+REVOKE UPDATE ON public.direct_messages FROM authenticated;
+GRANT UPDATE (read_at) ON public.direct_messages TO authenticated;
 
 -- Stream INSERTs to clients via Supabase Realtime.
 ALTER PUBLICATION supabase_realtime ADD TABLE public.direct_messages;
