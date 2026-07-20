@@ -5,6 +5,7 @@ import { useOutboxSync } from '../../hooks/useOutboxSync';
 import GymLogger from './GymLogger';
 import JitsiCall from '../call/JitsiCall';
 import ChatPanel from '../chat/ChatPanel';
+import AiBrainPanel from '../chat/AiBrainPanel';
 import RosterPanel from '../coach/RosterPanel';
 import TemplateBuilder from '../coach/TemplateBuilder';
 import { roomNameFor } from '../../lib/call/room';
@@ -104,6 +105,9 @@ export default function LayoutResolver() {
               </button>
             )}
             <GymLogger userId={profile!.id} isCoached={isCoachedTrainee} />
+            <div className="mt-6">
+              <AiBrainPanel userId={profile!.id} />
+            </div>
             {isCoachedTrainee && profile!.coach_id && (
               <div className="mt-6">
                 <ChatPanel
