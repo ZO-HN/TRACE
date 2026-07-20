@@ -11,6 +11,8 @@ Central index for all TRACE architecture, product, audit, and specification docu
 | [audit](audit.md) | Assessment | Current implementation-vs-spec gap analysis and the executive technical recommendations to reach a fully functional build. |
 | [specs/offline-sync-outbox](specs/offline-sync-outbox.md) | Spec | Offline session-logging outbox that flushes to Supabase on reconnect. |
 | [adr/0001-media-storage](adr/0001-media-storage.md) | Decision | Hybrid storage: Supabase for data, Cloudflare R2 for heavy media. |
+| [provisioning](provisioning.md) | Runbook | One-shot backend setup: migrations, seed, edge functions, secrets. |
+| [deployment](deployment.md) | Runbook | Frontend build + static hosting + pre/post-deploy checklist. |
 
 ## Reading order
 
