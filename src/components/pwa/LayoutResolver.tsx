@@ -6,6 +6,7 @@ import GymLogger from './GymLogger';
 import JitsiCall from '../call/JitsiCall';
 import ChatPanel from '../chat/ChatPanel';
 import AiBrainPanel from '../chat/AiBrainPanel';
+import AppControlCopilot from '../chat/AppControlCopilot';
 import RosterPanel from '../coach/RosterPanel';
 import TemplateBuilder from '../coach/TemplateBuilder';
 import { roomNameFor } from '../../lib/call/room';
@@ -15,9 +16,21 @@ import { roomNameFor } from '../../lib/call/room';
 // Resolves views on two axes: profile role x viewport size.
 // ==========================================
 export default function LayoutResolver() {
-  const { isLoading, error, isCoach, isCoachedTrainee, isSoloTrainee, profile } = useTraceUser();
+  const { isLoading, error, isCoach: baseIsCoach, isCoachedTrainee: baseIsCoachedTrainee, profile: baseProfile } = useTraceUser();
   const { isDesktop } = useDeviceSize();
   const [inCall, setInCall] = useState(false);
+  const [overrideRole, setOverrideRole] = useState<'coach' | 'coached' | 'solo' | null>(null);
+
+  const activeRole = overrideRole ?? (baseIsCoach ? 'coach' : baseIsCoachedTrainee ? 'coached' : 'solo');
+  const isCoach = activeRole === 'coach';
+  const isCoachedTrainee = activeRole === 'coached';
+  const isSoloTrainee = activeRole === 'solo';
+
+  const profile = baseProfile ? {
+    ...baseProfile,
+    role: (isCoach ? 'coach' : 'trainee') as 'coach' | 'trainee',
+    coach_id: isCoachedTrainee ? 'coach-789' : (isCoach ? null : null),
+  } : null;
 
   // Keep the offline outbox flushing to Supabase whenever connectivity returns.
   useOutboxSync();
@@ -56,29 +69,63 @@ export default function LayoutResolver() {
 
   return (
     <div className="min-h-screen bg-background text-gray-100 flex flex-col font-sans">
-      <main className="flex-1 w-full max-w-md mx-auto p-4 flex flex-col gap-6 mt-6">
+      {/* Demo Role Switcher Toolbar */}
+      <header className="bg-surface border-b border-border py-2 px-4 flex items-center justify-between text-xs">
+        <span className="text-gray-400 font-medium">Demo Preview Mode</span>
+        <div className="flex gap-1">
+          <button
+            onClick={() => setOverrideRole('coach')}
+            className={`px-2.5 py-1 rounded transition-colors ${isCoach ? 'bg-primary text-white font-semibold' : 'bg-background text-gray-400 hover:text-white'}`}
+          >
+            Coach View
+          </button>
+          <button
+            onClick={() => setOverrideRole('coached')}
+            className={`px-2.5 py-1 rounded transition-colors ${isCoachedTrainee ? 'bg-primary text-white font-semibold' : 'bg-background text-gray-400 hover:text-white'}`}
+          >
+            Coached Trainee
+          </button>
+          <button
+            onClick={() => setOverrideRole('solo')}
+            className={`px-2.5 py-1 rounded transition-colors ${isSoloTrainee ? 'bg-primary text-white font-semibold' : 'bg-background text-gray-400 hover:text-white'}`}
+          >
+            Solo Trainee
+          </button>
+        </div>
+      </header>
+
+      <main className="flex-1 w-full max-w-md mx-auto p-4 flex flex-col gap-6 mt-2">
+
 
         {/* COACH LAYOUT */}
         {isCoach && (
-          <div className="animate-in fade-in slide-in-from-bottom-2 duration-300">
-            <div className="mb-6">
+          <div className="animate-in fade-in slide-in-from-bottom-2 duration-300 flex flex-col gap-6">
+            <div>
               <h1 className="text-2xl font-bold text-white mb-1">
                 Welcome, Coach {profile?.first_name}
               </h1>
               <p className="text-sm text-gray-400">Manage your roster and sessions.</p>
             </div>
+
+            {/* AI Form 1: App Management / Coach Command Copilot */}
+            <AppControlCopilot userId={profile!.id} isCoach={true} />
+
             <button
               onClick={() => setInCall(true)}
-              className="w-full bg-primary hover:bg-primary-hover text-white font-semibold py-4 px-4 rounded-xl flex items-center justify-center gap-2 mb-6 transition-colors"
+              className="w-full bg-primary hover:bg-primary-hover text-white font-semibold py-4 px-4 rounded-xl flex items-center justify-center gap-2 transition-colors"
             >
               Launch Jitsi Call
             </button>
-            <div className="mb-4">
+            <div>
               <TemplateBuilder coachId={profile!.id} />
             </div>
             <RosterPanel coachId={profile!.id} />
+
+            {/* AI Form 2: TRACE Brain Knowledge & Study Engine */}
+            <AiBrainPanel userId={profile!.id} />
+
             {!isDesktop && (
-              <p className="text-xs text-gray-500 text-center mt-4">
+              <p className="text-xs text-gray-500 text-center mt-2">
                 Full desktop studio available on a wider screen.
               </p>
             )}
@@ -87,8 +134,8 @@ export default function LayoutResolver() {
 
         {/* TRAINEE LAYOUT (coached or solo) — the high-tension gym-floor logger */}
         {(isCoachedTrainee || isSoloTrainee) && (
-          <div className="animate-in fade-in slide-in-from-bottom-2 duration-300">
-            <div className="mb-4">
+          <div className="animate-in fade-in slide-in-from-bottom-2 duration-300 flex flex-col gap-6">
+            <div>
               <h1 className="text-2xl font-bold text-white mb-1">
                 {isCoachedTrainee ? "Today's Plan" : 'Workout'}
               </h1>
@@ -96,20 +143,25 @@ export default function LayoutResolver() {
                 {isCoachedTrainee ? 'Assigned by your coach.' : 'Log your session.'}
               </p>
             </div>
+
+            {/* AI Form 1: App Management / One-Prompt Trainee Manager */}
+            <AppControlCopilot userId={profile!.id} isCoach={false} />
+
             {isCoachedTrainee && (
               <button
                 onClick={() => setInCall(true)}
-                className="w-full bg-surface border border-border hover:border-primary text-gray-200 font-medium py-3 px-4 rounded-xl mb-4 transition-colors"
+                className="w-full bg-surface border border-border hover:border-primary text-gray-200 font-medium py-3 px-4 rounded-xl transition-colors"
               >
                 Join Coach Call
               </button>
             )}
             <GymLogger userId={profile!.id} isCoached={isCoachedTrainee} />
-            <div className="mt-6">
-              <AiBrainPanel userId={profile!.id} />
-            </div>
+
+            {/* AI Form 2: TRACE Brain Knowledge & Study Engine */}
+            <AiBrainPanel userId={profile!.id} />
+
             {isCoachedTrainee && profile!.coach_id && (
-              <div className="mt-6">
+              <div>
                 <ChatPanel
                   myId={profile!.id}
                   peerId={profile!.coach_id}

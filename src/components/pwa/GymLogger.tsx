@@ -6,6 +6,7 @@ import { lookupExerciseId } from '../../lib/workout/catalog';
 import { createSessionDraft, sessionInsertFrom } from '../../lib/workout/session';
 import { useAssignedWorkout } from '../../hooks/useAssignedWorkout';
 import { useMediaUpload } from '../../hooks/useMediaUpload';
+import MediaViewer from '../media/MediaViewer';
 
 // --- Types ---
 type SetData = {
@@ -119,6 +120,7 @@ export default function GymLogger({
   const media = useMediaUpload();
   const [videoKeys, setVideoKeys] = useState<Record<string, string>>({});
   const [uploadingSetId, setUploadingSetId] = useState<string | null>(null);
+  const [viewingSetId, setViewingSetId] = useState<string | null>(null);
   const fileInputRef = useRef<HTMLInputElement | null>(null);
   const pendingSetIdRef = useRef<string | null>(null);
 
@@ -327,24 +329,33 @@ export default function GymLogger({
                         <svg xmlns="http://www.w3.org/2000/svg" width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M20.24 12.24a6 6 0 0 0-8.49-8.49L5 10.5V19h8.5z"/><line x1="16" y1="8" x2="2" y2="22"/><line x1="17.5" y1="15" x2="9" y2="6.5"/></svg>
                         e1RM: {e1RM} lbs
                       </div>
-                      {!set.completed && (
+                      {videoKeys[set.id] ? (
                         <button
-                          onClick={() => attachClip(set.id)}
-                          disabled={uploadingSetId === set.id}
-                          className={`text-xs font-medium px-2 py-1 rounded transition-colors ${
-                            videoKeys[set.id]
-                              ? 'bg-green-500/15 text-green-400'
-                              : 'bg-border/40 text-gray-400 hover:text-gray-200'
-                          }`}
+                          onClick={() =>
+                            setViewingSetId((cur) => (cur === set.id ? null : set.id))
+                          }
+                          className="text-xs font-medium px-2 py-1 rounded bg-green-500/15 text-green-400"
                         >
-                          {uploadingSetId === set.id
-                            ? 'Uploading...'
-                            : videoKeys[set.id]
-                              ? 'Clip attached'
-                              : '+ Form clip'}
+                          {viewingSetId === set.id ? 'Hide clip' : 'View clip'}
                         </button>
+                      ) : (
+                        !set.completed && (
+                          <button
+                            onClick={() => attachClip(set.id)}
+                            disabled={uploadingSetId === set.id}
+                            className="text-xs font-medium px-2 py-1 rounded bg-border/40 text-gray-400 hover:text-gray-200"
+                          >
+                            {uploadingSetId === set.id ? 'Uploading...' : '+ Form clip'}
+                          </button>
+                        )
                       )}
                     </div>
+
+                    {viewingSetId === set.id && videoKeys[set.id] && (
+                      <div className="px-[38px]">
+                        <MediaViewer objectKey={videoKeys[set.id]} />
+                      </div>
+                    )}
                   </div>
                 );
               })}

@@ -55,4 +55,4 @@ Server-side secrets (R2 keys, service-role key) live **only** as Supabase functi
 
 - **TRACE Brain** returns a placeholder until the RAG pipeline (embedding → Pinecone → LLM) is wired into `trace-brain`.
 - **Jitsi** rooms are open-by-name (v1); add a lobby/password or self-hosted JWT Jitsi before untrusted use.
-- **Media read-back** uses a presigned upload path; a presigned GET is still needed to display private clips.
+- **Media read-back** is wired end-to-end (`r2-get-url` presigned GET, authorized by set_logs RLS). A dedicated coach set-history/review screen for browsing past clips is still a future UI.
