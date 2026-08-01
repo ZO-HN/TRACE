@@ -18,6 +18,9 @@ graphify-out
 # Secrets — never commit
 supabase/functions/.env
 
+# Supabase CLI scratch
+supabase/.temp
+
 # Editor directories and files
 .vscode/*
 !.vscode/extensions.json

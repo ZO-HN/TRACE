@@ -21,8 +21,12 @@ npx supabase secrets set --env-file supabase/functions/.env
 
 # 6. Deploy the edge functions
 npx supabase functions deploy r2-presign
+npx supabase functions deploy r2-get-url
 npx supabase functions deploy trace-brain
 ```
+
+`r2-get-url` signs short-lived GET URLs for viewing private media; it shares the
+same `R2_*` secrets as `r2-presign` and authorizes via set_logs RLS.
 
 `trace-brain` uses `SUPABASE_SERVICE_ROLE_KEY` (auto-injected) to write ASSISTANT
 turns; no extra secret is needed until the RAG/LLM pipeline is wired.
