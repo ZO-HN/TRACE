@@ -2,7 +2,7 @@
 
 ## What this repo is
 
-**This is the Coach Web Dashboard only** — one repo of two. TRACE is now a single-coach platform: every trainee who signs up through the separate native client app is auto-enrolled as this coach's client (see `platform_settings`/`handle_new_user()` in the latest migration). There is no trainee-facing UI, offline outbox, or unit-conversion logic in this repo anymore — that all lives in the client app's repo. This repo only ever *reads* trainee-logged data (sets, sessions, biometrics) to display it; it never writes `set_logs`/`workout_sessions`.
+**This is the Coach Web Dashboard only** — one repo of two. TRACE is now a single-coach platform: every trainee who signs up through the separate native client app is auto-enrolled as this coach's client (see `platform_settings`/`handle_new_user()` in the latest migration). There is no trainee-facing UI, offline outbox, or unit-conversion logic in this repo anymore — that all lives in the client app's repo at `C:\Users\imint\TRACE-client` (Expo/React Native/NativeWind, same Supabase backend). This repo only ever *reads* trainee-logged data (sets, sessions, biometrics) to display it; it never writes `set_logs`/`workout_sessions`.
 
 ## Git policy (hard rule)
 
