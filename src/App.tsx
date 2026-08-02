@@ -1,5 +1,5 @@
 import './index.css';
-import LayoutResolver from './components/pwa/LayoutResolver';
+import CoachDashboard from './components/CoachDashboard';
 import { isSupabaseConfigured } from './lib/supabase';
 
 function App() {
@@ -19,7 +19,7 @@ function App() {
     );
   }
 
-  return <LayoutResolver />;
+  return <CoachDashboard />;
 }
 
 export default App;
