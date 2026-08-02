@@ -47,8 +47,19 @@ function RosterCard({ row, coachId }: { row: RosterRow; coachId: string }) {
   );
 }
 
+function LiveIndicator({ isLive }: { isLive: boolean }) {
+  return (
+    <span className="inline-flex items-center gap-1.5 text-xs font-medium text-gray-500">
+      <span
+        className={`w-1.5 h-1.5 rounded-full ${isLive ? 'bg-green-500 animate-pulse' : 'bg-gray-600'}`}
+      />
+      {isLive ? 'Live' : 'Connecting…'}
+    </span>
+  );
+}
+
 export default function RosterPanel({ coachId }: { coachId: string }) {
-  const { roster, isLoading, error } = useCoachRoster(coachId);
+  const { roster, isLoading, error, isLive } = useCoachRoster(coachId);
 
   if (isLoading) {
     return <p className="text-sm text-gray-500">Loading roster...</p>;
@@ -66,6 +77,12 @@ export default function RosterPanel({ coachId }: { coachId: string }) {
 
   return (
     <div className="space-y-3">
+      <div className="flex items-center justify-between px-1">
+        <h2 className="text-sm font-semibold text-gray-400 uppercase tracking-wider">
+          Roster
+        </h2>
+        <LiveIndicator isLive={isLive} />
+      </div>
       {roster.map((row) => (
         <RosterCard key={row.trainee_id} row={row} coachId={coachId} />
       ))}
