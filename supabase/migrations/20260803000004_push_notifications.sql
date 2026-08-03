@@ -1,0 +1,16 @@
+-- ==========================================
+-- TRACE PATCH: 20260803000004_push_notifications.sql
+-- Phase 5: push notification infrastructure.
+--
+-- Single-device MVP: one Expo push token per profile (re-registering on a
+-- new device overwrites it — fine for now, revisit with a dedicated
+-- push_tokens table if multi-device support is ever needed).
+--
+-- Already covered by existing RLS: "Users can always read and write their
+-- own data" (profiles FOR ALL, auth.uid() = id) already lets a trainee
+-- update their own expo_push_token — no new policy needed. Coaches do NOT
+-- get read access to trainees' push tokens (no reason to; only the
+-- send-push-on-message edge function needs to read them, and it does so
+-- with the service role, which bypasses RLS entirely).
+-- ==========================================
+ALTER TABLE public.profiles ADD COLUMN expo_push_token TEXT;
