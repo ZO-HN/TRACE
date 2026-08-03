@@ -2,6 +2,9 @@
 // Focuses on expanding context, providing detailed summaries of studies, and listing citation references with IDs.
 
 import { useState } from 'react';
+import { AnimatePresence, motion } from 'framer-motion';
+import { BookOpen, Brain, FileSearch, Loader2 } from 'lucide-react';
+import Button from '../ui/Button';
 
 export interface StudyCitation {
   refId: string;
@@ -59,10 +62,10 @@ export default function AiBrainPanel({ userId: _userId }: { userId: string }) {
   };
 
   return (
-    <div className="bg-surface border border-border rounded-xl flex flex-col p-4 shadow-sm">
+    <div className="bg-surface border border-border rounded-2xl flex flex-col p-4 shadow-lg shadow-black/20">
       <div className="flex items-center justify-between pb-3 border-b border-border mb-3">
         <div className="flex items-center gap-2">
-          <span className="w-2.5 h-2.5 rounded-full bg-primary animate-pulse" />
+          <Brain size={16} className="text-primary" />
           <h3 className="text-sm font-bold text-white uppercase tracking-wider">
             TRACE Brain — Knowledge & Study Engine
           </h3>
@@ -84,65 +87,78 @@ export default function AiBrainPanel({ userId: _userId }: { userId: string }) {
             if (e.key === 'Enter') handleResearch();
           }}
           placeholder="e.g. Research patellar tendonitis strain during heavy squatting"
-          className="flex-1 h-10 bg-background border border-border rounded-lg px-3 text-sm text-gray-100 placeholder-gray-500 focus:border-primary outline-none transition-colors"
+          className="flex-1 h-10 bg-background border border-border rounded-xl px-3 text-sm text-gray-100 placeholder-gray-500 focus:border-primary outline-none transition-colors"
         />
-        <button
+        <Button
           onClick={handleResearch}
-          disabled={isResearching || !query.trim()}
-          className="h-10 px-4 bg-primary hover:bg-primary-hover disabled:opacity-40 text-white rounded-lg text-sm font-semibold transition-colors"
+          disabled={!query.trim()}
+          loading={isResearching}
+          icon={<FileSearch size={15} />}
         >
-          {isResearching ? 'Analyzing...' : 'Research'}
-        </button>
+          Research
+        </Button>
       </div>
 
       {/* Research Output Studies */}
       {studies.length === 0 ? (
-        <div className="bg-background/50 border border-border/60 rounded-lg p-6 text-center">
+        <div className="bg-background/50 border border-border/60 rounded-xl p-6 text-center flex flex-col items-center gap-2">
+          {isResearching ? (
+            <Loader2 className="w-5 h-5 text-primary animate-spin" />
+          ) : (
+            <BookOpen className="w-6 h-6 text-gray-600" />
+          )}
           <p className="text-xs text-gray-500">
             Enter a question or topic above to run a scientific study synthesis with citation reference IDs.
           </p>
         </div>
       ) : (
         <div className="space-y-4 max-h-[22rem] overflow-y-auto pr-1">
-          {studies.map((item) => (
-            <div key={item.id} className="bg-background border border-border rounded-lg p-3 space-y-2 text-xs">
-              <div className="flex items-center justify-between border-b border-border/40 pb-1.5">
-                <span className="font-semibold text-primary">Topic: "{item.query}"</span>
-                <span className="text-[10px] text-gray-400">Study Report</span>
-              </div>
-
-              <div>
-                <span className="font-semibold text-gray-300 block mb-0.5">1. Context & Problem Breakdown</span>
-                <p className="text-gray-400 leading-relaxed">{item.problemBreakdown}</p>
-              </div>
-
-              <div>
-                <span className="font-semibold text-gray-300 block mb-0.5">2. Detailed Synthesis & Study Summary</span>
-                <p className="text-gray-200 leading-relaxed bg-surface/60 p-2 rounded border border-border/40">
-                  {item.detailedSummary}
-                </p>
-              </div>
-
-              <div>
-                <span className="font-semibold text-gray-300 block mb-1">3. Sources & Reference Citations</span>
-                <div className="space-y-1">
-                  {item.citations.map((c) => (
-                    <div key={c.refId} className="flex items-start justify-between bg-surface/40 p-1.5 rounded text-[11px]">
-                      <span className="text-gray-300">
-                        {c.title} <em className="text-gray-500">({c.source}, {c.year})</em>
-                      </span>
-                      <span className="font-mono text-[10px] text-primary bg-primary/10 px-1.5 py-0.5 rounded border border-primary/30">
-                        [{c.refId}]
-                      </span>
-                    </div>
-                  ))}
+          <AnimatePresence initial={false}>
+            {studies.map((item) => (
+              <motion.div
+                key={item.id}
+                initial={{ opacity: 0, y: -8 }}
+                animate={{ opacity: 1, y: 0 }}
+                transition={{ duration: 0.25 }}
+                className="bg-background border border-border rounded-xl p-3 space-y-2 text-xs"
+              >
+                <div className="flex items-center justify-between border-b border-border/40 pb-1.5">
+                  <span className="font-semibold text-primary">Topic: "{item.query}"</span>
+                  <span className="text-[10px] text-gray-400">Study Report</span>
                 </div>
-              </div>
-            </div>
-          ))}
+
+                <div>
+                  <span className="font-semibold text-gray-300 block mb-0.5">1. Context & Problem Breakdown</span>
+                  <p className="text-gray-400 leading-relaxed">{item.problemBreakdown}</p>
+                </div>
+
+                <div>
+                  <span className="font-semibold text-gray-300 block mb-0.5">2. Detailed Synthesis & Study Summary</span>
+                  <p className="text-gray-200 leading-relaxed bg-surface/60 p-2 rounded-lg border border-border/40">
+                    {item.detailedSummary}
+                  </p>
+                </div>
+
+                <div>
+                  <span className="font-semibold text-gray-300 block mb-1">3. Sources & Reference Citations</span>
+                  <div className="space-y-1">
+                    {item.citations.map((c) => (
+                      <div key={c.refId} className="flex items-start justify-between bg-surface/40 p-1.5 rounded-lg text-[11px]">
+                        <span className="text-gray-300">
+                          {c.title} <em className="text-gray-500">({c.source}, {c.year})</em>
+                        </span>
+                        <span className="font-mono text-[10px] text-primary bg-primary/10 px-1.5 py-0.5 rounded border border-primary/30">
+                          [{c.refId}]
+                        </span>
+                      </div>
+                    ))}
+                  </div>
+                </div>
+              </motion.div>
+            ))}
+          </AnimatePresence>
         </div>
       )}
     </div>
   );
 }
-

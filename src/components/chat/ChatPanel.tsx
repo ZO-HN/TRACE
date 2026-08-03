@@ -1,7 +1,10 @@
 // Minimal 1-on-1 chat panel (coached trainee <-> coach).
 
 import { useState } from 'react';
+import { motion } from 'framer-motion';
+import { Send } from 'lucide-react';
 import { useDirectChat } from '../../hooks/useDirectChat';
+import Button from '../ui/Button';
 
 export interface ChatPanelProps {
   myId: string;
@@ -28,7 +31,7 @@ export default function ChatPanel({ myId, peerId, peerLabel }: ChatPanelProps) {
   };
 
   return (
-    <div className="bg-surface border border-border rounded-xl flex flex-col max-h-80">
+    <div className="bg-background border border-border rounded-2xl flex flex-col max-h-80">
       <div className="px-4 py-2.5 border-b border-border">
         <h3 className="text-sm font-semibold text-white">{peerLabel}</h3>
       </div>
@@ -38,16 +41,19 @@ export default function ChatPanel({ myId, peerId, peerLabel }: ChatPanelProps) {
           <p className="text-xs text-gray-500 text-center py-4">No messages yet.</p>
         )}
         {messages.map((m) => (
-          <div
+          <motion.div
             key={m.id}
-            className={`max-w-[80%] rounded-xl px-3 py-2 text-sm ${
+            initial={{ opacity: 0, y: 6 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ duration: 0.15 }}
+            className={`max-w-[80%] rounded-2xl px-3 py-2 text-sm ${
               m.sender_id === myId
                 ? 'ml-auto bg-primary text-white'
-                : 'mr-auto bg-background border border-border text-gray-200'
+                : 'mr-auto bg-surface border border-border text-gray-200'
             }`}
           >
             {m.content}
-          </div>
+          </motion.div>
         ))}
       </div>
 
@@ -63,15 +69,17 @@ export default function ChatPanel({ myId, peerId, peerLabel }: ChatPanelProps) {
             if (e.key === 'Enter') void handleSend();
           }}
           placeholder="Message..."
-          className="flex-1 h-10 bg-background border border-border rounded-lg px-3 text-sm text-gray-100 focus:border-primary outline-none"
+          className="flex-1 h-10 bg-surface border border-border rounded-xl px-3 text-sm text-gray-100 focus:border-primary outline-none"
         />
-        <button
+        <Button
+          size="sm"
           onClick={() => void handleSend()}
-          disabled={sending || !draft.trim()}
-          className="h-10 px-4 bg-primary hover:bg-primary-hover disabled:opacity-40 text-white rounded-lg text-sm font-medium transition-colors"
+          disabled={!draft.trim()}
+          loading={sending}
+          icon={<Send size={14} />}
         >
           Send
-        </button>
+        </Button>
       </div>
     </div>
   );

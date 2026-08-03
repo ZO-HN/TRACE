@@ -1,4 +1,7 @@
 import { useState } from 'react';
+import { AnimatePresence, motion } from 'framer-motion';
+import { Loader2, Zap } from 'lucide-react';
+import Card from '../ui/Card';
 
 interface AppControlCopilotProps {
   userId: string;
@@ -61,7 +64,7 @@ export default function AppControlCopilot({ userId: _userId, isCoach }: AppContr
   };
 
   return (
-    <div className="bg-surface border border-border rounded-xl p-4 shadow-sm">
+    <Card className="p-4">
       <div className="flex items-center justify-between mb-3">
         <div className="flex items-center gap-2">
           <span className="w-2.5 h-2.5 rounded-full bg-emerald-500 animate-pulse" />
@@ -92,32 +95,41 @@ export default function AppControlCopilot({ userId: _userId, isCoach }: AppContr
               ? 'e.g. Assign Hypertrophy Block A to all beginners starting next Monday'
               : 'e.g. Log 3 sets of Bench Press at 185 lbs for 8 reps'
           }
-          className="flex-1 h-10 bg-background border border-border rounded-lg px-3 text-sm text-gray-100 placeholder-gray-500 focus:border-emerald-500 outline-none transition-colors"
+          className="flex-1 h-10 bg-background border border-border rounded-xl px-3 text-sm text-gray-100 placeholder-gray-500 focus:border-emerald-500 outline-none transition-colors"
         />
-        <button
+        <motion.button
+          whileTap={{ scale: 0.97 }}
           onClick={handleExecute}
           disabled={isProcessing || !prompt.trim()}
-          className="h-10 px-4 bg-emerald-600 hover:bg-emerald-500 disabled:opacity-40 text-white rounded-lg text-sm font-semibold transition-colors"
+          className="h-10 px-4 bg-emerald-600 hover:bg-emerald-500 disabled:opacity-40 text-white rounded-xl text-sm font-semibold transition-colors flex items-center gap-1.5"
         >
+          {isProcessing ? <Loader2 size={14} className="animate-spin" /> : <Zap size={14} />}
           {isProcessing ? 'Executing...' : 'Run'}
-        </button>
+        </motion.button>
       </div>
 
       {/* Action execution history */}
-      {logs.length > 0 && (
-        <div className="space-y-2 mt-3 pt-3 border-t border-border/60">
-          <span className="text-[11px] font-semibold text-gray-400">Executed Actions</span>
-          {logs.slice(0, 3).map((log) => (
-            <div key={log.id} className="bg-background/80 border border-border rounded-lg p-2.5 text-xs space-y-1">
-              <div className="flex items-center justify-between text-gray-400">
-                <span className="font-medium text-emerald-400">⚡ "{log.prompt}"</span>
-                <span>{log.timestamp}</span>
-              </div>
-              <p className="text-gray-200">{log.actionTaken}</p>
-            </div>
-          ))}
-        </div>
-      )}
-    </div>
+      <AnimatePresence>
+        {logs.length > 0 && (
+          <div className="space-y-2 mt-3 pt-3 border-t border-border/60">
+            <span className="text-[11px] font-semibold text-gray-400">Executed Actions</span>
+            {logs.slice(0, 3).map((log) => (
+              <motion.div
+                key={log.id}
+                initial={{ opacity: 0, y: -6 }}
+                animate={{ opacity: 1, y: 0 }}
+                className="bg-background/80 border border-border rounded-xl p-2.5 text-xs space-y-1"
+              >
+                <div className="flex items-center justify-between text-gray-400">
+                  <span className="font-medium text-emerald-400">⚡ "{log.prompt}"</span>
+                  <span>{log.timestamp}</span>
+                </div>
+                <p className="text-gray-200">{log.actionTaken}</p>
+              </motion.div>
+            ))}
+          </div>
+        )}
+      </AnimatePresence>
+    </Card>
   );
 }

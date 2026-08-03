@@ -1,9 +1,22 @@
+import { motion } from 'framer-motion';
+import { Dumbbell, LogOut, Loader2, AlertTriangle } from 'lucide-react';
 import { useTraceUser } from '../hooks/useTraceUser';
 import { useDeviceSize } from '../hooks/useDeviceSize';
+import { supabase } from '../lib/supabase';
 import AiBrainPanel from './chat/AiBrainPanel';
 import AppControlCopilot from './chat/AppControlCopilot';
 import RosterPanel from './coach/RosterPanel';
 import TemplateBuilder from './coach/TemplateBuilder';
+import Button from './ui/Button';
+
+function Avatar({ firstName, lastName }: { firstName?: string; lastName?: string }) {
+  const initials = `${firstName?.[0] ?? ''}${lastName?.[0] ?? ''}`.toUpperCase();
+  return (
+    <div className="w-9 h-9 rounded-full bg-primary/15 border border-primary/30 flex items-center justify-center text-primary text-xs font-bold">
+      {initials || '?'}
+    </div>
+  );
+}
 
 // ==========================================
 // Coach Dashboard — the only view in this app.
@@ -18,7 +31,7 @@ export default function CoachDashboard() {
     return (
       <div className="min-h-screen bg-background flex items-center justify-center">
         <div className="flex flex-col items-center gap-4">
-          <div className="w-10 h-10 rounded-full border-2 border-primary border-t-transparent animate-spin" />
+          <Loader2 className="w-8 h-8 text-primary animate-spin" />
           <p className="text-sm text-gray-400">Loading your profile...</p>
         </div>
       </div>
@@ -29,16 +42,12 @@ export default function CoachDashboard() {
     return (
       <div className="min-h-screen bg-background flex items-center justify-center px-6">
         <div className="text-center max-w-sm">
+          <AlertTriangle className="w-10 h-10 text-red-400 mx-auto mb-3" />
           <h2 className="text-xl font-bold text-white mb-2">Session Error</h2>
           <p className="text-sm text-gray-400 mb-4">
             {error?.message ?? 'Could not load your profile. Please sign in again.'}
           </p>
-          <button
-            onClick={() => (window.location.href = '/auth/login')}
-            className="bg-primary text-white px-4 py-2 rounded-lg text-sm font-medium hover:bg-primary-hover transition-colors"
-          >
-            Go to Login
-          </button>
+          <Button onClick={() => (window.location.href = '/auth/login')}>Go to Login</Button>
         </div>
       </div>
     );
@@ -47,13 +56,31 @@ export default function CoachDashboard() {
   return (
     <div className="min-h-screen bg-background text-gray-100 font-sans">
       <header className="bg-surface border-b border-border py-3 px-6 flex items-center justify-between">
-        <h1 className="text-lg font-bold text-white">TRACE Coach</h1>
-        <span className="text-sm text-gray-400">
-          {profile?.first_name} {profile?.last_name}
-        </span>
+        <div className="flex items-center gap-2.5">
+          <div className="w-8 h-8 rounded-lg bg-primary/15 border border-primary/30 flex items-center justify-center">
+            <Dumbbell size={16} className="text-primary" />
+          </div>
+          <h1 className="text-lg font-bold text-white">TRACE Coach</h1>
+        </div>
+        <div className="flex items-center gap-3">
+          <Avatar firstName={profile?.first_name} lastName={profile?.last_name} />
+          <span className="text-sm text-gray-400">
+            {profile?.first_name} {profile?.last_name}
+          </span>
+          <button
+            onClick={() => void supabase.auth.signOut()}
+            className="text-gray-500 hover:text-gray-300 transition-colors p-1.5 rounded-lg hover:bg-background"
+            title="Sign out"
+          >
+            <LogOut size={16} />
+          </button>
+        </div>
       </header>
 
-      <main
+      <motion.main
+        initial={{ opacity: 0, y: 8 }}
+        animate={{ opacity: 1, y: 0 }}
+        transition={{ duration: 0.35 }}
         className={`w-full mx-auto p-6 grid gap-6 ${
           isDesktop ? 'max-w-7xl grid-cols-[2fr_1fr]' : 'max-w-2xl grid-cols-1'
         }`}
@@ -67,7 +94,7 @@ export default function CoachDashboard() {
         <div className="flex flex-col gap-6 min-w-0">
           <AiBrainPanel userId={profile!.id} />
         </div>
-      </main>
+      </motion.main>
     </div>
   );
 }
