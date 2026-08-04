@@ -1,19 +1,15 @@
 import { StrictMode } from 'react'
 import { createRoot } from 'react-dom/client'
-import { BrowserRouter, Routes, Route } from 'react-router'
+import { BrowserRouter } from 'react-router'
 import './index.css'
-import App from './App.tsx'
-import CoachPage from './components/pages/CoachPage.tsx'
+import AppRouter from './router.tsx'
 import ErrorBoundary from './components/ErrorBoundary.tsx'
 
 createRoot(document.getElementById('root')!).render(
   <StrictMode>
     <ErrorBoundary>
       <BrowserRouter>
-        <Routes>
-          <Route path="/" element={<App />} />
-          <Route path="/:slug" element={<CoachPage />} />
-        </Routes>
+        <AppRouter />
       </BrowserRouter>
     </ErrorBoundary>
   </StrictMode>,

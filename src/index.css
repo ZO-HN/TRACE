@@ -1,5 +1,59 @@
 @import "tailwindcss";
+@import "tw-animate-css";
 @config "../tailwind.config.js";
+
+:root {
+  --canvas: #121417;
+  --surface-2: #1e2026;
+  --border-soft: #2d3139;
+  --success: #10b981;
+  --warning: #f59e0b;
+  --danger: #ef4444;
+  --accent: #4f46e5;
+  --accent-foreground: #ffffff;
+}
+
+[data-role='athlete'] {
+  --accent: #ccff00;
+  --accent-foreground: #000000;
+}
+
+@theme inline {
+  --color-canvas: var(--canvas);
+  --color-surface-2: var(--surface-2);
+  --color-border-soft: var(--border-soft);
+  --color-success: var(--success);
+  --color-warning: var(--warning);
+  --color-danger: var(--danger);
+  --color-accent: var(--accent);
+  --color-accent-foreground: var(--accent-foreground);
+
+  /* shadcn/radix component tokens mapped onto the same variables */
+  --color-background: var(--canvas);
+  --color-foreground: #f5f5f5;
+  --color-card: var(--surface-2);
+  --color-card-foreground: #f5f5f5;
+  --color-popover: var(--surface-2);
+  --color-popover-foreground: #f5f5f5;
+  --color-border: var(--border-soft);
+  --color-input: var(--border-soft);
+  --color-ring: var(--accent);
+  --color-primary: var(--accent);
+  --color-primary-foreground: var(--accent-foreground);
+  --color-secondary: var(--surface-2);
+  --color-secondary-foreground: #f5f5f5;
+  --color-muted: var(--surface-2);
+  --color-muted-foreground: #9ca3af;
+  --color-accent-subtle: var(--surface-2);
+  --color-accent-subtle-foreground: #f5f5f5;
+  --color-destructive: var(--danger);
+  --color-destructive-foreground: #ffffff;
+  --radius: 0.75rem;
+  --radius-sm: calc(var(--radius) - 4px);
+  --radius-md: calc(var(--radius) - 2px);
+  --radius-lg: var(--radius);
+  --radius-xl: calc(var(--radius) + 4px);
+}
 
 @layer base {
   body {

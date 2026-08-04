@@ -7,11 +7,11 @@ export default {
   theme: {
     extend: {
       colors: {
-        background: '#0A0A0A',
-        surface: '#171717',
-        border: '#262626',
-        primary: '#3B82F6',
-        'primary-hover': '#2563EB',
+        background: 'var(--canvas)',
+        surface: 'var(--surface-2)',
+        border: 'var(--border-soft)',
+        primary: 'var(--accent)',
+        'primary-hover': 'var(--accent)',
       }
     },
   },

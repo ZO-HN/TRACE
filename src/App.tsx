@@ -1,5 +1,6 @@
 import './index.css';
-import CoachDashboard from './components/CoachDashboard';
+import { Outlet } from 'react-router';
+import { RoleProvider } from './context/RoleContext';
 import { isSupabaseConfigured } from './lib/supabase';
 
 function App() {
@@ -19,7 +20,11 @@ function App() {
     );
   }
 
-  return <CoachDashboard />;
+  return (
+    <RoleProvider>
+      <Outlet />
+    </RoleProvider>
+  );
 }
 
 export default App;
