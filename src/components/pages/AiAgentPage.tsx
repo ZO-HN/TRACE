@@ -1,7 +1,9 @@
-import { Sparkles, Zap, AlertTriangle, History, SlidersHorizontal } from 'lucide-react';
+import { Sparkles, Zap, AlertTriangle, History, SlidersHorizontal, FileSearch } from 'lucide-react';
 import { Card, CardHeader, CardTitle, CardContent } from '@/components/ui/shadcn/card';
 import { Badge } from '@/components/ui/shadcn/badge';
 import { Tabs, TabsList, TabsTrigger, TabsContent } from '@/components/ui/shadcn/tabs';
+import AiBrainPanel from '@/components/chat/AiBrainPanel';
+import { useProfile } from '@/components/layout/AppShell';
 
 const automations = [
   { name: 'Weekly progression review', status: 'Active', lastRun: '2 hours ago' },
@@ -21,6 +23,8 @@ const history = [
 ];
 
 export default function AiAgentPage() {
+  const profile = useProfile();
+
   return (
     <div className="p-6 max-w-5xl mx-auto flex flex-col gap-6">
       <div className="flex items-center gap-3">
@@ -45,6 +49,9 @@ export default function AiAgentPage() {
           </TabsTrigger>
           <TabsTrigger value="history">
             <History size={14} /> History
+          </TabsTrigger>
+          <TabsTrigger value="research">
+            <FileSearch size={14} /> Research
           </TabsTrigger>
           <TabsTrigger value="prompt">
             <SlidersHorizontal size={14} /> System Prompt
@@ -84,6 +91,10 @@ export default function AiAgentPage() {
               </CardContent>
             </Card>
           ))}
+        </TabsContent>
+
+        <TabsContent value="research">
+          <AiBrainPanel userId={profile.id} />
         </TabsContent>
 
         <TabsContent value="prompt">
