@@ -3,7 +3,6 @@ import { Users, UserPlus, Activity, UserMinus, Trophy, AlertTriangle, CheckCircl
 import { Card, CardHeader, CardTitle } from '@/components/ui/shadcn/card';
 import StatCard from './StatCard';
 import EmptyPanel from './EmptyPanel';
-import GettingStartedCard from './GettingStartedCard';
 
 // TODO: wire real client/workout/churn stats — this repo has no stats-fetching hook yet.
 const placeholderStats = {
@@ -22,8 +21,6 @@ export default function CoachDashboard({ firstName }: { firstName?: string }) {
       className="w-full mx-auto p-6 flex flex-col gap-6 max-w-7xl"
     >
       <h1 className="text-xl font-bold text-foreground">Welcome, {firstName ?? 'Coach'}</h1>
-
-      <GettingStartedCard />
 
       <div className="grid grid-cols-2 lg:grid-cols-4 gap-4">
         <StatCard

@@ -3,8 +3,7 @@ import { Dumbbell } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { Badge } from '@/components/ui/shadcn/badge';
 import { ScrollArea } from '@/components/ui/shadcn/scroll-area';
-import { coachNav, athleteNav, type NavItem } from '@/config/nav';
-import { useRole } from '@/context/RoleContext';
+import { nav, type NavItem } from '@/config/nav';
 
 function NavRow({ item, collapsed }: { item: NavItem; collapsed: boolean }) {
   const Icon = item.icon;
@@ -39,9 +38,6 @@ function NavRow({ item, collapsed }: { item: NavItem; collapsed: boolean }) {
 }
 
 export default function Sidebar({ collapsed }: { collapsed: boolean }) {
-  const { role, toggleRole } = useRole();
-  const nav = role === 'coach' ? coachNav : athleteNav;
-
   return (
     <aside
       className={cn(
@@ -78,42 +74,6 @@ export default function Sidebar({ collapsed }: { collapsed: boolean }) {
           ))}
         </nav>
       </ScrollArea>
-
-      <div className="p-3 border-t border-border">
-        {collapsed ? (
-          <button
-            type="button"
-            onClick={toggleRole}
-            title={role === 'coach' ? 'For Coaches' : 'For Athletes'}
-            className="w-full rounded-lg bg-background py-1.5 text-[10px] font-medium text-muted-foreground hover:text-foreground"
-          >
-            {role === 'coach' ? 'Coach' : 'Athlete'}
-          </button>
-        ) : (
-          <div className="flex rounded-lg bg-background p-1 text-xs font-medium">
-            <button
-              type="button"
-              onClick={() => role !== 'athlete' && toggleRole()}
-              className={cn(
-                'flex-1 rounded-md py-1.5 transition-colors',
-                role === 'athlete' ? 'bg-primary text-primary-foreground' : 'text-muted-foreground hover:text-foreground',
-              )}
-            >
-              For Athletes
-            </button>
-            <button
-              type="button"
-              onClick={() => role !== 'coach' && toggleRole()}
-              className={cn(
-                'flex-1 rounded-md py-1.5 transition-colors',
-                role === 'coach' ? 'bg-primary text-primary-foreground' : 'text-muted-foreground hover:text-foreground',
-              )}
-            >
-              For Coaches
-            </button>
-          </div>
-        )}
-      </div>
     </aside>
   );
 }

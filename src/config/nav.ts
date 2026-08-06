@@ -3,6 +3,7 @@ import {
   Calendar,
   FolderKanban,
   Dumbbell,
+  BicepsFlexed,
   Wrench,
   Apple,
   UtensilsCrossed,
@@ -36,10 +37,7 @@ export interface NavConfig {
   sections: NavSection[];
 }
 
-// ==========================================
-// Coach nav — the real, functional side of this app.
-// ==========================================
-export const coachNav: NavConfig = {
+export const nav: NavConfig = {
   top: [
     { label: 'Dashboard', path: '/', icon: LayoutDashboard },
     { label: 'Clients', path: '/clients', icon: Users },
@@ -62,42 +60,7 @@ export const coachNav: NavConfig = {
       items: [
         { label: 'Programs', path: '/programs', icon: FolderKanban },
         { label: 'Workouts', path: '/workouts', icon: Dumbbell },
-        { label: 'Equipment', path: '/equipment', icon: Wrench, badge: 'Beta' },
-      ],
-    },
-    {
-      title: 'Nutrition',
-      items: [
-        { label: 'Foods', path: '/foods', icon: Apple },
-        { label: 'Meals', path: '/meals', icon: UtensilsCrossed },
-        { label: 'Meal Plans', path: '/meal-plans', icon: ClipboardList, badge: 'Beta' },
-      ],
-    },
-    {
-      title: 'AI Intelligence',
-      items: [{ label: 'AI Agent', path: '/ai-agent', icon: Sparkles }],
-    },
-    {
-      title: 'Account',
-      items: [{ label: 'Settings', path: '/settings', icon: Settings }],
-    },
-  ],
-};
-
-// ==========================================
-// Athlete nav — visual placeholder only; no trainee UI lives in this repo.
-// ==========================================
-export const athleteNav: NavConfig = {
-  top: [
-    { label: 'Dashboard', path: '/', icon: LayoutDashboard },
-    { label: 'Calendar', path: '/calendar', icon: Calendar },
-  ],
-  sections: [
-    {
-      title: 'Training',
-      items: [
-        { label: 'Programs', path: '/programs', icon: FolderKanban },
-        { label: 'Workouts', path: '/workouts', icon: Dumbbell },
+        { label: 'Exercises', path: '/exercises', icon: BicepsFlexed },
         { label: 'Equipment', path: '/equipment', icon: Wrench, badge: 'Beta' },
       ],
     },

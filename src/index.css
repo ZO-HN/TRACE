@@ -13,11 +13,6 @@
   --accent-foreground: #ffffff;
 }
 
-[data-role='athlete'] {
-  --accent: #ccff00;
-  --accent-foreground: #000000;
-}
-
 @theme inline {
   --color-canvas: var(--canvas);
   --color-surface-2: var(--surface-2);

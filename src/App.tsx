@@ -1,6 +1,5 @@
 import './index.css';
 import { Outlet } from 'react-router';
-import { RoleProvider } from './context/RoleContext';
 import { isSupabaseConfigured } from './lib/supabase';
 
 function App() {
@@ -20,11 +19,7 @@ function App() {
     );
   }
 
-  return (
-    <RoleProvider>
-      <Outlet />
-    </RoleProvider>
-  );
+  return <Outlet />;
 }
 
 export default App;

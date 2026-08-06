@@ -1,6 +1,5 @@
 import { useState } from 'react';
 import { ArrowUpDown, Download, Link2, Mail, Plus, Search, Settings2, Tag, UserPlus, Users } from 'lucide-react';
-import { Badge } from '@/components/ui/shadcn/badge';
 import {
   Dialog,
   DialogContent,
@@ -9,10 +8,85 @@ import {
   DialogDescription,
   DialogFooter,
 } from '@/components/ui/shadcn/dialog';
+import { Popover, PopoverTrigger, PopoverContent } from '@/components/ui/shadcn/popover';
 import { Input, Select } from '@/components/ui/shadcn/field';
 
 const columns = ['Client', 'Status', 'Tags', 'Attention', 'Last activity', 'Added'];
 const statusOptions = ['Active', 'Trial', 'Archived', 'Deactivated'];
+
+function StatusFilter() {
+  const [open, setOpen] = useState(false);
+  const [query, setQuery] = useState('');
+  const [checked, setChecked] = useState<string[]>([]);
+
+  const toggle = (s: string) =>
+    setChecked((prev) => (prev.includes(s) ? prev.filter((x) => x !== s) : [...prev, s]));
+
+  const filtered = statusOptions.filter((s) => s.toLowerCase().includes(query.toLowerCase()));
+
+  return (
+    <Popover
+      open={open}
+      onOpenChange={(next) => {
+        setOpen(next);
+        if (!next) setQuery('');
+      }}
+    >
+      <PopoverTrigger asChild>
+        <button
+          type="button"
+          className="flex items-center gap-1.5 h-10 px-3 rounded-lg border border-border text-sm text-foreground hover:bg-surface transition-colors"
+        >
+          <Plus size={14} /> Status
+          {checked.length > 0 && (
+            <span className="ml-0.5 rounded-full bg-primary/15 text-primary text-[11px] font-semibold px-1.5">
+              {checked.length}
+            </span>
+          )}
+        </button>
+      </PopoverTrigger>
+      <PopoverContent
+        align="start"
+        className="w-56 p-0"
+        onEscapeKeyDown={() => {
+          setChecked([]);
+          setQuery('');
+        }}
+      >
+        <div className="flex items-center gap-2 px-3 py-2 border-b border-border">
+          <Search size={13} className="text-muted-foreground shrink-0" />
+          <input
+            autoFocus
+            value={query}
+            onChange={(e) => setQuery(e.target.value)}
+            placeholder="Status"
+            className="flex-1 bg-transparent text-sm text-foreground placeholder-muted-foreground outline-none"
+          />
+        </div>
+        <div className="p-1">
+          {filtered.length === 0 ? (
+            <p className="text-xs text-muted-foreground text-center py-3">No matches.</p>
+          ) : (
+            filtered.map((s) => (
+              <label
+                key={s}
+                className="flex items-center gap-2 px-2 py-1.5 text-sm rounded-md hover:bg-muted cursor-pointer"
+              >
+                <input
+                  type="checkbox"
+                  className="accent-primary"
+                  checked={checked.includes(s)}
+                  onChange={() => toggle(s)}
+                />
+                {s}
+              </label>
+            ))
+          )}
+        </div>
+      </PopoverContent>
+    </Popover>
+  );
+}
 
 function InviteClientDialog({ open, onOpenChange }: { open: boolean; onOpenChange: (open: boolean) => void }) {
   const [tab, setTab] = useState<'email' | 'link' | 'find'>('email');
@@ -144,7 +218,6 @@ function TagsDialog({ open, onOpenChange }: { open: boolean; onOpenChange: (open
 export default function ClientsPage() {
   const [inviteOpen, setInviteOpen] = useState(false);
   const [tagsOpen, setTagsOpen] = useState(false);
-  const [statusOpen, setStatusOpen] = useState(false);
   const [filter, setFilter] = useState('');
 
   return (
@@ -157,25 +230,7 @@ export default function ClientsPage() {
           className="w-56"
         />
 
-        <div className="relative">
-          <button
-            type="button"
-            onClick={() => setStatusOpen((o) => !o)}
-            className="flex items-center gap-1.5 h-10 px-3 rounded-lg border border-border text-sm text-foreground hover:bg-surface transition-colors"
-          >
-            <Plus size={14} /> Status
-          </button>
-          {statusOpen && (
-            <div className="absolute z-10 mt-1 w-48 rounded-lg border border-border bg-popover shadow-md p-1">
-              {statusOptions.map((s) => (
-                <label key={s} className="flex items-center gap-2 px-2 py-1.5 text-sm rounded-md hover:bg-muted cursor-pointer">
-                  <input type="checkbox" className="accent-primary" />
-                  {s}
-                </label>
-              ))}
-            </div>
-          )}
-        </div>
+        <StatusFilter />
 
         <div className="flex-1" />
 

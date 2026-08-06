@@ -3,8 +3,7 @@ import { Outlet, useLocation, useOutletContext } from 'react-router';
 import { Loader2, AlertTriangle } from 'lucide-react';
 import { useTraceUser, type TraceProfile } from '@/hooks/useTraceUser';
 import Button from '@/components/ui/Button';
-import { coachNav, athleteNav } from '@/config/nav';
-import { useRole } from '@/context/RoleContext';
+import { nav } from '@/config/nav';
 import Sidebar from './Sidebar';
 import Header from './Header';
 import CopilotFab from '@/components/copilot/CopilotFab';
@@ -18,14 +17,12 @@ export function useProfile(): TraceProfile {
 }
 
 function usePageTitle(): string {
-  const { role } = useRole();
   const { pathname } = useLocation();
-  const nav = role === 'coach' ? coachNav : athleteNav;
 
   return useMemo(() => {
     const all = [...nav.top, ...nav.sections.flatMap((s) => s.items)];
     return all.find((item) => item.path === pathname)?.label ?? 'Dashboard';
-  }, [nav, pathname]);
+  }, [pathname]);
 }
 
 export default function AppShell() {
