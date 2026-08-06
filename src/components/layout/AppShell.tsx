@@ -1,5 +1,5 @@
 import { useMemo, useState } from 'react';
-import { Outlet, useLocation, useOutletContext } from 'react-router';
+import { Navigate, Outlet, useLocation, useOutletContext } from 'react-router';
 import { Loader2, AlertTriangle } from 'lucide-react';
 import { useTraceUser, type TraceProfile } from '@/hooks/useTraceUser';
 import Button from '@/components/ui/Button';
@@ -41,19 +41,21 @@ export default function AppShell() {
     );
   }
 
-  if (error || !profile) {
+  if (error) {
     return (
       <div className="min-h-screen bg-background flex items-center justify-center px-6">
         <div className="text-center max-w-sm">
           <AlertTriangle className="w-10 h-10 text-danger mx-auto mb-3" />
           <h2 className="text-xl font-bold text-foreground mb-2">Session Error</h2>
-          <p className="text-sm text-muted-foreground mb-4">
-            {error?.message ?? 'Could not load your profile. Please sign in again.'}
-          </p>
-          <Button onClick={() => (window.location.href = '/auth/login')}>Go to Login</Button>
+          <p className="text-sm text-muted-foreground mb-4">{error.message}</p>
+          <Button onClick={() => (window.location.href = '/login')}>Go to Login</Button>
         </div>
       </div>
     );
+  }
+
+  if (!profile) {
+    return <Navigate to="/login" replace />;
   }
 
   return (

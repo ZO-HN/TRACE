@@ -20,11 +20,13 @@ import SettingsPage from './components/pages/SettingsPage';
 import CalendarPage from './components/pages/CalendarPage';
 import TrainingGroupsPage from './components/pages/TrainingGroupsPage';
 import EquipmentPage from './components/pages/EquipmentPage';
+import LoginPage from './components/pages/LoginPage';
 
 export default function AppRouter() {
   return (
     <Routes>
       <Route path="/" element={<App />}>
+        <Route path="login" element={<LoginPage />} />
         <Route element={<AppShell />}>
           <Route index element={<DashboardPage />} />
           <Route path="clients" element={<ClientsPage />} />

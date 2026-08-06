@@ -1,32 +1,55 @@
 import { useMemo, useState } from 'react';
+import Model, { type IExerciseData, type IMuscleStats, type Muscle } from 'react-body-highlighter';
 import type { MuscleGroup } from '@/hooks/useMuscleGroups';
 import type { MuscleRole } from '@/hooks/useExercises';
-import { MUSCLE_REGIONS, regionsForMuscleName } from './muscleRegions';
+import { CANONICAL_NAME_BY_LIBRARY_MUSCLE, libraryMuscleForName } from './muscleLibraryMap';
 
-export default function MuscleModel({ primary, secondary }: { primary: MuscleGroup[]; secondary: MuscleGroup[] }) {
+export interface MuscleModelProps {
+  muscleGroups: MuscleGroup[];
+  primary: MuscleGroup[];
+  secondary: MuscleGroup[];
+  onSetRole: (muscle: MuscleGroup, role: MuscleRole) => void;
+  onRemove: (id: string) => void;
+}
+
+export default function MuscleModel({ muscleGroups, primary, secondary, onSetRole, onRemove }: MuscleModelProps) {
   const [side, setSide] = useState<'front' | 'back'>('front');
-  const [hoveredRegion, setHoveredRegion] = useState<string | null>(null);
 
-  const regionRole = useMemo(() => {
-    const map = new Map<string, MuscleRole>();
+  const data: IExerciseData[] = useMemo(() => {
+    const roleByRegion = new Map<Muscle, MuscleRole>();
     for (const m of secondary) {
-      for (const r of regionsForMuscleName(m.name)) map.set(r.key, 'secondary');
+      const region = libraryMuscleForName(m.name);
+      if (region) roleByRegion.set(region, 'secondary');
     }
-    // primary takes priority over secondary when a region matches both
     for (const m of primary) {
-      for (const r of regionsForMuscleName(m.name)) map.set(r.key, 'primary');
+      const region = libraryMuscleForName(m.name);
+      if (region) roleByRegion.set(region, 'primary'); // primary wins ties
     }
-    return map;
+    return [...roleByRegion.entries()].map(([region, role]) => ({
+      name: region,
+      muscles: [region],
+      frequency: role === 'primary' ? 1 : 2,
+    }));
   }, [primary, secondary]);
 
-  const regions = MUSCLE_REGIONS.filter((r) => r.side === side);
-  const hovered = MUSCLE_REGIONS.find((r) => r.key === hoveredRegion);
+  const byName = useMemo(() => {
+    const map = new Map<string, MuscleGroup>();
+    for (const m of muscleGroups) map.set(m.name, m);
+    return map;
+  }, [muscleGroups]);
 
-  const fillFor = (key: string) => {
-    const role = regionRole.get(key);
-    if (role === 'primary') return 'var(--success)';
-    if (role === 'secondary') return 'var(--accent)';
-    return hoveredRegion === key ? 'var(--border-soft)' : 'transparent';
+  const handleClick = ({ muscle }: IMuscleStats) => {
+    const canonicalName = CANONICAL_NAME_BY_LIBRARY_MUSCLE[muscle];
+    if (!canonicalName) return;
+    const target = byName.get(canonicalName);
+    if (!target) return;
+
+    const isPrimary = primary.some((m) => m.id === target.id);
+    const isSecondary = secondary.some((m) => m.id === target.id);
+
+    if (!isPrimary && !isSecondary) onSetRole(target, 'primary');
+    else if (isPrimary) onSetRole(target, 'secondary');
+    else onRemove(target.id);
   };
 
   return (
@@ -49,60 +72,18 @@ export default function MuscleModel({ primary, secondary }: { primary: MuscleGro
         </div>
       </div>
 
-      <div className="flex-1 min-h-0 rounded-xl border border-border bg-background flex items-center justify-center relative overflow-hidden">
-        {hovered && (
-          <div className="absolute top-3 left-1/2 -translate-x-1/2 rounded-lg border border-border bg-popover px-3 py-1.5 text-xs shadow-md z-10">
-            <span className="font-semibold text-foreground">{hovered.label}</span>
-          </div>
-        )}
-
-        <svg viewBox="0 0 200 320" className="h-full max-h-96 w-auto">
-          {/* body outline */}
-          <circle cx="100" cy="35" r="18" fill="none" stroke="var(--border-soft)" strokeWidth="1.5" />
-          <path
-            d="M70 58 Q100 50 130 58 L138 170 Q120 180 100 180 Q80 180 62 170 Z"
-            fill="none"
-            stroke="var(--border-soft)"
-            strokeWidth="1.5"
+      <div className="flex-1 min-h-0 rounded-xl border border-border bg-background flex items-center justify-center relative overflow-hidden py-4">
+        <div className="h-full max-h-96 [&_.rbh-wrapper]:h-full [&_svg]:h-full [&_svg]:w-auto [&_polygon]:transition-colors [&_polygon]:stroke-[var(--border-soft)]">
+          <Model
+            type={side === 'front' ? 'anterior' : 'posterior'}
+            data={data}
+            bodyColor="var(--surface-2)"
+            highlightedColors={['var(--success)', 'var(--accent)']}
+            onClick={handleClick}
+            style={{ height: '100%' }}
+            svgStyle={{ height: '100%', width: 'auto' }}
           />
-          <path d="M62 65 L40 150" fill="none" stroke="var(--border-soft)" strokeWidth="1.5" />
-          <path d="M138 65 L160 150" fill="none" stroke="var(--border-soft)" strokeWidth="1.5" />
-          <path d="M82 178 L76 300 M118 178 L124 300" fill="none" stroke="var(--border-soft)" strokeWidth="1.5" />
-          <path d="M100 178 L100 300" fill="none" stroke="var(--border-soft)" strokeWidth="1" />
-
-          {regions.map((r) =>
-            r.shape === 'rect' ? (
-              <rect
-                key={r.key}
-                x={r.x}
-                y={r.y}
-                width={r.w}
-                height={r.h}
-                rx={r.rx}
-                fill={fillFor(r.key)}
-                stroke="var(--border-soft)"
-                strokeWidth="1"
-                className="cursor-pointer transition-colors"
-                onMouseEnter={() => setHoveredRegion(r.key)}
-                onMouseLeave={() => setHoveredRegion(null)}
-              />
-            ) : (
-              <ellipse
-                key={r.key}
-                cx={r.x}
-                cy={r.y}
-                rx={r.w}
-                ry={r.h}
-                fill={fillFor(r.key)}
-                stroke="var(--border-soft)"
-                strokeWidth="1"
-                className="cursor-pointer transition-colors"
-                onMouseEnter={() => setHoveredRegion(r.key)}
-                onMouseLeave={() => setHoveredRegion(null)}
-              />
-            ),
-          )}
-        </svg>
+        </div>
 
         {primary.length === 0 && secondary.length === 0 && (
           <p className="absolute bottom-3 text-xs text-muted-foreground">Select muscle groups to see highlights</p>
@@ -116,6 +97,7 @@ export default function MuscleModel({ primary, secondary }: { primary: MuscleGro
         <span className="flex items-center gap-1.5">
           <span className="w-3 h-3 rounded-full" style={{ backgroundColor: 'var(--accent)' }} /> Secondary
         </span>
+        <span className="text-muted-foreground/70">Click a region to cycle primary → secondary → none</span>
       </div>
     </div>
   );

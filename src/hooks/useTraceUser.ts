@@ -116,40 +116,21 @@ export function useTraceUser(): UseTraceUserReturn {
     };
   }, []);
 
-  // Fallback demo profile for local preview when unauthenticated
-  const demoProfile: TraceProfile = {
-    id: 'demo-user-123',
-    email: 'coach@example.com',
-    role: 'coach',
-    coach_id: null,
-    first_name: 'Alex',
-    last_name: 'Trainer',
-    dob: '1990-01-01',
-    experience_level: 'ADVANCED',
-    primary_goal: 'Strength',
-    injury_notes: null,
-    wearable_sync_active: false,
-    premium_status: true,
-    created_at: new Date().toISOString(),
-    updated_at: new Date().toISOString(),
-  };
+  // Derived permission booleans — computed from profile truth. No demo/fake
+  // profile fallback: an unauthenticated visitor is unauthenticated — see
+  // AppShell, which redirects to /login when profile is null post-load.
+  const isCoach = profile?.role === 'coach';
+  const isCoachedTrainee = profile?.role === 'trainee' && profile.coach_id != null;
+  const isSoloTrainee = profile?.role === 'trainee' && profile.coach_id == null;
 
-  const activeProfile = profile ?? (user ? null : demoProfile);
-  const activeIsLoading = profile ? false : (user ? isLoading : false);
-
-  // Derived permission booleans — computed from profile truth
-  const isCoach = activeProfile?.role === 'coach';
-  const isCoachedTrainee = activeProfile?.role === 'trainee' && activeProfile.coach_id != null;
-  const isSoloTrainee = activeProfile?.role === 'trainee' && activeProfile.coach_id == null;
-
-  return { 
-    user, 
-    profile: activeProfile, 
-    isLoading: activeIsLoading, 
-    error: user ? error : null, 
-    isCoach, 
-    isCoachedTrainee, 
-    isSoloTrainee 
+  return {
+    user,
+    profile,
+    isLoading,
+    error,
+    isCoach,
+    isCoachedTrainee,
+    isSoloTrainee,
   };
 }
 

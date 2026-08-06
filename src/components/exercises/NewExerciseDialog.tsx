@@ -317,7 +317,13 @@ export default function NewExerciseDialog({
           </div>
 
           {tab === 'model' ? (
-            <MuscleModel primary={primary} secondary={secondary} />
+            <MuscleModel
+              muscleGroups={muscleGroups}
+              primary={primary}
+              secondary={secondary}
+              onSetRole={setRole}
+              onRemove={removeMuscle}
+            />
           ) : (
             <div className="flex-1 min-h-0 overflow-y-auto p-5 flex flex-col gap-6">
               <div>

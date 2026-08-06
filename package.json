@@ -27,6 +27,7 @@
     "framer-motion": "^12.43.0",
     "lucide-react": "^1.28.0",
     "react": "^19.2.7",
+    "react-body-highlighter": "^2.0.5",
     "react-dom": "^19.2.7",
     "react-router": "^8.2.0",
     "tailwind-merge": "^3.6.0",

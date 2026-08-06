@@ -12,4 +12,16 @@ export const isSupabaseConfigured = Boolean(supabaseUrl && supabaseAnonKey);
 export const supabase = createClient(
   supabaseUrl ?? 'https://placeholder-project.supabase.co',
   supabaseAnonKey ?? 'placeholder-anon-key',
+  {
+    auth: {
+      // Explicit (not just relying on SDK defaults): keep the coach signed
+      // in across browser restarts — session + refresh token persist in
+      // localStorage and are silently refreshed, so /login is only hit
+      // once until the user explicitly signs out.
+      persistSession: true,
+      autoRefreshToken: true,
+      storage: typeof window !== 'undefined' ? window.localStorage : undefined,
+      detectSessionInUrl: true,
+    },
+  },
 );

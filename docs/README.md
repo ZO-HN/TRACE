@@ -12,6 +12,7 @@ Central index for all TRACE architecture, product, audit, and specification docu
 | [specs/offline-sync-outbox](specs/offline-sync-outbox.md) | Spec | Offline session-logging outbox that flushes to Supabase on reconnect. |
 | [adr/0001-media-storage](adr/0001-media-storage.md) | Decision | Hybrid storage: Supabase for data, Cloudflare R2 for heavy media. |
 | [provisioning](provisioning.md) | Runbook | One-shot backend setup: migrations, seed, edge functions, secrets. |
+| [client-app-contract-check-ins-exercises](client-app-contract-check-ins-exercises.md) | Contract | What `TRACE-client` must do to submit check-ins and read the exercise library this dashboard authors. |
 | [deployment](deployment.md) | Runbook | Frontend build + static hosting + pre/post-deploy checklist. |
 
 ## Reading order
