@@ -6,7 +6,7 @@ import { Input } from '@/components/ui/shadcn/field';
 import AuthCard from '@/components/auth/AuthCard';
 import OAuthButtons from '@/components/auth/OAuthButtons';
 
-export default function LoginPage() {
+export default function SignupPage() {
   const [email, setEmail] = useState('');
   const [submitting, setSubmitting] = useState(false);
   const [error, setError] = useState<string | null>(null);
@@ -17,9 +17,14 @@ export default function LoginPage() {
     setSubmitting(true);
     setError(null);
 
+    // Coach-only web dashboard — every signup here is a coach account.
     const { error: otpError } = await supabase.auth.signInWithOtp({
       email,
-      options: { shouldCreateUser: false, emailRedirectTo: window.location.origin },
+      options: {
+        shouldCreateUser: true,
+        data: { role: 'coach' },
+        emailRedirectTo: window.location.origin,
+      },
     });
 
     setSubmitting(false);
@@ -32,11 +37,11 @@ export default function LoginPage() {
 
   if (sent) {
     return (
-      <AuthCard title="Check your email" subtitle={`We sent a login link to ${email}.`}>
+      <AuthCard title="Check your email" subtitle={`We sent a signup link to ${email}.`}>
         <div className="flex flex-col items-center gap-3 py-4">
           <CheckCircle2 size={32} className="text-success" />
           <p className="text-sm text-muted-foreground text-center">
-            Click the link in that email to finish signing in on this device.
+            Click the link in that email to finish creating your account.
           </p>
           <button
             type="button"
@@ -52,13 +57,13 @@ export default function LoginPage() {
 
   return (
     <AuthCard
-      title="Welcome back!"
-      subtitle="Enter your email below to login to your account"
+      title="Signup"
+      subtitle="Enter your email below to signup to Tracked"
       footer={
         <>
-          Don't have an account?{' '}
-          <Link to="/signup" className="text-primary hover:underline font-medium">
-            Sign up
+          Already have an account?{' '}
+          <Link to="/login" className="text-primary hover:underline font-medium">
+            Log in
           </Link>
         </>
       }
@@ -82,7 +87,7 @@ export default function LoginPage() {
           className="flex items-center justify-center gap-2 h-11 rounded-lg bg-foreground text-background text-sm font-semibold hover:opacity-90 transition-opacity disabled:opacity-60"
         >
           {submitting && <Loader2 size={14} className="animate-spin" />}
-          {submitting ? 'Sending link...' : 'Login with Email'}
+          {submitting ? 'Sending link...' : 'Signup with Email'}
         </button>
 
         <div className="flex items-center gap-3 py-1">
