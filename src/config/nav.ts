@@ -9,7 +9,6 @@ import {
   UtensilsCrossed,
   ClipboardList,
   Settings,
-  Sparkles,
   Users,
   MessageSquare,
   ClipboardCheck,
@@ -71,10 +70,6 @@ export const nav: NavConfig = {
         { label: 'Meals', path: '/meals', icon: UtensilsCrossed },
         { label: 'Meal Plans', path: '/meal-plans', icon: ClipboardList, badge: 'Beta' },
       ],
-    },
-    {
-      title: 'AI Intelligence',
-      items: [{ label: 'AI Agent', path: '/ai-agent', icon: Sparkles }],
     },
     {
       title: 'Account',

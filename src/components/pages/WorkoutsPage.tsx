@@ -12,6 +12,7 @@ import {
   X,
 } from 'lucide-react';
 import { useExerciseCatalog } from '@/hooks/useExerciseCatalog';
+import { addWorkout, useWorkoutLibrary, WORKOUT_CATEGORIES, type WorkoutCategory } from '@/hooks/useWorkoutLibrary';
 import { Input, Select } from '@/components/ui/shadcn/field';
 
 const columns = ['Title', 'Creator', 'Created At', 'Used In'];
@@ -20,8 +21,17 @@ function WorkoutBuilder({ onClose }: { onClose: () => void }) {
   const { rows } = useExerciseCatalog();
   const [view, setView] = useState<'list' | 'grid'>('list');
   const [query, setQuery] = useState('');
+  const [name, setName] = useState('');
+  const [category, setCategory] = useState<WorkoutCategory | ''>('');
 
   const filtered = rows.filter((r) => r.name.toLowerCase().includes(query.toLowerCase()));
+
+  const handleSave = () => {
+    const trimmed = name.trim();
+    if (!trimmed) return;
+    addWorkout({ name: trimmed, category: category || 'Full Body' });
+    onClose();
+  };
 
   return (
     <div className="fixed inset-0 z-40 bg-background flex flex-col">
@@ -39,7 +49,11 @@ function WorkoutBuilder({ onClose }: { onClose: () => void }) {
           <button onClick={onClose} className="h-9 px-4 rounded-lg border border-border text-sm font-medium text-foreground hover:bg-surface transition-colors">
             Cancel
           </button>
-          <button className="flex items-center gap-1.5 h-9 px-4 rounded-lg bg-success text-white text-sm font-semibold hover:opacity-90 transition-opacity">
+          <button
+            onClick={handleSave}
+            disabled={!name.trim()}
+            className="flex items-center gap-1.5 h-9 px-4 rounded-lg bg-success text-white text-sm font-semibold hover:opacity-90 transition-opacity disabled:opacity-50 disabled:pointer-events-none"
+          >
             <Save size={14} /> Save &amp; Close
           </button>
         </div>
@@ -91,11 +105,25 @@ function WorkoutBuilder({ onClose }: { onClose: () => void }) {
 
         <div className="flex-1 flex flex-col p-4 gap-3 min-h-0">
           <div className="flex gap-3">
-            <Input placeholder="Workout name" className="flex-1" />
-            <Select className="w-40" defaultValue="">
+            <Input
+              placeholder="Workout name"
+              className="flex-1"
+              value={name}
+              onChange={(e) => setName(e.target.value)}
+            />
+            <Select
+              className="w-40"
+              value={category}
+              onChange={(e) => setCategory(e.target.value as WorkoutCategory)}
+            >
               <option value="" disabled>
                 Category
               </option>
+              {WORKOUT_CATEGORIES.map((c) => (
+                <option key={c} value={c}>
+                  {c}
+                </option>
+              ))}
             </Select>
           </div>
           <Input placeholder="Add a description (optional)" />
@@ -130,6 +158,7 @@ function WorkoutBuilder({ onClose }: { onClose: () => void }) {
 
 export default function WorkoutsPage() {
   const [builderOpen, setBuilderOpen] = useState(false);
+  const workouts = useWorkoutLibrary();
 
   return (
     <div className="p-6 flex flex-col gap-4">
@@ -158,20 +187,41 @@ export default function WorkoutsPage() {
           ))}
         </div>
 
-        <div className="flex flex-col items-center justify-center gap-3 py-16 text-center px-6">
-          <Dumbbell size={32} className="text-muted-foreground" />
-          <p className="text-sm font-semibold text-foreground">No workouts yet</p>
-          <p className="text-xs text-muted-foreground max-w-sm">
-            Workouts are the building blocks of your programs, built from your exercise library — create one to start assembling a plan.
-          </p>
-          <button
-            type="button"
-            onClick={() => setBuilderOpen(true)}
-            className="flex items-center gap-2 h-10 px-4 rounded-lg bg-success text-white text-sm font-semibold hover:opacity-90 transition-opacity mt-1"
-          >
-            Create workout
-          </button>
-        </div>
+        {workouts.length === 0 ? (
+          <div className="flex flex-col items-center justify-center gap-3 py-16 text-center px-6">
+            <Dumbbell size={32} className="text-muted-foreground" />
+            <p className="text-sm font-semibold text-foreground">No workouts yet</p>
+            <p className="text-xs text-muted-foreground max-w-sm">
+              Workouts are the building blocks of your programs, built from your exercise library — create one to start assembling a plan.
+            </p>
+            <button
+              type="button"
+              onClick={() => setBuilderOpen(true)}
+              className="flex items-center gap-2 h-10 px-4 rounded-lg bg-success text-white text-sm font-semibold hover:opacity-90 transition-opacity mt-1"
+            >
+              Create workout
+            </button>
+          </div>
+        ) : (
+          <div>
+            {workouts.map((w) => (
+              <div
+                key={w.id}
+                className="grid grid-cols-4 gap-4 px-4 py-3 border-b border-border last:border-b-0 text-sm items-center"
+              >
+                <div className="flex items-center gap-2 font-medium text-foreground">
+                  <Dumbbell size={14} className="text-muted-foreground shrink-0" />
+                  {w.name}
+                </div>
+                <span className="text-muted-foreground">{w.author}</span>
+                <span className="text-muted-foreground">
+                  {new Date(w.createdAt).toLocaleDateString(undefined, { month: 'short', day: 'numeric' })}
+                </span>
+                <span className="text-muted-foreground">—</span>
+              </div>
+            ))}
+          </div>
+        )}
       </div>
 
       {builderOpen && <WorkoutBuilder onClose={() => setBuilderOpen(false)} />}

@@ -3,7 +3,6 @@ import App from './App';
 import CoachPage from './components/pages/CoachPage';
 import AppShell from './components/layout/AppShell';
 import DashboardPage from './components/pages/DashboardPage';
-import AiAgentPage from './components/pages/AiAgentPage';
 import ClientsPage from './components/pages/ClientsPage';
 import MessagesPage from './components/pages/MessagesPage';
 import CheckInsPage from './components/pages/CheckInsPage';
@@ -46,7 +45,6 @@ export default function AppRouter() {
           <Route path="foods" element={<FoodsPage />} />
           <Route path="meals" element={<MealsPage />} />
           <Route path="meal-plans" element={<MealPlansPage />} />
-          <Route path="ai-agent" element={<AiAgentPage />} />
           <Route path="settings" element={<SettingsPage />} />
         </Route>
       </Route>

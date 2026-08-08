@@ -1,4 +1,4 @@
-import { PanelLeft, Search, MessageCircleQuestion, HelpCircle, Bell, MessageCircle, LogOut } from 'lucide-react';
+import { PanelLeft, Search, MessageCircleQuestion, HelpCircle, Bell, MessageCircle, LogOut, LayoutDashboard } from 'lucide-react';
 import { supabase } from '@/lib/supabase';
 import { Avatar, AvatarFallback } from '@/components/ui/shadcn/avatar';
 import type { TraceProfile } from '@/hooks/useTraceUser';
@@ -23,11 +23,21 @@ export default function Header({
           type="button"
           onClick={onToggleCollapsed}
           aria-label={collapsed ? 'Expand sidebar' : 'Collapse sidebar'}
-          className="hidden md:flex text-muted-foreground hover:text-foreground transition-colors p-1.5 rounded-lg hover:bg-background shrink-0"
+          className="text-muted-foreground hover:text-foreground transition-colors p-1.5 rounded-lg hover:bg-background shrink-0"
         >
           <PanelLeft size={18} />
         </button>
-        <h1 className="text-lg font-bold text-foreground truncate">{title}</h1>
+
+        <div className="flex md:hidden items-center gap-2 shrink-0">
+          <div className="w-8 h-8 rounded-lg bg-primary/15 border border-primary/30 flex items-center justify-center shrink-0">
+            <LayoutDashboard size={16} className="text-primary" />
+          </div>
+          <span className="text-lg font-bold text-foreground">TRACE</span>
+        </div>
+
+        <div className="hidden md:block w-px h-6 bg-border shrink-0" />
+
+        <h1 className="hidden md:block text-lg font-bold text-foreground truncate">{title}</h1>
       </div>
 
       <div className="flex items-center gap-2 shrink-0">
