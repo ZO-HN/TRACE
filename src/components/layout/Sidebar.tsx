@@ -1,5 +1,5 @@
 import { NavLink } from 'react-router';
-import { Dumbbell } from 'lucide-react';
+import { Activity } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { Badge } from '@/components/ui/shadcn/badge';
 import { ScrollArea } from '@/components/ui/shadcn/scroll-area';
@@ -17,8 +17,8 @@ function NavRow({ item, collapsed }: { item: NavItem; collapsed: boolean }) {
           'flex items-center gap-2.5 rounded-lg px-3 py-2 text-sm font-medium transition-colors',
           collapsed && 'justify-center px-2',
           isActive
-            ? 'bg-primary/15 text-primary'
-            : 'text-muted-foreground hover:bg-surface hover:text-foreground',
+            ? 'relative bg-primary/15 text-primary font-semibold shadow-[inset_2px_0_0_var(--accent)]'
+            : 'text-muted-foreground hover:bg-surface/80 hover:text-gray-200',
         )
       }
     >
@@ -47,9 +47,9 @@ export default function Sidebar({ collapsed }: { collapsed: boolean }) {
     >
       <div className={cn('flex items-center gap-2.5 px-5 py-4', collapsed && 'justify-center px-0')}>
         <div className="w-8 h-8 rounded-lg bg-primary/15 border border-primary/30 flex items-center justify-center shrink-0">
-          <Dumbbell size={16} className="text-primary" />
+          <Activity size={16} className="text-primary" />
         </div>
-        {!collapsed && <span className="text-lg font-bold text-foreground">Tracked</span>}
+        {!collapsed && <span className="text-lg font-bold text-foreground">TRACE</span>}
       </div>
 
       <ScrollArea className="flex-1 min-h-0">

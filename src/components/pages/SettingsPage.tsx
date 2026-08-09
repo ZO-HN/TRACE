@@ -1,8 +1,12 @@
 import { useState } from 'react';
 import {
   Bell,
+  Check,
+  Copy,
   Eye,
+  ExternalLink,
   GripVertical,
+  Link2,
   ListChecks,
   LogOut,
   RotateCcw,
@@ -17,6 +21,7 @@ import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from '
 import { useProfile } from '@/components/layout/AppShell';
 import { supabase } from '@/lib/supabase';
 import { cn } from '@/lib/utils';
+import { DEFAULT_ONBOARDING_SCREENS, buildInviteLink, type OnboardingScreen } from '@/config/onboardingScreens';
 
 const ACCOUNT_TABS = [
   { id: 'profile', label: 'Profile', icon: User },
@@ -508,43 +513,23 @@ function AppTab() {
   );
 }
 
-interface OnboardingScreen {
-  key: string;
-  label: string;
-  required?: boolean;
-  enabled: boolean;
-}
-
-const DEFAULT_ONBOARDING_SCREENS: OnboardingScreen[] = [
-  { key: 'name', label: 'Full Name', required: true, enabled: true },
-  { key: 'email', label: 'Email Address', required: true, enabled: true },
-  { key: 'dob', label: 'Date of Birth', enabled: true },
-  { key: 'height', label: 'Height', enabled: true },
-  { key: 'weight', label: 'Weight', enabled: true },
-  { key: 'current-goal', label: 'Current Goal', enabled: true },
-  { key: 'current-workouts', label: 'Current Workouts', enabled: false },
-  { key: 'current-training-split', label: 'Training Split', enabled: false },
-  { key: 'exercise-selection', label: 'Exercise Selection', enabled: false },
-  { key: 'equipment-list-gym', label: 'Equipment List', enabled: false },
-  { key: 'injuries', label: 'Injuries', enabled: false },
-  { key: 'avg-cardio-per-week', label: 'Average Cardio Per Week', enabled: false },
-  { key: 'avg-steps-per-day', label: 'Average Steps Per Day', enabled: false },
-  { key: 'food-preferences', label: 'Food Preferences', enabled: false },
-  { key: 'allergies', label: 'Allergies', enabled: false },
-  { key: 'daily-calories', label: 'Daily Calories', enabled: false },
-  { key: 'daily-macros', label: 'Daily Macros', enabled: false },
-  { key: 'avg-number-meals-per-day', label: 'Average Meals Per Day', enabled: false },
-  { key: 'meals-you-usually-eat', label: 'Meals You Usually Eat', enabled: false },
-  { key: 'num-meals-before-gym', label: 'Meals Before Gym', enabled: false },
-  { key: 'pre-workout-meal', label: 'Pre-Workout Meal', enabled: false },
-  { key: 'timezone', label: 'Timezone', enabled: false },
-  { key: 'recent-physique-shots', label: 'Recent Physique Photos', enabled: false },
-];
-
 function OnboardingScreensTab() {
+  const profile = useProfile();
   const [screens, setScreens] = useState<OnboardingScreen[]>(DEFAULT_ONBOARDING_SCREENS);
   const [dragKey, setDragKey] = useState<string | null>(null);
   const [previewKey, setPreviewKey] = useState<string | null>(null);
+  const [copied, setCopied] = useState(false);
+
+  const copyInviteLink = async () => {
+    const link = buildInviteLink(screens, profile.first_name ?? '');
+    try {
+      await navigator.clipboard.writeText(link);
+      setCopied(true);
+      setTimeout(() => setCopied(false), 2000);
+    } catch {
+      window.prompt('Copy this invite link:', link);
+    }
+  };
 
   const enabledCount = screens.filter((s) => s.enabled).length;
 
@@ -569,6 +554,35 @@ function OnboardingScreensTab() {
       <p className="text-xs text-muted-foreground -mt-1">
         Configure which screens your clients will see during onboarding. Drag to reorder and toggle to enable/disable screens.
       </p>
+
+      <Card>
+        <CardContent className="pt-5 flex flex-col gap-3">
+          <div className="flex items-center gap-2 text-sm font-semibold text-foreground">
+            <Link2 size={14} className="text-primary" /> Invite link
+          </div>
+          <p className="text-xs text-muted-foreground -mt-1">
+            Share this link with a new client. It opens the onboarding form below, built from whichever screens are
+            enabled here.
+          </p>
+          <div className="flex items-center gap-2">
+            <button
+              type="button"
+              onClick={copyInviteLink}
+              className="flex items-center gap-1.5 h-9 px-3 rounded-lg bg-primary text-primary-foreground text-sm font-semibold hover:opacity-90 transition-opacity"
+            >
+              {copied ? <Check size={13} /> : <Copy size={13} />} {copied ? 'Copied' : 'Copy invite link'}
+            </button>
+            <a
+              href={buildInviteLink(screens, profile.first_name ?? '')}
+              target="_blank"
+              rel="noreferrer"
+              className="flex items-center gap-1.5 h-9 px-3 rounded-lg border border-border text-sm font-medium text-foreground hover:bg-surface transition-colors"
+            >
+              <ExternalLink size={13} /> Preview
+            </a>
+          </div>
+        </CardContent>
+      </Card>
 
       <div className="flex items-center justify-between">
         <span className="text-sm font-semibold text-foreground">
@@ -621,7 +635,11 @@ function OnboardingScreensTab() {
             </div>
             <button
               type="button"
-              onClick={() => setPreviewKey((k) => (k === screen.key ? null : screen.key))}
+              onClick={() => {
+                setPreviewKey((k) => (k === screen.key ? null : screen.key));
+                const single: OnboardingScreen[] = [{ ...screen, enabled: true }];
+                window.open(buildInviteLink(single, profile.first_name ?? ''), '_blank', 'noreferrer');
+              }}
               aria-label={`Preview ${screen.label}`}
               className={cn(
                 'p-1.5 rounded-md shrink-0 transition-colors',
