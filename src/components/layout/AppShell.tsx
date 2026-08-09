@@ -1,10 +1,10 @@
-import { useMemo, useState } from 'react';
+import { useMemo } from 'react';
 import { Navigate, Outlet, useLocation, useOutletContext } from 'react-router';
 import { Loader2, AlertTriangle } from 'lucide-react';
 import { useTraceUser, type TraceProfile } from '@/hooks/useTraceUser';
 import Button from '@/components/ui/Button';
 import { nav } from '@/config/nav';
-import Sidebar from './Sidebar';
+import Dock from './Dock';
 import Header from './Header';
 import CopilotFab from '@/components/copilot/CopilotFab';
 
@@ -27,7 +27,6 @@ function usePageTitle(): string {
 
 export default function AppShell() {
   const { isLoading, error, profile } = useTraceUser();
-  const [collapsed, setCollapsed] = useState(false);
   const title = usePageTitle();
 
   if (isLoading) {
@@ -59,19 +58,12 @@ export default function AppShell() {
   }
 
   return (
-    <div className="min-h-screen bg-background text-foreground font-sans flex">
-      <Sidebar collapsed={collapsed} />
-      <div className="flex-1 min-w-0 flex flex-col">
-        <Header
-          profile={profile}
-          title={title}
-          collapsed={collapsed}
-          onToggleCollapsed={() => setCollapsed((c) => !c)}
-        />
-        <main className="flex-1 min-w-0">
-          <Outlet context={{ profile } satisfies AppShellContext} />
-        </main>
-      </div>
+    <div className="min-h-screen bg-background text-foreground font-sans flex flex-col">
+      <Header profile={profile} title={title} />
+      <main className="flex-1 min-w-0 pb-[120px]">
+        <Outlet context={{ profile } satisfies AppShellContext} />
+      </main>
+      <Dock />
       <CopilotFab userId={profile.id} />
     </div>
   );

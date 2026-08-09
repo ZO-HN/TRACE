@@ -1,6 +1,7 @@
 import './index.css';
 import { Outlet } from 'react-router';
 import { isSupabaseConfigured } from './lib/supabase';
+import { ToastProvider } from './components/ui/toast';
 
 function App() {
   if (!isSupabaseConfigured) {
@@ -19,7 +20,11 @@ function App() {
     );
   }
 
-  return <Outlet />;
+  return (
+    <ToastProvider>
+      <Outlet />
+    </ToastProvider>
+  );
 }
 
 export default App;

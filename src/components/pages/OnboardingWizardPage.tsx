@@ -54,7 +54,6 @@ const STEP_ICONS: Record<string, typeof User> = {
   'meals-you-usually-eat': UtensilsCrossed,
   'num-meals-before-gym': UtensilsCrossed,
   'pre-workout-meal': UtensilsCrossed,
-  timezone: Clock,
   'recent-physique-shots': Camera,
 };
 

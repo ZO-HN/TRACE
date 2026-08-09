@@ -58,7 +58,6 @@ export const DEFAULT_ONBOARDING_SCREENS: OnboardingScreen[] = [
   { key: 'meals-you-usually-eat', label: 'Meals You Usually Eat', enabled: false },
   { key: 'num-meals-before-gym', label: 'Meals Before Gym', enabled: false },
   { key: 'pre-workout-meal', label: 'Pre-Workout Meal', enabled: false },
-  { key: 'timezone', label: 'Timezone', enabled: false },
   { key: 'recent-physique-shots', label: 'Recent Physique Photos', enabled: false },
 ];
 
@@ -261,23 +260,6 @@ export const STEP_DEFS: Record<string, StepDef> = {
     subtitle: 'This helps your coach plan meal timing and nutrition around your training sessions.',
     footerText: "Choose the meal of your day that's closest to when you train.",
     options: ['Meal 1', 'Meal 2', 'Meal 3', 'Meal 4', 'Meal 5', "I don't eat before training", 'It varies day to day'],
-  },
-  timezone: {
-    category: 'personal',
-    kind: 'single-choice',
-    title: "What timezone are you in?",
-    subtitle: 'This helps your coach schedule check-ins and coaching messages at the right time.',
-    footerText: 'We use this only for scheduling and reminders.',
-    options: [
-      'Pacific (GMT-8)',
-      'Mountain (GMT-7)',
-      'Central (GMT-6)',
-      'Eastern (GMT-5)',
-      'UTC (GMT+0)',
-      'Central Europe (GMT+1)',
-      'Singapore (GMT+8)',
-      'Sydney (GMT+11)',
-    ],
   },
   'recent-physique-shots': {
     category: 'personal',

@@ -71,7 +71,8 @@ export default function CopilotDrawer({
             AI Copilot
           </SheetTitle>
           <SheetDescription>
-            Ask anything — assign plans, send check-ins, or query your roster in natural language.
+            Ask anything — assign plans, send check-ins, or query your roster in natural language. Responses here are
+            simulated for now; no request leaves your browser.
           </SheetDescription>
         </SheetHeader>
 

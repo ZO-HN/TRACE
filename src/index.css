@@ -55,3 +55,48 @@
     @apply bg-background text-gray-100 antialiased;
   }
 }
+
+/* Floating dock nav — see design_handoff_sidebar_copilot/README.md */
+.dock-tile {
+  --isz: 46px;
+  width: var(--isz);
+  height: var(--isz);
+  border-radius: 26%;
+  background: var(--ic);
+  box-shadow: 0 4px 10px rgba(0, 0, 0, 0.35);
+  transition: width 0.15s ease, height 0.15s ease, box-shadow 0.15s ease, transform 0.1s ease, background 0.15s ease;
+}
+
+.dock-tile:hover {
+  background: color-mix(in srgb, var(--ic) 88%, white 12%);
+  box-shadow: 0 6px 16px rgba(0, 0, 0, 0.45);
+  --isz: 54px;
+}
+
+.dock-tile:active {
+  transform: scale(0.92);
+}
+
+.dock-tile-active-dot {
+  position: absolute;
+  bottom: -8px;
+  left: 50%;
+  transform: translateX(-50%);
+  width: 4px;
+  height: 4px;
+  border-radius: 50%;
+  background: var(--accent);
+}
+
+.dock-divider {
+  width: 1px;
+  height: 26px;
+  background: rgba(255, 255, 255, 0.12);
+  align-self: center;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .dock-tile {
+    transition: none;
+  }
+}

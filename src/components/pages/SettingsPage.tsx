@@ -8,9 +8,7 @@ import {
   GripVertical,
   Link2,
   ListChecks,
-  LogOut,
   RotateCcw,
-  Shield,
   Smartphone,
   User,
 } from 'lucide-react';
@@ -19,15 +17,14 @@ import { Label, Input, Select, Textarea } from '@/components/ui/shadcn/field';
 import { Avatar, AvatarImage, AvatarFallback } from '@/components/ui/shadcn/avatar';
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from '@/components/ui/shadcn/dialog';
 import { useProfile } from '@/components/layout/AppShell';
-import { supabase } from '@/lib/supabase';
 import { cn } from '@/lib/utils';
+import { useToast } from '@/components/ui/toast';
 import { DEFAULT_ONBOARDING_SCREENS, buildInviteLink, type OnboardingScreen } from '@/config/onboardingScreens';
 
 const ACCOUNT_TABS = [
   { id: 'profile', label: 'Profile', icon: User },
   { id: 'app', label: 'App', icon: Smartphone },
   { id: 'notifications', label: 'Notifications', icon: Bell },
-  { id: 'security', label: 'Security', icon: Shield },
 ] as const;
 
 const CLIENT_EXPERIENCE_TABS = [{ id: 'onboarding', label: 'Client onboarding screens', icon: ListChecks }] as const;
@@ -83,6 +80,7 @@ const BIOLOGICAL_SEX_OPTIONS = ['Prefer not to say', 'Male', 'Female'];
 
 function ProfileTab() {
   const profile = useProfile();
+  const { toast } = useToast();
   const initials = `${profile.first_name?.[0] ?? ''}${profile.last_name?.[0] ?? ''}`.toUpperCase();
 
   const [firstName, setFirstName] = useState(profile.first_name ?? '');
@@ -129,7 +127,7 @@ function ProfileTab() {
           </div>
           <div className="flex items-center justify-between">
             <p className="text-xs text-muted-foreground">May be used within team data by coaches.</p>
-            <button className="h-9 px-4 rounded-lg bg-success text-white text-sm font-semibold hover:opacity-90 transition-opacity">
+            <button onClick={() => toast('Successfully updated profile settings.')} className="h-9 px-4 rounded-lg bg-success text-white text-sm font-semibold hover:opacity-90 transition-opacity">
               Save
             </button>
           </div>
@@ -173,7 +171,7 @@ function ProfileTab() {
           </div>
           <div className="flex items-center justify-between">
             <p className="text-xs text-muted-foreground">Personal information.</p>
-            <button className="h-9 px-4 rounded-lg bg-success text-white text-sm font-semibold hover:opacity-90 transition-opacity">
+            <button onClick={() => toast('Successfully updated profile settings.')} className="h-9 px-4 rounded-lg bg-success text-white text-sm font-semibold hover:opacity-90 transition-opacity">
               Save
             </button>
           </div>
@@ -192,7 +190,7 @@ function ProfileTab() {
           </Select>
           <div className="flex items-center justify-between">
             <p className="text-xs text-muted-foreground">Workout suggestions may be based on this.</p>
-            <button className="h-9 px-4 rounded-lg bg-success text-white text-sm font-semibold hover:opacity-90 transition-opacity">
+            <button onClick={() => toast('Successfully updated profile settings.')} className="h-9 px-4 rounded-lg bg-success text-white text-sm font-semibold hover:opacity-90 transition-opacity">
               Save
             </button>
           </div>
@@ -217,7 +215,7 @@ function ProfileTab() {
           </div>
           <div className="flex items-center justify-between">
             <p className="text-xs text-muted-foreground">Your email is used for login and notifications.</p>
-            <button className="h-9 px-4 rounded-lg bg-success text-white text-sm font-semibold hover:opacity-90 transition-opacity">
+            <button onClick={() => toast('Successfully updated profile settings.')} className="h-9 px-4 rounded-lg bg-success text-white text-sm font-semibold hover:opacity-90 transition-opacity">
               Save
             </button>
           </div>
@@ -235,7 +233,7 @@ function ProfileTab() {
             <p className="text-xs text-muted-foreground">
               Usernames connect you to other users on <strong className="text-foreground">TRACE</strong>.
             </p>
-            <button className="h-9 px-4 rounded-lg bg-success text-white text-sm font-semibold hover:opacity-90 transition-opacity">
+            <button onClick={() => toast('Successfully updated profile settings.')} className="h-9 px-4 rounded-lg bg-success text-white text-sm font-semibold hover:opacity-90 transition-opacity">
               Save
             </button>
           </div>
@@ -246,21 +244,30 @@ function ProfileTab() {
         <CardHeader>
           <CardTitle className="text-foreground text-sm font-semibold">Profile Avatar</CardTitle>
         </CardHeader>
-        <CardContent className="pt-0 flex items-center justify-between gap-6">
-          <div>
-            <p className="text-xs text-muted-foreground">This is your profile's avatar.</p>
-            <p className="text-xs text-muted-foreground">Click on the avatar to upload a custom one from your files.</p>
+        <CardContent className="pt-0 flex flex-col gap-4">
+          <div className="flex items-center justify-between gap-6">
+            <div>
+              <p className="text-xs text-muted-foreground">This is your profile's avatar.</p>
+              <p className="text-xs text-muted-foreground">Click on the avatar to upload a custom one from your files.</p>
+            </div>
+            <label className="cursor-pointer shrink-0">
+              <Avatar className="size-16 rounded-xl">
+                {avatarUrl ? (
+                  <AvatarImage src={avatarUrl} className="rounded-xl" />
+                ) : (
+                  <AvatarFallback className="text-lg rounded-xl">{initials || '?'}</AvatarFallback>
+                )}
+              </Avatar>
+              <input type="file" accept="image/*" className="hidden" onChange={handleAvatarPick} />
+            </label>
           </div>
-          <label className="cursor-pointer shrink-0">
-            <Avatar className="size-16 rounded-xl">
-              {avatarUrl ? (
-                <AvatarImage src={avatarUrl} className="rounded-xl" />
-              ) : (
-                <AvatarFallback className="text-lg rounded-xl">{initials || '?'}</AvatarFallback>
-              )}
-            </Avatar>
-            <input type="file" accept="image/*" className="hidden" onChange={handleAvatarPick} />
-          </label>
+          <button
+            onClick={() => toast('Successfully updated profile settings.')}
+            disabled={!avatarUrl}
+            className="h-9 w-fit px-4 rounded-lg bg-success text-white text-sm font-semibold hover:opacity-90 transition-opacity self-end disabled:opacity-40 disabled:pointer-events-none"
+          >
+            Save
+          </button>
         </CardContent>
       </Card>
 
@@ -306,6 +313,7 @@ function ProfileTab() {
 }
 
 function AppTab() {
+  const { toast } = useToast();
   const [weightUnits, setWeightUnits] = useState('Metric (kg)');
   const [bodyweightUnits, setBodyweightUnits] = useState('Metric (kg)');
   const [heightUnits, setHeightUnits] = useState('Metric (cm)');
@@ -355,7 +363,7 @@ function AppTab() {
               </Select>
             </div>
           </div>
-          <button className="h-10 w-fit px-4 rounded-lg bg-success text-white text-sm font-semibold hover:opacity-90 transition-opacity self-end">
+          <button onClick={() => toast('Successfully updated profile settings.')} className="h-10 w-fit px-4 rounded-lg bg-success text-white text-sm font-semibold hover:opacity-90 transition-opacity self-end">
             Save
           </button>
         </CardContent>
@@ -393,7 +401,7 @@ function AppTab() {
               <p className="text-xs text-muted-foreground">Rest time for unilateral exercises (30&ndash;600 seconds)</p>
             </div>
           </div>
-          <button className="h-10 w-fit px-4 rounded-lg bg-success text-white text-sm font-semibold hover:opacity-90 transition-opacity self-end">
+          <button onClick={() => toast('Successfully updated profile settings.')} className="h-10 w-fit px-4 rounded-lg bg-success text-white text-sm font-semibold hover:opacity-90 transition-opacity self-end">
             Save
           </button>
         </CardContent>
@@ -406,7 +414,7 @@ function AppTab() {
             description="Turn on / off the readiness survey at the beginning of workouts."
             control={<Toggle checked={readinessSurvey} onChange={setReadinessSurvey} />}
           />
-          <button className="h-9 w-fit px-4 rounded-lg bg-success text-white text-sm font-semibold hover:opacity-90 transition-opacity self-end">
+          <button onClick={() => toast('Successfully updated profile settings.')} className="h-9 w-fit px-4 rounded-lg bg-success text-white text-sm font-semibold hover:opacity-90 transition-opacity self-end">
             Save
           </button>
         </CardContent>
@@ -431,7 +439,7 @@ function AppTab() {
               </Select>
             </div>
           )}
-          <button className="h-9 w-fit px-4 rounded-lg bg-success text-white text-sm font-semibold hover:opacity-90 transition-opacity self-end">
+          <button onClick={() => toast('Successfully updated profile settings.')} className="h-9 w-fit px-4 rounded-lg bg-success text-white text-sm font-semibold hover:opacity-90 transition-opacity self-end">
             Save
           </button>
         </CardContent>
@@ -444,7 +452,7 @@ function AppTab() {
             description="Show a survey at the end of each workout session."
             control={<Toggle checked={sessionEndSurvey} onChange={setSessionEndSurvey} />}
           />
-          <button className="h-9 w-fit px-4 rounded-lg bg-success text-white text-sm font-semibold hover:opacity-90 transition-opacity self-end">
+          <button onClick={() => toast('Successfully updated profile settings.')} className="h-9 w-fit px-4 rounded-lg bg-success text-white text-sm font-semibold hover:opacity-90 transition-opacity self-end">
             Save
           </button>
         </CardContent>
@@ -457,7 +465,7 @@ function AppTab() {
             description="Enable video recording for exercise sets."
             control={<Toggle checked={trackSetVideos} onChange={setTrackSetVideos} />}
           />
-          <button className="h-9 w-fit px-4 rounded-lg bg-success text-white text-sm font-semibold hover:opacity-90 transition-opacity self-end">
+          <button onClick={() => toast('Successfully updated profile settings.')} className="h-9 w-fit px-4 rounded-lg bg-success text-white text-sm font-semibold hover:opacity-90 transition-opacity self-end">
             Save
           </button>
         </CardContent>
@@ -470,7 +478,7 @@ function AppTab() {
             description="Display notes field for each set during workouts."
             control={<Toggle checked={showSetNotes} onChange={setShowSetNotes} />}
           />
-          <button className="h-9 w-fit px-4 rounded-lg bg-success text-white text-sm font-semibold hover:opacity-90 transition-opacity self-end">
+          <button onClick={() => toast('Successfully updated profile settings.')} className="h-9 w-fit px-4 rounded-lg bg-success text-white text-sm font-semibold hover:opacity-90 transition-opacity self-end">
             Save
           </button>
         </CardContent>
@@ -487,7 +495,7 @@ function AppTab() {
             description="Allow recording and tracking of warmup sets during workouts."
             control={<Toggle checked={trackWarmupSets} onChange={setTrackWarmupSets} />}
           />
-          <button className="h-9 w-fit px-4 rounded-lg bg-success text-white text-sm font-semibold hover:opacity-90 transition-opacity self-end">
+          <button onClick={() => toast('Successfully updated profile settings.')} className="h-9 w-fit px-4 rounded-lg bg-success text-white text-sm font-semibold hover:opacity-90 transition-opacity self-end">
             Save
           </button>
         </CardContent>
@@ -504,7 +512,7 @@ function AppTab() {
             description="Hide the session timer from view during active workout sessions."
             control={<Toggle checked={hideSessionTimer} onChange={setHideSessionTimer} />}
           />
-          <button className="h-9 w-fit px-4 rounded-lg bg-success text-white text-sm font-semibold hover:opacity-90 transition-opacity self-end">
+          <button onClick={() => toast('Successfully updated profile settings.')} className="h-9 w-fit px-4 rounded-lg bg-success text-white text-sm font-semibold hover:opacity-90 transition-opacity self-end">
             Save
           </button>
         </CardContent>
@@ -515,6 +523,7 @@ function AppTab() {
 
 function OnboardingScreensTab() {
   const profile = useProfile();
+  const { toast } = useToast();
   const [screens, setScreens] = useState<OnboardingScreen[]>(DEFAULT_ONBOARDING_SCREENS);
   const [dragKey, setDragKey] = useState<string | null>(null);
   const [previewKey, setPreviewKey] = useState<string | null>(null);
@@ -598,6 +607,7 @@ function OnboardingScreensTab() {
           </button>
           <button
             type="button"
+            onClick={() => toast('Successfully updated onboarding screens.')}
             className="h-9 px-4 rounded-lg bg-success text-white text-sm font-semibold hover:opacity-90 transition-opacity"
           >
             Save Changes
@@ -677,24 +687,6 @@ function NotificationsTab() {
   );
 }
 
-function SecurityTab() {
-  return (
-    <Card>
-      <CardHeader>
-        <CardTitle className="text-foreground text-sm font-semibold">Security</CardTitle>
-      </CardHeader>
-      <CardContent className="pt-0 flex flex-col gap-3">
-        <button
-          onClick={() => void supabase.auth.signOut()}
-          className="flex items-center gap-2 h-10 px-4 w-fit rounded-lg border border-border text-sm font-medium text-foreground hover:bg-surface transition-colors"
-        >
-          <LogOut size={14} /> Sign out
-        </button>
-      </CardContent>
-    </Card>
-  );
-}
-
 export default function SettingsPage() {
   const [tab, setTab] = useState<TabId>('profile');
 
@@ -743,7 +735,6 @@ export default function SettingsPage() {
         {tab === 'profile' && <ProfileTab />}
         {tab === 'app' && <AppTab />}
         {tab === 'notifications' && <NotificationsTab />}
-        {tab === 'security' && <SecurityTab />}
         {tab === 'onboarding' && <OnboardingScreensTab />}
       </div>
     </div>

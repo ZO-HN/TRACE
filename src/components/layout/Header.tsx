@@ -1,4 +1,4 @@
-import { PanelLeft, Search, MessageCircleQuestion, HelpCircle, Bell, MessageCircle, LogOut, LayoutDashboard, Settings, LifeBuoy } from 'lucide-react';
+import { Search, MessageCircleQuestion, HelpCircle, Bell, MessageCircle, LogOut, Activity, Settings, LifeBuoy } from 'lucide-react';
 import { useNavigate } from 'react-router';
 import { supabase } from '@/lib/supabase';
 import { Avatar, AvatarFallback } from '@/components/ui/shadcn/avatar';
@@ -12,42 +12,23 @@ import {
 } from '@/components/ui/shadcn/dropdown-menu';
 import type { TraceProfile } from '@/hooks/useTraceUser';
 
-export default function Header({
-  profile,
-  title,
-  collapsed,
-  onToggleCollapsed,
-}: {
-  profile: TraceProfile | null;
-  title: string;
-  collapsed: boolean;
-  onToggleCollapsed: () => void;
-}) {
+export default function Header({ profile, title }: { profile: TraceProfile | null; title: string }) {
   const initials = `${profile?.first_name?.[0] ?? ''}${profile?.last_name?.[0] ?? ''}`.toUpperCase();
   const navigate = useNavigate();
 
   return (
     <header className="bg-surface border-b border-border py-3 px-6 flex items-center justify-between gap-4">
       <div className="flex items-center gap-3 min-w-0">
-        <button
-          type="button"
-          onClick={onToggleCollapsed}
-          aria-label={collapsed ? 'Expand sidebar' : 'Collapse sidebar'}
-          className="text-muted-foreground hover:text-foreground transition-colors p-1.5 rounded-lg hover:bg-background shrink-0"
-        >
-          <PanelLeft size={18} />
-        </button>
-
-        <div className="flex md:hidden items-center gap-2 shrink-0">
+        <div className="flex items-center gap-2 shrink-0">
           <div className="w-8 h-8 rounded-lg bg-primary/15 border border-primary/30 flex items-center justify-center shrink-0">
-            <LayoutDashboard size={16} className="text-primary" />
+            <Activity size={16} className="text-primary" />
           </div>
           <span className="text-lg font-bold text-foreground">TRACE</span>
         </div>
 
-        <div className="hidden md:block w-px h-6 bg-border shrink-0" />
+        <div className="w-px h-6 bg-border shrink-0" />
 
-        <h1 className="hidden md:block text-lg font-bold text-foreground truncate">{title}</h1>
+        <h1 className="text-lg font-bold text-foreground truncate">{title}</h1>
       </div>
 
       <div className="flex items-center gap-2 shrink-0">
