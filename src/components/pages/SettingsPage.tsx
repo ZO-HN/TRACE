@@ -1,19 +1,33 @@
 import { useState } from 'react';
-import { Bell, LogOut, Palette, Shield, Smartphone, User } from 'lucide-react';
+import {
+  Bell,
+  Eye,
+  GripVertical,
+  ListChecks,
+  LogOut,
+  RotateCcw,
+  Shield,
+  Smartphone,
+  User,
+} from 'lucide-react';
 import { Card, CardHeader, CardTitle, CardContent } from '@/components/ui/shadcn/card';
-import { Label, Input, Select } from '@/components/ui/shadcn/field';
-import { Avatar, AvatarFallback } from '@/components/ui/shadcn/avatar';
+import { Label, Input, Select, Textarea } from '@/components/ui/shadcn/field';
+import { Avatar, AvatarImage, AvatarFallback } from '@/components/ui/shadcn/avatar';
+import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from '@/components/ui/shadcn/dialog';
 import { useProfile } from '@/components/layout/AppShell';
 import { supabase } from '@/lib/supabase';
 import { cn } from '@/lib/utils';
 
-const TABS = [
+const ACCOUNT_TABS = [
   { id: 'profile', label: 'Profile', icon: User },
-  { id: 'appearance', label: 'Appearance', icon: Palette },
   { id: 'app', label: 'App', icon: Smartphone },
   { id: 'notifications', label: 'Notifications', icon: Bell },
   { id: 'security', label: 'Security', icon: Shield },
 ] as const;
+
+const CLIENT_EXPERIENCE_TABS = [{ id: 'onboarding', label: 'Client onboarding screens', icon: ListChecks }] as const;
+
+const TABS = [...ACCOUNT_TABS, ...CLIENT_EXPERIENCE_TABS];
 
 type TabId = (typeof TABS)[number]['id'];
 
@@ -59,74 +73,230 @@ function SettingRow({
   );
 }
 
+const HEIGHT_OPTIONS = ['152 cm', '160 cm', '168 cm', '175 cm', '182 cm', '190 cm', '198 cm'];
+const BIOLOGICAL_SEX_OPTIONS = ['Prefer not to say', 'Male', 'Female'];
+
 function ProfileTab() {
   const profile = useProfile();
   const initials = `${profile.first_name?.[0] ?? ''}${profile.last_name?.[0] ?? ''}`.toUpperCase();
+
+  const [firstName, setFirstName] = useState(profile.first_name ?? '');
+  const [lastName, setLastName] = useState(profile.last_name ?? '');
+  const [bio, setBio] = useState('');
+  const [height, setHeight] = useState('182 cm');
+  const [dob, setDob] = useState('');
+  const [biologicalSex, setBiologicalSex] = useState('Prefer not to say');
+  const [phone, setPhone] = useState('');
+  const [username, setUsername] = useState(`${profile.first_name ?? ''} ${profile.last_name ?? ''}`.trim());
+  const [avatarUrl, setAvatarUrl] = useState<string | null>(null);
+  const [deleteDialogOpen, setDeleteDialogOpen] = useState(false);
+
+  const handleAvatarPick = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (file) setAvatarUrl(URL.createObjectURL(file));
+  };
 
   return (
     <div className="flex flex-col gap-5">
       <Card>
         <CardHeader>
-          <CardTitle className="text-foreground text-sm font-semibold">Contact info</CardTitle>
+          <CardTitle className="text-foreground text-sm font-semibold">Attributes</CardTitle>
         </CardHeader>
         <CardContent className="pt-0 flex flex-col gap-4">
+          <p className="text-xs text-muted-foreground -mt-2">Add your height and date of birth to your profile.</p>
+          <div className="grid grid-cols-2 gap-4">
+            <div className="flex flex-col gap-1.5">
+              <Label>Height</Label>
+              <Select value={height} onChange={(e) => setHeight(e.target.value)}>
+                {HEIGHT_OPTIONS.map((h) => (
+                  <option key={h}>{h}</option>
+                ))}
+              </Select>
+              <p className="text-xs text-muted-foreground">
+                Your height may be used on the leaderboards to compare your performance with others
+              </p>
+            </div>
+            <div className="flex flex-col gap-1.5">
+              <Label>Date of birth</Label>
+              <Input type="date" placeholder="Pick a date" value={dob} onChange={(e) => setDob(e.target.value)} />
+              <p className="text-xs text-muted-foreground">Your date of birth is used to calculate your age.</p>
+            </div>
+          </div>
+          <div className="flex items-center justify-between">
+            <p className="text-xs text-muted-foreground">May be used within team data by coaches.</p>
+            <button className="h-9 px-4 rounded-lg bg-success text-white text-sm font-semibold hover:opacity-90 transition-opacity">
+              Save
+            </button>
+          </div>
+        </CardContent>
+      </Card>
+
+      <Card>
+        <CardHeader>
+          <CardTitle className="text-foreground text-sm font-semibold">Personal Info</CardTitle>
+        </CardHeader>
+        <CardContent className="pt-0 flex flex-col gap-4">
+          <p className="text-xs text-muted-foreground -mt-2">Update your personal information.</p>
           <div className="flex items-center gap-3">
             <Avatar className="size-12">
-              <AvatarFallback className="text-sm">{initials || '?'}</AvatarFallback>
+              {avatarUrl ? <AvatarImage src={avatarUrl} /> : <AvatarFallback className="text-sm">{initials || '?'}</AvatarFallback>}
             </Avatar>
             <div>
               <p className="text-sm font-semibold text-foreground">
-                {profile.first_name} {profile.last_name}
+                {firstName} {lastName}
               </p>
               <p className="text-xs text-muted-foreground">{profile.email}</p>
             </div>
           </div>
-
           <div className="grid grid-cols-2 gap-4">
             <div className="flex flex-col gap-1.5">
-              <Label>First name</Label>
-              <Input defaultValue={profile.first_name} />
+              <Label>Given Name</Label>
+              <Input value={firstName} onChange={(e) => setFirstName(e.target.value)} />
             </div>
             <div className="flex flex-col gap-1.5">
-              <Label>Last name</Label>
-              <Input defaultValue={profile.last_name} />
+              <Label>Family Name</Label>
+              <Input value={lastName} onChange={(e) => setLastName(e.target.value)} />
             </div>
           </div>
-
           <div className="flex flex-col gap-1.5">
-            <Label>Email</Label>
-            <Input defaultValue={profile.email} disabled />
-            <p className="text-xs text-muted-foreground">Your email is used for login and notifications.</p>
+            <Label>Bio</Label>
+            <Textarea
+              placeholder="Tell us a little bit about yourself"
+              value={bio}
+              onChange={(e) => setBio(e.target.value)}
+            />
           </div>
+          <div className="flex items-center justify-between">
+            <p className="text-xs text-muted-foreground">Personal information.</p>
+            <button className="h-9 px-4 rounded-lg bg-success text-white text-sm font-semibold hover:opacity-90 transition-opacity">
+              Save
+            </button>
+          </div>
+        </CardContent>
+      </Card>
 
-          <button className="h-10 w-fit px-4 rounded-lg bg-success text-white text-sm font-semibold hover:opacity-90 transition-opacity self-end">
-            Save
+      <Card>
+        <CardHeader>
+          <CardTitle className="text-foreground text-sm font-semibold">Biological Sex</CardTitle>
+        </CardHeader>
+        <CardContent className="pt-0 flex flex-col gap-4">
+          <Select value={biologicalSex} onChange={(e) => setBiologicalSex(e.target.value)} className="max-w-xs">
+            {BIOLOGICAL_SEX_OPTIONS.map((g) => (
+              <option key={g}>{g}</option>
+            ))}
+          </Select>
+          <div className="flex items-center justify-between">
+            <p className="text-xs text-muted-foreground">Workout suggestions may be based on this.</p>
+            <button className="h-9 px-4 rounded-lg bg-success text-white text-sm font-semibold hover:opacity-90 transition-opacity">
+              Save
+            </button>
+          </div>
+        </CardContent>
+      </Card>
+
+      <Card>
+        <CardHeader>
+          <CardTitle className="text-foreground text-sm font-semibold">Contact Info</CardTitle>
+        </CardHeader>
+        <CardContent className="pt-0 flex flex-col gap-4">
+          <p className="text-xs text-muted-foreground -mt-2">Update your contact information.</p>
+          <div className="grid grid-cols-2 gap-4">
+            <div className="flex flex-col gap-1.5">
+              <Label>Phone #</Label>
+              <Input placeholder="604-555-5555" value={phone} onChange={(e) => setPhone(e.target.value)} />
+            </div>
+            <div className="flex flex-col gap-1.5">
+              <Label>Email</Label>
+              <Input defaultValue={profile.email} disabled />
+            </div>
+          </div>
+          <div className="flex items-center justify-between">
+            <p className="text-xs text-muted-foreground">Your email is used for login and notifications.</p>
+            <button className="h-9 px-4 rounded-lg bg-success text-white text-sm font-semibold hover:opacity-90 transition-opacity">
+              Save
+            </button>
+          </div>
+        </CardContent>
+      </Card>
+
+      <Card>
+        <CardHeader>
+          <CardTitle className="text-foreground text-sm font-semibold">Username</CardTitle>
+        </CardHeader>
+        <CardContent className="pt-0 flex flex-col gap-4">
+          <p className="text-xs text-muted-foreground -mt-2">This is your username within TRACE. It must be unique.</p>
+          <Input value={username} onChange={(e) => setUsername(e.target.value)} />
+          <div className="flex items-center justify-between">
+            <p className="text-xs text-muted-foreground">
+              Usernames connect you to other users on <strong className="text-foreground">TRACE</strong>.
+            </p>
+            <button className="h-9 px-4 rounded-lg bg-success text-white text-sm font-semibold hover:opacity-90 transition-opacity">
+              Save
+            </button>
+          </div>
+        </CardContent>
+      </Card>
+
+      <Card>
+        <CardHeader>
+          <CardTitle className="text-foreground text-sm font-semibold">Profile Avatar</CardTitle>
+        </CardHeader>
+        <CardContent className="pt-0 flex items-center justify-between gap-6">
+          <div>
+            <p className="text-xs text-muted-foreground">This is your profile's avatar.</p>
+            <p className="text-xs text-muted-foreground">Click on the avatar to upload a custom one from your files.</p>
+          </div>
+          <label className="cursor-pointer shrink-0">
+            <Avatar className="size-16 rounded-xl">
+              {avatarUrl ? (
+                <AvatarImage src={avatarUrl} className="rounded-xl" />
+              ) : (
+                <AvatarFallback className="text-lg rounded-xl">{initials || '?'}</AvatarFallback>
+              )}
+            </Avatar>
+            <input type="file" accept="image/*" className="hidden" onChange={handleAvatarPick} />
+          </label>
+        </CardContent>
+      </Card>
+
+      <Card className="border-danger/40">
+        <CardHeader>
+          <CardTitle className="text-danger text-sm font-semibold">Delete account</CardTitle>
+        </CardHeader>
+        <CardContent className="pt-0 flex flex-col gap-4">
+          <p className="text-xs text-muted-foreground">
+            Your account will be scheduled for deletion in 30 days. You can sign back in any time within that window to
+            recover it. After 30 days, deletion is permanent.
+          </p>
+          <button
+            onClick={() => setDeleteDialogOpen(true)}
+            className="h-11 rounded-lg bg-danger text-white text-sm font-semibold hover:opacity-90 transition-opacity"
+          >
+            Delete account
           </button>
         </CardContent>
       </Card>
-    </div>
-  );
-}
 
-function AppearanceTab() {
-  return (
-    <Card>
-      <CardHeader>
-        <CardTitle className="text-foreground text-sm font-semibold">Appearance</CardTitle>
-      </CardHeader>
-      <CardContent className="pt-0 flex flex-col gap-4">
-        <p className="text-xs text-muted-foreground -mt-2">Customize the appearance of the dashboard.</p>
-        <div className="flex flex-col gap-1.5 max-w-xs">
-          <Label>Language</Label>
-          <Select defaultValue="English">
-            <option>English</option>
-            <option>Spanish</option>
-            <option>French</option>
-          </Select>
-          <p className="text-xs text-muted-foreground">Choose the language for your dashboard. This only changes what you see.</p>
-        </div>
-      </CardContent>
-    </Card>
+      <Dialog open={deleteDialogOpen} onOpenChange={setDeleteDialogOpen}>
+        <DialogContent className="max-w-sm">
+          <DialogHeader>
+            <DialogTitle>Delete your account?</DialogTitle>
+          </DialogHeader>
+          <p className="text-sm text-muted-foreground">
+            Account deletion isn't available yet in this dashboard — contact support to schedule a deletion in the
+            meantime.
+          </p>
+          <DialogFooter>
+            <button
+              onClick={() => setDeleteDialogOpen(false)}
+              className="h-10 px-4 rounded-lg border border-border text-sm font-medium text-foreground hover:bg-surface transition-colors"
+            >
+              Close
+            </button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
+    </div>
   );
 }
 
@@ -338,6 +508,139 @@ function AppTab() {
   );
 }
 
+interface OnboardingScreen {
+  key: string;
+  label: string;
+  required?: boolean;
+  enabled: boolean;
+}
+
+const DEFAULT_ONBOARDING_SCREENS: OnboardingScreen[] = [
+  { key: 'name', label: 'Full Name', required: true, enabled: true },
+  { key: 'email', label: 'Email Address', required: true, enabled: true },
+  { key: 'dob', label: 'Date of Birth', enabled: true },
+  { key: 'height', label: 'Height', enabled: true },
+  { key: 'weight', label: 'Weight', enabled: true },
+  { key: 'current-goal', label: 'Current Goal', enabled: true },
+  { key: 'current-workouts', label: 'Current Workouts', enabled: false },
+  { key: 'current-training-split', label: 'Training Split', enabled: false },
+  { key: 'exercise-selection', label: 'Exercise Selection', enabled: false },
+  { key: 'equipment-list-gym', label: 'Equipment List', enabled: false },
+  { key: 'injuries', label: 'Injuries', enabled: false },
+  { key: 'avg-cardio-per-week', label: 'Average Cardio Per Week', enabled: false },
+  { key: 'avg-steps-per-day', label: 'Average Steps Per Day', enabled: false },
+  { key: 'food-preferences', label: 'Food Preferences', enabled: false },
+  { key: 'allergies', label: 'Allergies', enabled: false },
+  { key: 'daily-calories', label: 'Daily Calories', enabled: false },
+  { key: 'daily-macros', label: 'Daily Macros', enabled: false },
+  { key: 'avg-number-meals-per-day', label: 'Average Meals Per Day', enabled: false },
+  { key: 'meals-you-usually-eat', label: 'Meals You Usually Eat', enabled: false },
+  { key: 'num-meals-before-gym', label: 'Meals Before Gym', enabled: false },
+  { key: 'pre-workout-meal', label: 'Pre-Workout Meal', enabled: false },
+  { key: 'timezone', label: 'Timezone', enabled: false },
+  { key: 'recent-physique-shots', label: 'Recent Physique Photos', enabled: false },
+];
+
+function OnboardingScreensTab() {
+  const [screens, setScreens] = useState<OnboardingScreen[]>(DEFAULT_ONBOARDING_SCREENS);
+  const [dragKey, setDragKey] = useState<string | null>(null);
+  const [previewKey, setPreviewKey] = useState<string | null>(null);
+
+  const enabledCount = screens.filter((s) => s.enabled).length;
+
+  const toggleScreen = (key: string) =>
+    setScreens((s) => s.map((screen) => (screen.key === key ? { ...screen, enabled: !screen.enabled } : screen)));
+
+  const reorder = (overKey: string) => {
+    if (!dragKey || dragKey === overKey) return;
+    setScreens((s) => {
+      const from = s.findIndex((x) => x.key === dragKey);
+      const to = s.findIndex((x) => x.key === overKey);
+      if (from === -1 || to === -1) return s;
+      const next = [...s];
+      const [moved] = next.splice(from, 1);
+      next.splice(to, 0, moved);
+      return next;
+    });
+  };
+
+  return (
+    <div className="flex flex-col gap-4">
+      <p className="text-xs text-muted-foreground -mt-1">
+        Configure which screens your clients will see during onboarding. Drag to reorder and toggle to enable/disable screens.
+      </p>
+
+      <div className="flex items-center justify-between">
+        <span className="text-sm font-semibold text-foreground">
+          Enabled screens: {enabledCount} / {screens.length}
+        </span>
+        <div className="flex items-center gap-2">
+          <button
+            type="button"
+            onClick={() => setScreens(DEFAULT_ONBOARDING_SCREENS)}
+            className="flex items-center gap-1.5 h-9 px-3 rounded-lg border border-border text-sm font-medium text-foreground hover:bg-surface transition-colors"
+          >
+            <RotateCcw size={13} /> Reset to Default
+          </button>
+          <button
+            type="button"
+            className="h-9 px-4 rounded-lg bg-success text-white text-sm font-semibold hover:opacity-90 transition-opacity"
+          >
+            Save Changes
+          </button>
+        </div>
+      </div>
+
+      <div className="flex flex-col gap-2">
+        {screens.map((screen) => (
+          <div
+            key={screen.key}
+            draggable
+            onDragStart={() => setDragKey(screen.key)}
+            onDragOver={(e) => {
+              e.preventDefault();
+              reorder(screen.key);
+            }}
+            onDragEnd={() => setDragKey(null)}
+            className={cn(
+              'flex items-center gap-3 rounded-lg border border-border bg-card px-3 py-2.5 transition-colors',
+              dragKey === screen.key && 'opacity-50',
+            )}
+          >
+            <GripVertical size={14} className="text-muted-foreground cursor-grab shrink-0" />
+            <div className="flex-1 min-w-0">
+              <div className="flex items-center gap-2">
+                <span className="text-sm font-semibold text-foreground">{screen.label}</span>
+                {screen.required && (
+                  <span className="text-[10px] font-semibold uppercase tracking-wide text-muted-foreground bg-muted px-1.5 py-0.5 rounded">
+                    Required
+                  </span>
+                )}
+              </div>
+              <span className="text-xs text-muted-foreground font-mono">{screen.key}</span>
+            </div>
+            <button
+              type="button"
+              onClick={() => setPreviewKey((k) => (k === screen.key ? null : screen.key))}
+              aria-label={`Preview ${screen.label}`}
+              className={cn(
+                'p-1.5 rounded-md shrink-0 transition-colors',
+                previewKey === screen.key ? 'text-primary bg-primary/10' : 'text-muted-foreground hover:bg-surface',
+              )}
+            >
+              <Eye size={14} />
+            </button>
+            <Toggle
+              checked={screen.enabled}
+              onChange={() => toggleScreen(screen.key)}
+            />
+          </div>
+        ))}
+      </div>
+    </div>
+  );
+}
+
 function NotificationsTab() {
   return (
     <Card>
@@ -383,7 +686,24 @@ export default function SettingsPage() {
         <span className="text-[11px] font-semibold uppercase tracking-wide text-muted-foreground px-2 mb-1">
           Your account
         </span>
-        {TABS.map((t) => (
+        {ACCOUNT_TABS.map((t) => (
+          <button
+            key={t.id}
+            onClick={() => setTab(t.id)}
+            className={cn(
+              'flex items-center gap-2 px-2 py-2 rounded-lg text-sm font-medium text-left transition-colors',
+              tab === t.id ? 'bg-surface text-foreground' : 'text-muted-foreground hover:bg-surface hover:text-foreground',
+            )}
+          >
+            <t.icon size={14} />
+            {t.label}
+          </button>
+        ))}
+
+        <span className="text-[11px] font-semibold uppercase tracking-wide text-muted-foreground px-2 mt-3 mb-1">
+          Client experience
+        </span>
+        {CLIENT_EXPERIENCE_TABS.map((t) => (
           <button
             key={t.id}
             onClick={() => setTab(t.id)}
@@ -400,13 +720,13 @@ export default function SettingsPage() {
 
       <div className="flex-1 min-w-0 flex flex-col gap-4">
         <h1 className="text-lg font-bold text-foreground">
-          {TABS.find((t) => t.id === tab)?.label} settings
+          {TABS.find((t) => t.id === tab)?.label}
         </h1>
         {tab === 'profile' && <ProfileTab />}
-        {tab === 'appearance' && <AppearanceTab />}
         {tab === 'app' && <AppTab />}
         {tab === 'notifications' && <NotificationsTab />}
         {tab === 'security' && <SecurityTab />}
+        {tab === 'onboarding' && <OnboardingScreensTab />}
       </div>
     </div>
   );
