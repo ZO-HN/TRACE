@@ -1,5 +1,5 @@
 import { useState } from 'react';
-import { Apple, ChefHat, Plus } from 'lucide-react';
+import { Apple, ChefHat, Plus, Trash2 } from 'lucide-react';
 import { Badge } from '@/components/ui/shadcn/badge';
 import {
   Dialog,
@@ -8,10 +8,64 @@ import {
   DialogTitle,
 } from '@/components/ui/shadcn/dialog';
 import { Label, Input, Textarea } from '@/components/ui/shadcn/field';
+import { useProfile } from '@/components/layout/AppShell';
+import { useFoods } from '@/hooks/useFoods';
+import { useToast } from '@/components/ui/toast';
 
-function NewFoodDialog({ open, onOpenChange }: { open: boolean; onOpenChange: (open: boolean) => void }) {
+function NewFoodDialog({
+  open,
+  onOpenChange,
+  onCreate,
+}: {
+  open: boolean;
+  onOpenChange: (open: boolean) => void;
+  onCreate: (input: {
+    name: string;
+    servingSize: string;
+    calories: string;
+    protein: string;
+    carbs: string;
+    fat: string;
+    recipe: string;
+  }) => Promise<{ error: string | null }>;
+}) {
   const [name, setName] = useState('');
+  const [servingSize, setServingSize] = useState('');
+  const [calories, setCalories] = useState('');
+  const [protein, setProtein] = useState('');
+  const [carbs, setCarbs] = useState('');
+  const [fat, setFat] = useState('');
   const [hasRecipe, setHasRecipe] = useState(false);
+  const [recipe, setRecipe] = useState('');
+  const [submitting, setSubmitting] = useState(false);
+  const [error, setError] = useState<string | null>(null);
+
+  const handleSave = async () => {
+    setSubmitting(true);
+    const { error: submitError } = await onCreate({
+      name,
+      servingSize,
+      calories,
+      protein,
+      carbs,
+      fat,
+      recipe: hasRecipe ? recipe : '',
+    });
+    setSubmitting(false);
+    if (submitError) {
+      setError(submitError);
+      return;
+    }
+    setName('');
+    setServingSize('');
+    setCalories('');
+    setProtein('');
+    setCarbs('');
+    setFat('');
+    setHasRecipe(false);
+    setRecipe('');
+    onOpenChange(false);
+  };
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
@@ -28,26 +82,26 @@ function NewFoodDialog({ open, onOpenChange }: { open: boolean; onOpenChange: (o
         <div className="grid grid-cols-2 gap-4">
           <div className="flex flex-col gap-1.5">
             <Label>Serving size</Label>
-            <Input placeholder="e.g. 100g" />
+            <Input placeholder="e.g. 100g" value={servingSize} onChange={(e) => setServingSize(e.target.value)} />
           </div>
           <div className="flex flex-col gap-1.5">
             <Label>Calories</Label>
-            <Input type="number" placeholder="0" />
+            <Input type="number" placeholder="0" value={calories} onChange={(e) => setCalories(e.target.value)} />
           </div>
         </div>
 
         <div className="grid grid-cols-3 gap-4">
           <div className="flex flex-col gap-1.5">
             <Label>Protein (g)</Label>
-            <Input type="number" placeholder="0" />
+            <Input type="number" placeholder="0" value={protein} onChange={(e) => setProtein(e.target.value)} />
           </div>
           <div className="flex flex-col gap-1.5">
             <Label>Carbs (g)</Label>
-            <Input type="number" placeholder="0" />
+            <Input type="number" placeholder="0" value={carbs} onChange={(e) => setCarbs(e.target.value)} />
           </div>
           <div className="flex flex-col gap-1.5">
             <Label>Fat (g)</Label>
-            <Input type="number" placeholder="0" />
+            <Input type="number" placeholder="0" value={fat} onChange={(e) => setFat(e.target.value)} />
           </div>
         </div>
 
@@ -64,16 +118,19 @@ function NewFoodDialog({ open, onOpenChange }: { open: boolean; onOpenChange: (o
         {hasRecipe && (
           <div className="flex flex-col gap-1.5">
             <Label>Recipe description</Label>
-            <Textarea placeholder="Ingredients and preparation steps" />
+            <Textarea placeholder="Ingredients and preparation steps" value={recipe} onChange={(e) => setRecipe(e.target.value)} />
           </div>
         )}
 
+        {error && <p className="text-xs text-danger">{error}</p>}
+
         <button
           type="button"
-          disabled={!name.trim()}
+          disabled={!name.trim() || submitting}
+          onClick={() => void handleSave()}
           className="h-11 rounded-lg bg-success text-white font-semibold disabled:opacity-40 hover:opacity-90 transition-opacity"
         >
-          Save Food
+          {submitting ? 'Saving...' : 'Save Food'}
         </button>
       </DialogContent>
     </Dialog>
@@ -81,7 +138,16 @@ function NewFoodDialog({ open, onOpenChange }: { open: boolean; onOpenChange: (o
 }
 
 export default function FoodsPage() {
+  const profile = useProfile();
+  const { foods, isLoading, error, createFood, deleteFood } = useFoods(profile.id);
+  const { toast } = useToast();
   const [open, setOpen] = useState(false);
+
+  const handleCreate: typeof createFood = async (input) => {
+    const result = await createFood(input);
+    if (!result.error) toast('Food added.');
+    return result;
+  };
 
   return (
     <div className="p-6 flex flex-col gap-4">
@@ -101,21 +167,50 @@ export default function FoodsPage() {
         </button>
       </div>
 
-      <div className="flex flex-col items-center justify-center gap-3 py-24 text-center rounded-xl border border-border bg-card">
-        <div className="flex items-center gap-2 text-muted-foreground">
-          <Apple size={28} />
-          <ChefHat size={28} />
-        </div>
-        <p className="text-sm font-semibold text-foreground">No foods yet</p>
-        <p className="text-xs text-muted-foreground max-w-sm">
-          Add foods to your library. Give any food a recipe description to turn it into a full dish.
-        </p>
-        <Badge variant="outline" className="mt-1">
-          Recipes now live inside Foods
-        </Badge>
-      </div>
+      {error && <p className="text-sm text-danger">Could not load foods: {error}</p>}
 
-      <NewFoodDialog open={open} onOpenChange={setOpen} />
+      {isLoading ? (
+        <div className="py-24 text-center text-sm text-muted-foreground">Loading...</div>
+      ) : foods.length === 0 ? (
+        <div className="flex flex-col items-center justify-center gap-3 py-24 text-center rounded-xl border border-border bg-card">
+          <div className="flex items-center gap-2 text-muted-foreground">
+            <Apple size={28} />
+            <ChefHat size={28} />
+          </div>
+          <p className="text-sm font-semibold text-foreground">No foods yet</p>
+          <p className="text-xs text-muted-foreground max-w-sm">
+            Add foods to your library. Give any food a recipe description to turn it into a full dish.
+          </p>
+          <Badge variant="outline" className="mt-1">
+            Recipes now live inside Foods
+          </Badge>
+        </div>
+      ) : (
+        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3">
+          {foods.map((f) => (
+            <div key={f.id} className="rounded-xl border border-border bg-card p-4 flex flex-col gap-1.5">
+              <div className="flex items-start justify-between">
+                <p className="text-sm font-semibold text-foreground">{f.name}</p>
+                <button
+                  onClick={() => void deleteFood(f.id)}
+                  className="text-muted-foreground hover:text-danger p-1 rounded-md hover:bg-background shrink-0"
+                >
+                  <Trash2 size={13} />
+                </button>
+              </div>
+              <p className="text-xs text-muted-foreground">
+                {f.serving_size ?? '—'} {f.calories != null && `· ${f.calories} kcal`}
+              </p>
+              <p className="text-xs text-muted-foreground">
+                {f.protein_g ?? 0}g P · {f.carbs_g ?? 0}g C · {f.fat_g ?? 0}g F
+              </p>
+              {f.recipe && <Badge variant="outline">Has recipe</Badge>}
+            </div>
+          ))}
+        </div>
+      )}
+
+      <NewFoodDialog open={open} onOpenChange={setOpen} onCreate={handleCreate} />
     </div>
   );
 }

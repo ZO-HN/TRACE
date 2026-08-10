@@ -1,5 +1,5 @@
 import { useState } from 'react';
-import { ArrowUpDown, Download, Link2, Mail, Plus, Search, Settings2, Tag, UserPlus, Users } from 'lucide-react';
+import { ArrowUpDown, Check, Copy, Download, Link2, Mail, Plus, Search, Settings2, Tag, UserPlus, Users } from 'lucide-react';
 import {
   Dialog,
   DialogContent,
@@ -10,8 +10,12 @@ import {
 } from '@/components/ui/shadcn/dialog';
 import { Popover, PopoverTrigger, PopoverContent } from '@/components/ui/shadcn/popover';
 import { Input, Select } from '@/components/ui/shadcn/field';
+import { Avatar, AvatarFallback } from '@/components/ui/shadcn/avatar';
+import { useProfile } from '@/components/layout/AppShell';
+import { useClients } from '@/hooks/useClients';
+import { buildInviteLink, DEFAULT_ONBOARDING_SCREENS } from '@/config/onboardingScreens';
 
-const columns = ['Client', 'Status', 'Tags', 'Attention', 'Last activity', 'Added'];
+const columns = ['Client', 'Email', 'Added'];
 const statusOptions = ['Active', 'Trial', 'Archived', 'Deactivated'];
 
 function StatusFilter() {
@@ -88,9 +92,30 @@ function StatusFilter() {
   );
 }
 
-function InviteClientDialog({ open, onOpenChange }: { open: boolean; onOpenChange: (open: boolean) => void }) {
+function InviteClientDialog({
+  open,
+  onOpenChange,
+  coachName,
+}: {
+  open: boolean;
+  onOpenChange: (open: boolean) => void;
+  coachName: string;
+}) {
   const [tab, setTab] = useState<'email' | 'link' | 'find'>('email');
   const [email, setEmail] = useState('');
+  const [copied, setCopied] = useState(false);
+
+  const inviteLink = buildInviteLink(DEFAULT_ONBOARDING_SCREENS, coachName);
+
+  const copyLink = async () => {
+    try {
+      await navigator.clipboard.writeText(inviteLink);
+      setCopied(true);
+      setTimeout(() => setCopied(false), 2000);
+    } catch {
+      window.prompt('Copy this invite link:', inviteLink);
+    }
+  };
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
@@ -133,13 +158,15 @@ function InviteClientDialog({ open, onOpenChange }: { open: boolean; onOpenChang
               onChange={(e) => setEmail(e.target.value)}
             />
             <p className="text-xs text-muted-foreground">
-              Send an email invitation with a link to download the mobile app.
+              Sending an email invitation needs an email provider connected (see the Feedback follow-up in Settings) — not set up yet.
+              Use the Share Link tab in the meantime.
             </p>
             <DialogFooter>
               <button
                 type="button"
-                disabled={!email.trim()}
-                className="flex items-center gap-2 h-10 px-4 rounded-lg bg-foreground text-background disabled:opacity-40 text-sm font-semibold"
+                disabled
+                title="Email sending isn't connected yet — use Share Link instead"
+                className="flex items-center gap-2 h-10 px-4 rounded-lg bg-foreground text-background disabled:opacity-40 text-sm font-semibold cursor-not-allowed"
               >
                 <Mail size={14} /> Send Email Invitation
               </button>
@@ -148,9 +175,21 @@ function InviteClientDialog({ open, onOpenChange }: { open: boolean; onOpenChang
         )}
 
         {tab === 'link' && (
-          <p className="text-xs text-muted-foreground">
-            Generate a shareable invite link clients can use to join your roster.
-          </p>
+          <div className="flex flex-col gap-2">
+            <p className="text-xs text-muted-foreground">
+              Share this link with a new client — it opens the onboarding form configured in Settings → Client onboarding screens.
+            </p>
+            <div className="flex items-center gap-2">
+              <Input readOnly value={inviteLink} className="text-xs" />
+              <button
+                type="button"
+                onClick={() => void copyLink()}
+                className="flex items-center gap-1.5 h-10 px-3 rounded-lg bg-foreground text-background text-sm font-semibold shrink-0"
+              >
+                {copied ? <Check size={14} /> : <Copy size={14} />} {copied ? 'Copied' : 'Copy'}
+              </button>
+            </div>
+          </div>
         )}
 
         {tab === 'find' && (
@@ -216,9 +255,13 @@ function TagsDialog({ open, onOpenChange }: { open: boolean; onOpenChange: (open
 }
 
 export default function ClientsPage() {
+  const profile = useProfile();
+  const { clients, isLoading, error } = useClients(profile.id);
   const [inviteOpen, setInviteOpen] = useState(false);
   const [tagsOpen, setTagsOpen] = useState(false);
   const [filter, setFilter] = useState('');
+
+  const filtered = clients.filter((c) => `${c.first_name} ${c.last_name} ${c.email}`.toLowerCase().includes(filter.toLowerCase()));
 
   return (
     <div className="p-6 flex flex-col gap-4">
@@ -256,8 +299,10 @@ export default function ClientsPage() {
         </button>
       </div>
 
+      {error && <p className="text-sm text-danger">Could not load clients: {error}</p>}
+
       <div className="rounded-xl border border-border bg-card overflow-hidden">
-        <div className="grid grid-cols-6 gap-4 px-4 py-3 border-b border-border text-xs font-semibold text-muted-foreground">
+        <div className="grid grid-cols-3 gap-4 px-4 py-3 border-b border-border text-xs font-semibold text-muted-foreground">
           {columns.map((c) => (
             <span key={c} className="flex items-center gap-1">
               {c} <ArrowUpDown size={12} />
@@ -265,21 +310,47 @@ export default function ClientsPage() {
           ))}
         </div>
 
-        <div className="flex flex-col items-center justify-center gap-3 py-16 text-center px-6">
-          <Users size={32} className="text-muted-foreground" />
-          <p className="text-sm font-semibold text-foreground">No clients yet</p>
-          <p className="text-xs text-muted-foreground max-w-xs">Invite your first client to start coaching them in Tracked.</p>
-          <button
-            type="button"
-            onClick={() => setInviteOpen(true)}
-            className="flex items-center gap-2 h-10 px-4 rounded-lg bg-success text-white text-sm font-semibold hover:opacity-90 transition-opacity mt-1"
-          >
-            <UserPlus size={14} /> Invite Client
-          </button>
-        </div>
+        {isLoading ? (
+          <div className="py-16 text-center text-sm text-muted-foreground">Loading...</div>
+        ) : filtered.length === 0 ? (
+          <div className="flex flex-col items-center justify-center gap-3 py-16 text-center px-6">
+            <Users size={32} className="text-muted-foreground" />
+            <p className="text-sm font-semibold text-foreground">{clients.length === 0 ? 'No clients yet' : 'No clients match your filter'}</p>
+            {clients.length === 0 && (
+              <>
+                <p className="text-xs text-muted-foreground max-w-xs">Invite your first client to start coaching them in TRACE.</p>
+                <button
+                  type="button"
+                  onClick={() => setInviteOpen(true)}
+                  className="flex items-center gap-2 h-10 px-4 rounded-lg bg-success text-white text-sm font-semibold hover:opacity-90 transition-opacity mt-1"
+                >
+                  <UserPlus size={14} /> Invite Client
+                </button>
+              </>
+            )}
+          </div>
+        ) : (
+          filtered.map((c) => {
+            const initials = `${c.first_name[0] ?? ''}${c.last_name[0] ?? ''}`.toUpperCase();
+            return (
+              <div key={c.id} className="grid grid-cols-3 gap-4 px-4 py-3 border-b border-border last:border-b-0 items-center text-sm">
+                <div className="flex items-center gap-2.5">
+                  <Avatar className="size-8">
+                    <AvatarFallback className="text-xs">{initials || '?'}</AvatarFallback>
+                  </Avatar>
+                  <span className="font-medium text-foreground">
+                    {c.first_name} {c.last_name}
+                  </span>
+                </div>
+                <span className="text-muted-foreground">{c.email}</span>
+                <span className="text-muted-foreground">{new Date(c.created_at).toLocaleDateString()}</span>
+              </div>
+            );
+          })
+        )}
 
         <div className="flex items-center justify-between px-4 py-3 border-t border-border text-xs text-muted-foreground">
-          <span>0 of 0 row(s) selected.</span>
+          <span>{filtered.length} of {clients.length} row(s).</span>
           <div className="flex items-center gap-4">
             <span className="flex items-center gap-2">
               Rows per page
@@ -288,12 +359,12 @@ export default function ClientsPage() {
                 <option value="50">50</option>
               </Select>
             </span>
-            <span>Page 1 of 0</span>
+            <span>Page 1 of {Math.max(1, Math.ceil(filtered.length / 20))}</span>
           </div>
         </div>
       </div>
 
-      <InviteClientDialog open={inviteOpen} onOpenChange={setInviteOpen} />
+      <InviteClientDialog open={inviteOpen} onOpenChange={setInviteOpen} coachName={profile.first_name ?? ''} />
       <TagsDialog open={tagsOpen} onOpenChange={setTagsOpen} />
     </div>
   );

@@ -1,18 +1,28 @@
 import { motion } from 'framer-motion';
 import { Users, UserPlus, Activity, UserMinus, Trophy, AlertTriangle, CheckCircle2, Footprints, Apple, HeartPulse, ArrowDownRight } from 'lucide-react';
 import { Card, CardHeader, CardTitle } from '@/components/ui/shadcn/card';
+import { useProfile } from '@/components/layout/AppShell';
+import { useClients } from '@/hooks/useClients';
+import { useCheckIns } from '@/hooks/useCheckIns';
+import { useFormChecks } from '@/hooks/useFormChecks';
 import StatCard from './StatCard';
 import EmptyPanel from './EmptyPanel';
 
-// TODO: wire real client/workout/churn stats — this repo has no stats-fetching hook yet.
-const placeholderStats = {
-  totalClients: { value: 0, active: 0, trial: 0 },
-  newSignups: 0,
-  workouts: 0,
-  churned: 0,
-};
+// New signups / workouts / churned and the nutrition & cardio panels below
+// need historical rollups over set_logs/workout_sessions/nutrition_logs/
+// wearable_biometrics (7/30-day windows) — a separate, larger analytics
+// effort than a plain "read the current rows" hook. Left as explicit
+// placeholders rather than fabricated numbers.
 
 export default function CoachDashboard({ firstName }: { firstName?: string }) {
+  const profile = useProfile();
+  const { clients } = useClients(profile.id);
+  const { needsReview } = useCheckIns(profile.id);
+  const { formChecks } = useFormChecks(profile.id);
+
+  const unreviewedFormChecks = formChecks.filter((f) => f.status === 'unreviewed').length;
+  const needsAttentionCount = needsReview.length + unreviewedFormChecks;
+
   return (
     <motion.div
       initial={{ opacity: 0, y: 8 }}
@@ -23,15 +33,10 @@ export default function CoachDashboard({ firstName }: { firstName?: string }) {
       <h1 className="text-xl font-bold text-foreground">Welcome, {firstName ?? 'Coach'}</h1>
 
       <div className="grid grid-cols-2 lg:grid-cols-4 gap-4">
-        <StatCard
-          label="Total clients"
-          value={placeholderStats.totalClients.value}
-          icon={Users}
-          helperText={`${placeholderStats.totalClients.active} active · ${placeholderStats.totalClients.trial} trial`}
-        />
-        <StatCard label="New signups" value={placeholderStats.newSignups} icon={UserPlus} helperText="Last 7 days" />
-        <StatCard label="Workouts" value={placeholderStats.workouts} icon={Activity} helperText="Completed in last 7 days" />
-        <StatCard label="Churned" value={placeholderStats.churned} icon={UserMinus} helperText="Last 30 days" />
+        <StatCard label="Total clients" value={clients.length} icon={Users} helperText="Currently on your roster" />
+        <StatCard label="New signups" value={0} icon={UserPlus} helperText="Not tracked yet — last 7 days" />
+        <StatCard label="Workouts" value={0} icon={Activity} helperText="Not tracked yet — last 7 days" />
+        <StatCard label="Churned" value={0} icon={UserMinus} helperText="Not tracked yet — last 30 days" />
       </div>
 
       <div>
@@ -46,15 +51,32 @@ export default function CoachDashboard({ firstName }: { firstName?: string }) {
           <CardHeader>
             <CardTitle>
               Needs attention
-              <span className="block text-xs text-muted-foreground font-normal mt-0.5">Clients flagged by urgency</span>
+              <span className="block text-xs text-muted-foreground font-normal mt-0.5">Check-ins and form checks awaiting review</span>
             </CardTitle>
             <AlertTriangle size={16} className="text-muted-foreground" />
           </CardHeader>
-          <EmptyPanel
-            icon={CheckCircle2}
-            title="All caught up"
-            description="No clients need attention right now. Check-ins, workouts, and logging are all on track."
-          />
+          {needsAttentionCount === 0 ? (
+            <EmptyPanel
+              icon={CheckCircle2}
+              title="All caught up"
+              description="No check-ins or form checks need review right now."
+            />
+          ) : (
+            <div className="px-5 pb-5 flex flex-col gap-2">
+              {needsReview.length > 0 && (
+                <div className="flex items-center justify-between text-sm bg-background border border-border rounded-lg px-3 py-2">
+                  <span className="text-foreground">Check-ins to review</span>
+                  <span className="font-semibold text-primary">{needsReview.length}</span>
+                </div>
+              )}
+              {unreviewedFormChecks > 0 && (
+                <div className="flex items-center justify-between text-sm bg-background border border-border rounded-lg px-3 py-2">
+                  <span className="text-foreground">Form checks to review</span>
+                  <span className="font-semibold text-primary">{unreviewedFormChecks}</span>
+                </div>
+              )}
+            </div>
+          )}
         </Card>
 
         <Card className="flex flex-col">
@@ -69,9 +91,13 @@ export default function CoachDashboard({ firstName }: { firstName?: string }) {
           </CardHeader>
           <EmptyPanel
             icon={Footprints}
-            title="No clients yet"
-            description="Add clients to see their step counts here."
-            ctaLabel="Invite a client"
+            title={clients.length === 0 ? 'No clients yet' : 'Not tracked yet'}
+            description={
+              clients.length === 0
+                ? 'Add clients to see their step counts here.'
+                : "Step-count rollups aren't wired up yet — wearable_biometrics has the raw data."
+            }
+            ctaLabel={clients.length === 0 ? 'Invite a client' : undefined}
           />
         </Card>
       </div>
@@ -82,9 +108,13 @@ export default function CoachDashboard({ firstName }: { firstName?: string }) {
         <Card>
           <EmptyPanel
             icon={Apple}
-            title="No clients yet"
-            description="Add clients to see their nutrition logging here."
-            ctaLabel="Invite a client"
+            title={clients.length === 0 ? 'No clients yet' : 'Not tracked yet'}
+            description={
+              clients.length === 0
+                ? 'Add clients to see their nutrition logging here.'
+                : "Nutrition rollups aren't wired up yet — nutrition_logs has the raw data."
+            }
+            ctaLabel={clients.length === 0 ? 'Invite a client' : undefined}
           />
         </Card>
       </div>
@@ -100,7 +130,11 @@ export default function CoachDashboard({ firstName }: { firstName?: string }) {
             </CardTitle>
             <HeartPulse size={16} className="text-muted-foreground" />
           </CardHeader>
-          <EmptyPanel icon={HeartPulse} title="No clients yet" description="Add clients to see cardio activity here." />
+          <EmptyPanel
+            icon={HeartPulse}
+            title={clients.length === 0 ? 'No clients yet' : 'Not tracked yet'}
+            description={clients.length === 0 ? 'Add clients to see cardio activity here.' : "Cardio rollups aren't wired up yet."}
+          />
         </Card>
 
         <Card className="flex flex-col">
@@ -113,7 +147,11 @@ export default function CoachDashboard({ firstName }: { firstName?: string }) {
             </CardTitle>
             <ArrowDownRight size={16} className="text-muted-foreground" />
           </CardHeader>
-          <EmptyPanel icon={ArrowDownRight} title="No clients yet" description="Add clients to track cardio goals here." />
+          <EmptyPanel
+            icon={ArrowDownRight}
+            title={clients.length === 0 ? 'No clients yet' : 'Not tracked yet'}
+            description={clients.length === 0 ? 'Add clients to track cardio goals here.' : "Cardio rollups aren't wired up yet."}
+          />
         </Card>
       </div>
     </motion.div>

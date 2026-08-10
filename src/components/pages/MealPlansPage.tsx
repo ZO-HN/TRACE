@@ -1,8 +1,27 @@
-import { useState } from 'react';
+import { useMemo, useState } from 'react';
 import { ChevronDown, ChevronUp, Flame, Plus, Trash2, UtensilsCrossed, X } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { Card, CardContent } from '@/components/ui/shadcn/card';
 import { Label, Input, Select } from '@/components/ui/shadcn/field';
+import { useProfile } from '@/components/layout/AppShell';
+import { useClients } from '@/hooks/useClients';
+import { useMealPlans } from '@/hooks/useMealPlans';
+import { useToast } from '@/components/ui/toast';
+
+const GOAL_ADJUSTMENT: Record<'Maintain' | 'Cut' | 'Surplus' | 'Manual', number> = {
+  Maintain: 0,
+  Cut: -500,
+  Surplus: 300,
+  Manual: 0,
+};
+
+function mifflinStJeor(sex: string, ageYrs: number, heightCm: number, weightKg: number): number | null {
+  if (!ageYrs || !heightCm || !weightKg) return null;
+  const base = 10 * weightKg + 6.25 * heightCm - 5 * ageYrs;
+  if (sex === 'male') return Math.round(base + 5);
+  if (sex === 'female') return Math.round(base - 161);
+  return Math.round(base - 78); // unspecified: midpoint offset
+}
 
 const categoryKey = [
   { label: 'Protein', color: '#EF4444' },
@@ -25,21 +44,67 @@ const dayTargets = [
   { label: 'Sodium', key: 'sodium' },
 ];
 
-function MealPlanBuilder({ onClose }: { onClose: () => void }) {
+function MealPlanBuilder({
+  clients,
+  onClose,
+  onSave,
+}: {
+  clients: { id: string; first_name: string; last_name: string }[];
+  onClose: () => void;
+  onSave: (input: { name: string; clientId: string; data: Record<string, unknown> }) => Promise<{ error: string | null }>;
+}) {
   const [tdeeOpen, setTdeeOpen] = useState(true);
   const [goal, setGoal] = useState<'Maintain' | 'Cut' | 'Surplus' | 'Manual'>('Maintain');
   const [method, setMethod] = useState<'formula' | 'kcal-per-kg'>('formula');
   const [rows, setRows] = useState(5);
+  const [clientId, setClientId] = useState('');
+  const [sex, setSex] = useState('unspecified');
+  const [age, setAge] = useState('');
+  const [heightCm, setHeightCm] = useState('');
+  const [weightKg, setWeightKg] = useState('');
+  const [kcalPerKg, setKcalPerKg] = useState('');
+  const [manualCalories, setManualCalories] = useState('');
+  const [saving, setSaving] = useState(false);
+
+  const maintenanceEstimate = useMemo(
+    () => mifflinStJeor(sex, Number(age), Number(heightCm), Number(weightKg)),
+    [sex, age, heightCm, weightKg],
+  );
+
+  const appliedTarget = useMemo(() => {
+    if (goal === 'Manual') return manualCalories ? Number(manualCalories) : null;
+    if (method === 'kcal-per-kg' && kcalPerKg && weightKg) {
+      return Math.round(Number(kcalPerKg) * Number(weightKg));
+    }
+    if (maintenanceEstimate == null) return null;
+    return maintenanceEstimate + GOAL_ADJUSTMENT[goal];
+  }, [goal, method, kcalPerKg, weightKg, maintenanceEstimate, manualCalories]);
+
+  const client = clients.find((c) => c.id === clientId);
+
+  const handleSave = async () => {
+    setSaving(true);
+    const { error } = await onSave({
+      name: client ? `${client.first_name}'s plan` : 'Untitled plan',
+      clientId,
+      data: { goal, method, sex, age, heightCm, weightKg, kcalPerKg, manualCalories, maintenanceEstimate, appliedTarget },
+    });
+    setSaving(false);
+    if (!error) onClose();
+  };
 
   return (
     <div className="flex flex-col gap-4">
       <div className="flex items-center justify-between">
         <div className="flex items-center gap-2 text-sm text-muted-foreground">
           Building for
-          <Select className="w-48 h-8" defaultValue="">
-            <option value="" disabled>
-              No client selected
-            </option>
+          <Select className="w-48 h-8" value={clientId} onChange={(e) => setClientId(e.target.value)}>
+            <option value="">No client selected</option>
+            {clients.map((c) => (
+              <option key={c.id} value={c.id}>
+                {c.first_name} {c.last_name}
+              </option>
+            ))}
           </Select>
         </div>
         <button onClick={onClose} className="text-muted-foreground hover:text-foreground p-1.5 rounded-md hover:bg-surface">
@@ -61,19 +126,10 @@ function MealPlanBuilder({ onClose }: { onClose: () => void }) {
 
         {tdeeOpen && (
           <CardContent className="flex flex-col gap-4">
-            <div className="flex flex-col gap-1.5">
-              <Label>Client</Label>
-              <Select defaultValue="">
-                <option value="" disabled>
-                  Select a client to prefill
-                </option>
-              </Select>
-            </div>
-
             <div className="grid grid-cols-2 sm:grid-cols-4 gap-4">
               <div className="flex flex-col gap-1.5">
                 <Label>Sex</Label>
-                <Select defaultValue="unspecified">
+                <Select value={sex} onChange={(e) => setSex(e.target.value)}>
                   <option value="unspecified">Unspecified</option>
                   <option value="male">Male</option>
                   <option value="female">Female</option>
@@ -81,42 +137,29 @@ function MealPlanBuilder({ onClose }: { onClose: () => void }) {
               </div>
               <div className="flex flex-col gap-1.5">
                 <Label>Age (yrs)</Label>
-                <Input placeholder="—" />
+                <Input placeholder="—" value={age} onChange={(e) => setAge(e.target.value)} />
               </div>
               <div className="flex flex-col gap-1.5">
                 <Label>Height (cm)</Label>
-                <Input placeholder="—" />
+                <Input placeholder="—" value={heightCm} onChange={(e) => setHeightCm(e.target.value)} />
               </div>
               <div className="flex flex-col gap-1.5">
-                <Label>Weight</Label>
-                <Input placeholder="—" />
-              </div>
-            </div>
-
-            <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
-              <div className="flex flex-col gap-1.5">
-                <Label>Avg. daily steps</Label>
-                <Input placeholder="—" />
-              </div>
-              <div className="flex flex-col gap-1.5">
-                <Label>Training sessions/wk</Label>
-                <Input placeholder="—" />
-              </div>
-              <div className="flex flex-col gap-1.5">
-                <Label>Cardio sessions/wk</Label>
-                <Input placeholder="—" />
+                <Label>Weight (kg)</Label>
+                <Input placeholder="—" value={weightKg} onChange={(e) => setWeightKg(e.target.value)} />
               </div>
             </div>
 
             <p className="text-xs text-muted-foreground -mt-2">
-              Fields prefill from tracked data — or the client's onboarding answers when tracked data isn't available. Every field is editable.
+              Calculated with the Mifflin-St Jeor formula. Every field is editable.
             </p>
 
             <div className="rounded-lg border border-border-soft bg-background p-4">
               <p className="text-xs font-semibold text-muted-foreground tracking-wide">MAINTENANCE ESTIMATE (FORMULA)</p>
-              <p className="text-2xl font-bold text-foreground mt-1">—</p>
+              <p className="text-2xl font-bold text-foreground mt-1">
+                {maintenanceEstimate != null ? `${maintenanceEstimate} kcal` : '—'}
+              </p>
               <p className="text-xs text-muted-foreground mt-1">
-                Enter age, height, and weight to estimate — or set calories manually below.
+                {maintenanceEstimate != null ? 'Estimated basal + light activity maintenance.' : 'Enter age, height, and weight to estimate — or set calories manually below.'}
               </p>
             </div>
 
@@ -163,15 +206,35 @@ function MealPlanBuilder({ onClose }: { onClose: () => void }) {
                   kcal/kg bodyweight
                 </button>
               </div>
+              {method === 'kcal-per-kg' && (
+                <Input
+                  placeholder="kcal per kg bodyweight"
+                  className="w-56 mt-1"
+                  value={kcalPerKg}
+                  onChange={(e) => setKcalPerKg(e.target.value)}
+                />
+              )}
+              {goal === 'Manual' && (
+                <Input
+                  placeholder="Manual calorie target"
+                  className="w-56 mt-1"
+                  value={manualCalories}
+                  onChange={(e) => setManualCalories(e.target.value)}
+                />
+              )}
             </div>
 
             <div className="rounded-lg border border-border-soft bg-background p-4">
               <p className="text-xs font-semibold text-muted-foreground tracking-wide">APPLIED CALORIE TARGET</p>
-              <p className="text-2xl font-bold text-foreground mt-1">—</p>
+              <p className="text-2xl font-bold text-foreground mt-1">{appliedTarget != null ? `${appliedTarget} kcal` : '—'}</p>
             </div>
 
-            <button className="h-10 w-fit px-4 rounded-lg bg-success text-white text-sm font-semibold hover:opacity-90 transition-opacity">
-              Apply to this day
+            <button
+              disabled={saving}
+              onClick={() => void handleSave()}
+              className="h-10 w-fit px-4 rounded-lg bg-success text-white text-sm font-semibold hover:opacity-90 transition-opacity disabled:opacity-40"
+            >
+              {saving ? 'Saving...' : 'Save meal plan'}
             </button>
           </CardContent>
         )}
@@ -277,12 +340,22 @@ function MealPlanBuilder({ onClose }: { onClose: () => void }) {
 }
 
 export default function MealPlansPage() {
+  const profile = useProfile();
+  const { toast } = useToast();
+  const { clients } = useClients(profile.id);
+  const { mealPlans, isLoading, error, createMealPlan, deleteMealPlan } = useMealPlans(profile.id);
   const [mode, setMode] = useState<'list' | 'builder'>('list');
+
+  const handleSave: typeof createMealPlan = async (input) => {
+    const result = await createMealPlan(input);
+    if (!result.error) toast('Meal plan saved.');
+    return result;
+  };
 
   if (mode === 'builder') {
     return (
       <div className="p-6">
-        <MealPlanBuilder onClose={() => setMode('list')} />
+        <MealPlanBuilder clients={clients} onClose={() => setMode('list')} onSave={handleSave} />
       </div>
     );
   }
@@ -303,20 +376,50 @@ export default function MealPlansPage() {
         </button>
       </div>
 
-      <div className="flex flex-col items-center justify-center gap-3 py-24 text-center rounded-xl border border-border bg-card">
-        <UtensilsCrossed size={32} className="text-muted-foreground" />
-        <p className="text-lg font-semibold text-foreground">No meal plans yet</p>
-        <p className="text-sm text-muted-foreground max-w-sm">
-          Create a plan with training and non-training days, then assign it to your clients.
-        </p>
-        <button
-          type="button"
-          onClick={() => setMode('builder')}
-          className="flex items-center gap-2 h-10 px-4 rounded-lg bg-success text-white text-sm font-semibold hover:opacity-90 transition-opacity mt-1"
-        >
-          <Plus size={14} /> New meal plan
-        </button>
-      </div>
+      {error && <p className="text-sm text-danger">Could not load meal plans: {error}</p>}
+
+      {isLoading ? (
+        <div className="py-24 text-center text-sm text-muted-foreground">Loading...</div>
+      ) : mealPlans.length === 0 ? (
+        <div className="flex flex-col items-center justify-center gap-3 py-24 text-center rounded-xl border border-border bg-card">
+          <UtensilsCrossed size={32} className="text-muted-foreground" />
+          <p className="text-lg font-semibold text-foreground">No meal plans yet</p>
+          <p className="text-sm text-muted-foreground max-w-sm">
+            Create a plan with training and non-training days, then assign it to your clients.
+          </p>
+          <button
+            type="button"
+            onClick={() => setMode('builder')}
+            className="flex items-center gap-2 h-10 px-4 rounded-lg bg-success text-white text-sm font-semibold hover:opacity-90 transition-opacity mt-1"
+          >
+            <Plus size={14} /> New meal plan
+          </button>
+        </div>
+      ) : (
+        <div className="flex flex-col gap-2">
+          {mealPlans.map((p) => {
+            const client = clients.find((c) => c.id === p.client_id);
+            const target = (p.data as { appliedTarget?: number }).appliedTarget;
+            return (
+              <div key={p.id} className="rounded-xl border border-border bg-card p-4 flex items-center justify-between">
+                <div>
+                  <p className="text-sm font-semibold text-foreground">{p.name}</p>
+                  <p className="text-xs text-muted-foreground">
+                    {client ? `${client.first_name} ${client.last_name}` : 'No client assigned'}
+                    {target != null && ` · ${target} kcal target`}
+                  </p>
+                </div>
+                <button
+                  onClick={() => void deleteMealPlan(p.id)}
+                  className="text-muted-foreground hover:text-danger p-1.5 rounded-md hover:bg-background"
+                >
+                  <Trash2 size={14} />
+                </button>
+              </div>
+            );
+          })}
+        </div>
+      )}
     </div>
   );
 }

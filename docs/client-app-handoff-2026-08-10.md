@@ -2,7 +2,7 @@
 
 This is a status/contract update for whoever's working in the `TRACE-client` repo (the trainee-facing Expo app). It supplements `docs/client-app-contract-check-ins-exercises.md` (still the primary contract doc — read that first) with what changed since it was written, and flags what's *not* ready yet so client-side work doesn't get built against something that doesn't exist server-side.
 
-Schema source of truth for everything below: the migrations in `supabase/migrations/`, specifically `20260809000000_check_in_template_schedule.sql` and `20260810000000_feedback_and_notifications.sql` — **neither is applied to the live database yet** (see `docs/migrations/2026-08-10-final-session-migrations.md`). Don't build against these columns/tables until that push has actually run; check `npx supabase migration list` on the shared project first.
+Schema source of truth for everything below: the migrations in `supabase/migrations/`, specifically `20260809000000_check_in_template_schedule.sql`, `20260810000000_feedback_and_notifications.sql`, and `20260810000001_coach_workspace_features.sql` — **none of the three are applied to the live database yet** (see `docs/migrations/2026-08-10-final-session-migrations.md`). Don't build against these columns/tables until that push has actually run; check `npx supabase migration list` on the shared project first.
 
 ## 1. `check_in_templates` — new columns
 
@@ -42,6 +42,30 @@ Full scoping for the real version — where sign-in happens in the flow, what ta
 ## 3. `feedback` / `notifications` tables — coach-dashboard only, not client-relevant
 
 Two new tables (`public.feedback`, `public.notifications`) back the coach dashboard's header Feedback form and notification bell. Both are scoped `coach_id = auth.uid()` with coach-only RLS — there's no trainee-side read/write path, and nothing here should be touched from `TRACE-client`. Mentioned only for completeness in case the table names show up in a shared schema dump.
+
+## 4. `form_checks` — new client-authored table (this is the one you need to build against)
+
+The coach dashboard's Form Checks page (previously a static mock) now really reads and reviews `public.form_checks`. Same write-direction contract as `check_ins`: **the client app INSERTs as the trainee; the coach never writes this table.**
+
+```ts
+await supabase.from('form_checks').insert({
+  client_id: session.user.id,     // must be the trainee's own auth uid
+  exercise_id: someExerciseId,    // optional, references public.exercises
+  video_key: 'r2/object/key.mp4', // the R2 key from your existing upload flow — same
+                                   // presigned-upload pattern used for other media, see
+                                   // docs/adr/0001-media-storage.md
+  // status defaults to 'unreviewed', submitted_at defaults to now() — don't set them
+});
+```
+
+- **Do not set `coach_id`** — a `BEFORE INSERT` trigger (`set_form_check_coach_id`) stamps it from the trainee's own `profiles.coach_id`, same pattern as `check_ins`. If the trainee has no coach assigned, the insert is rejected.
+- RLS only allows `client_id = auth.uid()` on insert — a trainee can only submit their own form checks.
+- A trainee can read back their own submissions (`client_id = auth.uid()`) including `status` and `coach_notes` once the coach reviews it, but cannot update them — review is coach-only, mirroring `useFormChecks.markReviewed` in this repo.
+- The coach dashboard renders the video via the same signed-URL `MediaViewer`/`useMediaUrl` pattern already documented in `client-app-contract-check-ins-exercises.md` for other media — no new upload mechanism, just point `video_key` at wherever your existing R2 upload flow puts the file.
+
+## 5. Other new coach-owned tables — not client-relevant
+
+`programs`, `roadmaps`, `vault_folders`, `training_groups`/`training_group_members`, `equipment`, `foods`, `meals`, `meal_plans` are all coach-authored and coach-scoped (`coach_id = auth.uid()` RLS, no trainee access). Mentioned for completeness only — nothing for `TRACE-client` to build against here, at least not yet. If a future feature needs the client app to *read* any of these (e.g. a trainee viewing their assigned roadmap or meal plan), that would need an RLS policy change first — don't assume read access exists just because the table does.
 
 ## Unchanged — still the contract
 
