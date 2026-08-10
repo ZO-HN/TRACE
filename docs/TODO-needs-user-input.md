@@ -4,15 +4,13 @@ Everything below needs a decision, credential, or access only you have. Nothing 
 
 ## 1. Apply the pending migrations
 
-Three migrations are written but not applied to the live database. See `docs/migrations/2026-08-10-final-session-migrations.md` for the full handoff — copy the prompt in there to agy. Until this runs, every newly-real page (Programs, Roadmaps, Vault, Training Groups, Equipment, Foods, Meals, Meal Plans, Form Checks, Feedback, Notifications, Check-in template scheduling) will error on save/load.
+Two migrations are written but not applied to the live database. See `docs/migrations/2026-08-10-final-session-migrations.md` for the full handoff — copy the prompt in there to agy. Until this runs, every newly-real page (Programs, Roadmaps, Vault, Training Groups, Equipment, Foods, Meals, Meal Plans, Form Checks, Notifications, Check-in template scheduling) will error on save/load.
 
-## 2. Email sending (feedback + client invites)
+## 2. Client invite emails
 
-Two features need real email delivery and currently don't have it:
-- Header → Feedback submissions save to a table but don't email you.
-- Clients → Invite Client → Email tab is disabled with an explanatory note (Share Link tab works today and needs no email).
+Clients → Invite Client → Email tab is disabled with an explanatory note (Share Link tab works today and needs no email). Sending a real email invitation needs a Supabase Edge Function + an email provider secret (Resend, SendGrid, Postmark, etc.) — pick a provider and I can wire it in a follow-up; needs your account/API key, so I can't build it silently.
 
-Both need the same missing piece: a Supabase Edge Function + an email provider secret (Resend, SendGrid, Postmark, etc.). Pick a provider and I can write the Edge Function and wire both features to it in a follow-up — this needs your account/API key, so I can't just build it silently.
+The header "Feedback" button no longer needs this — it now links straight to the GitHub repo (`https://github.com/ZO-HN/TRACE`) instead of an in-app form.
 
 ## 3. Onboarding wizard → real trainee account
 

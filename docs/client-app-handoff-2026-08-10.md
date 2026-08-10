@@ -39,9 +39,9 @@ The coach dashboard now has a public, unauthenticated `/onboarding` page (`src/c
 
 Full scoping for the real version — where sign-in happens in the flow, what table the answers land in, whether partial progress saves before auth — is written up in `docs/migrations/TODO-onboarding-account-linking.md`. **Nothing to build here yet** — flagging so client-side work doesn't assume this pipeline exists.
 
-## 3. `feedback` / `notifications` tables — coach-dashboard only, not client-relevant
+## 3. `notifications` table — coach-dashboard only, not client-relevant
 
-Two new tables (`public.feedback`, `public.notifications`) back the coach dashboard's header Feedback form and notification bell. Both are scoped `coach_id = auth.uid()` with coach-only RLS — there's no trainee-side read/write path, and nothing here should be touched from `TRACE-client`. Mentioned only for completeness in case the table names show up in a shared schema dump.
+A new table (`public.notifications`) backs the coach dashboard's header notification bell. It's scoped `coach_id = auth.uid()` with coach-only RLS — there's no trainee-side read/write path, and nothing here should be touched from `TRACE-client`. Mentioned only for completeness in case the table name shows up in a shared schema dump.
 
 ## 4. `form_checks` — new client-authored table (this is the one you need to build against)
 

@@ -158,8 +158,7 @@ function InviteClientDialog({
               onChange={(e) => setEmail(e.target.value)}
             />
             <p className="text-xs text-muted-foreground">
-              Sending an email invitation needs an email provider connected (see the Feedback follow-up in Settings) — not set up yet.
-              Use the Share Link tab in the meantime.
+              Sending an email invitation needs an email provider connected — not set up yet. Use the Share Link tab in the meantime.
             </p>
             <DialogFooter>
               <button

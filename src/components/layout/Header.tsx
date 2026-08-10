@@ -1,9 +1,7 @@
-import { useState } from 'react';
-import { Search, MessageCircleQuestion, Bell, LogOut, Activity, Settings, LifeBuoy, Send } from 'lucide-react';
+import { Search, MessageCircleQuestion, Bell, LogOut, Activity, Settings, LifeBuoy } from 'lucide-react';
 import { useNavigate } from 'react-router';
 import { supabase } from '@/lib/supabase';
 import { Avatar, AvatarFallback } from '@/components/ui/shadcn/avatar';
-import { Textarea, Input } from '@/components/ui/shadcn/field';
 import {
   DropdownMenu,
   DropdownMenuTrigger,
@@ -13,9 +11,9 @@ import {
   DropdownMenuSeparator,
 } from '@/components/ui/shadcn/dropdown-menu';
 import { useNotifications } from '@/hooks/useNotifications';
-import { useFeedback } from '@/hooks/useFeedback';
-import { useToast } from '@/components/ui/toast';
 import type { TraceProfile } from '@/hooks/useTraceUser';
+
+const TRACE_REPO_URL = 'https://github.com/ZO-HN/TRACE';
 
 function timeAgo(iso: string): string {
   const diffMs = Date.now() - new Date(iso).getTime();
@@ -84,55 +82,17 @@ function NotificationsMenu({ coachId }: { coachId: string }) {
   );
 }
 
-function FeedbackMenu({ coachId }: { coachId: string }) {
-  const { submit, isSubmitting } = useFeedback(coachId);
-  const { toast } = useToast();
-  const [open, setOpen] = useState(false);
-  const [topic, setTopic] = useState('');
-  const [message, setMessage] = useState('');
-
-  const handleSend = async () => {
-    if (!message.trim()) return;
-    const { error } = await submit(topic, message);
-    if (error) {
-      toast(`Could not send feedback: ${error}`);
-      return;
-    }
-    toast('Feedback sent. Thank you!');
-    setTopic('');
-    setMessage('');
-    setOpen(false);
-  };
-
+function FeedbackLink() {
   return (
-    <DropdownMenu open={open} onOpenChange={setOpen}>
-      <DropdownMenuTrigger asChild>
-        <button className="hidden sm:flex items-center gap-1.5 h-9 px-3 rounded-lg border border-border text-sm text-muted-foreground hover:text-foreground hover:bg-background transition-colors">
-          <MessageCircleQuestion size={14} />
-          Feedback
-        </button>
-      </DropdownMenuTrigger>
-      <DropdownMenuContent align="end" className="w-80 p-3">
-        <DropdownMenuLabel className="p-0 mb-2">Send feedback</DropdownMenuLabel>
-        <div className="flex flex-col gap-2">
-          <Input placeholder="Topic" value={topic} onChange={(e) => setTopic(e.target.value)} className="h-9 text-sm" />
-          <Textarea
-            placeholder="Your feedback..."
-            value={message}
-            onChange={(e) => setMessage(e.target.value)}
-            className="min-h-24 text-sm"
-          />
-          <button
-            type="button"
-            disabled={!message.trim() || isSubmitting}
-            onClick={() => void handleSend()}
-            className="flex items-center justify-center gap-1.5 h-9 rounded-lg bg-success text-white text-sm font-semibold disabled:opacity-40 hover:opacity-90 transition-opacity"
-          >
-            <Send size={13} /> {isSubmitting ? 'Sending...' : 'Send'}
-          </button>
-        </div>
-      </DropdownMenuContent>
-    </DropdownMenu>
+    <a
+      href={TRACE_REPO_URL}
+      target="_blank"
+      rel="noreferrer"
+      className="hidden sm:flex items-center gap-1.5 h-9 px-3 rounded-lg border border-border text-sm text-muted-foreground hover:text-foreground hover:bg-background transition-colors"
+    >
+      <MessageCircleQuestion size={14} />
+      Feedback
+    </a>
   );
 }
 
@@ -162,7 +122,7 @@ export default function Header({ profile, title }: { profile: TraceProfile | nul
           <kbd className="text-[10px] border border-border rounded px-1 py-0.5">⌘K</kbd>
         </div>
 
-        {profile && <FeedbackMenu coachId={profile.id} />}
+        <FeedbackLink />
         {profile && <NotificationsMenu coachId={profile.id} />}
 
         <div className="w-px h-6 bg-border mx-1" />
