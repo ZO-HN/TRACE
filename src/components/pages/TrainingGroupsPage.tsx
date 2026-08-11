@@ -1,5 +1,5 @@
-import { useState } from 'react';
-import { Plus, Trash2, UsersRound } from 'lucide-react';
+import { useEffect, useState } from 'react';
+import { Plus, Trash2, UsersRound, X } from 'lucide-react';
 import { Badge } from '@/components/ui/shadcn/badge';
 import {
   Dialog,
@@ -10,7 +10,8 @@ import {
 import { Label, Input, Textarea, Select } from '@/components/ui/shadcn/field';
 import { useProfile } from '@/components/layout/AppShell';
 import { usePrograms } from '@/hooks/usePrograms';
-import { useTrainingGroups } from '@/hooks/useTrainingGroups';
+import { useTrainingGroups, type TrainingGroupRow } from '@/hooks/useTrainingGroups';
+import { useClients } from '@/hooks/useClients';
 import { useToast } from '@/components/ui/toast';
 
 function CreateGroupDialog({
@@ -91,12 +92,103 @@ function CreateGroupDialog({
   );
 }
 
+function ManageMembersDialog({
+  group,
+  onOpenChange,
+  clients,
+  fetchMemberIds,
+  addMember,
+  removeMember,
+}: {
+  group: TrainingGroupRow | null;
+  onOpenChange: (open: boolean) => void;
+  clients: { id: string; first_name: string; last_name: string }[];
+  fetchMemberIds: (groupId: string) => Promise<{ memberIds: string[]; error: string | null }>;
+  addMember: (groupId: string, clientId: string) => Promise<{ error: string | null }>;
+  removeMember: (groupId: string, clientId: string) => Promise<{ error: string | null }>;
+}) {
+  const [memberIds, setMemberIds] = useState<Set<string>>(new Set());
+  const [isLoading, setIsLoading] = useState(false);
+  const [pendingId, setPendingId] = useState<string | null>(null);
+
+  useEffect(() => {
+    if (!group) return;
+    setIsLoading(true);
+    void fetchMemberIds(group.id).then(({ memberIds: ids }) => {
+      setMemberIds(new Set(ids));
+      setIsLoading(false);
+    });
+  }, [group, fetchMemberIds]);
+
+  const toggle = async (clientId: string, isMember: boolean) => {
+    if (!group) return;
+    setPendingId(clientId);
+    const { error } = isMember ? await removeMember(group.id, clientId) : await addMember(group.id, clientId);
+    if (!error) {
+      setMemberIds((prev) => {
+        const next = new Set(prev);
+        if (isMember) next.delete(clientId);
+        else next.add(clientId);
+        return next;
+      });
+    }
+    setPendingId(null);
+  };
+
+  return (
+    <Dialog open={!!group} onOpenChange={onOpenChange}>
+      <DialogContent className="max-w-lg">
+        <DialogHeader>
+          <DialogTitle>Manage Members — {group?.name}</DialogTitle>
+        </DialogHeader>
+
+        {isLoading ? (
+          <div className="py-8 text-center text-sm text-muted-foreground">Loading...</div>
+        ) : clients.length === 0 ? (
+          <p className="text-sm text-muted-foreground py-4">No clients yet.</p>
+        ) : (
+          <div className="flex flex-col gap-1 max-h-96 overflow-y-auto">
+            {clients.map((c) => {
+              const isMember = memberIds.has(c.id);
+              return (
+                <button
+                  key={c.id}
+                  type="button"
+                  disabled={pendingId === c.id}
+                  onClick={() => void toggle(c.id, isMember)}
+                  className="flex items-center justify-between h-11 px-3 rounded-lg hover:bg-background text-left disabled:opacity-50"
+                >
+                  <span className="text-sm text-foreground">
+                    {c.first_name} {c.last_name}
+                  </span>
+                  {isMember ? (
+                    <span className="flex items-center gap-1 text-xs text-danger">
+                      <X size={12} /> Remove
+                    </span>
+                  ) : (
+                    <span className="flex items-center gap-1 text-xs text-success">
+                      <Plus size={12} /> Add
+                    </span>
+                  )}
+                </button>
+              );
+            })}
+          </div>
+        )}
+      </DialogContent>
+    </Dialog>
+  );
+}
+
 export default function TrainingGroupsPage() {
   const profile = useProfile();
   const { programs } = usePrograms(profile.id);
-  const { groups, isLoading, error, createGroup, deleteGroup } = useTrainingGroups(profile.id);
+  const { groups, isLoading, error, createGroup, deleteGroup, fetchMemberIds, addMember, removeMember } =
+    useTrainingGroups(profile.id);
+  const { clients } = useClients(profile.id);
   const { toast } = useToast();
   const [open, setOpen] = useState(false);
+  const [managingGroup, setManagingGroup] = useState<TrainingGroupRow | null>(null);
 
   const handleCreate: typeof createGroup = async (input) => {
     const result = await createGroup(input);
@@ -146,18 +238,35 @@ export default function TrainingGroupsPage() {
                   {g.program_name && ` · ${g.program_name}`}
                 </p>
               </div>
-              <button
-                onClick={() => void deleteGroup(g.id)}
-                className="text-muted-foreground hover:text-danger p-1.5 rounded-md hover:bg-background"
-              >
-                <Trash2 size={14} />
-              </button>
+              <div className="flex items-center gap-2">
+                <button
+                  type="button"
+                  onClick={() => setManagingGroup(g)}
+                  className="flex items-center gap-1.5 h-9 px-3 rounded-lg border border-border text-xs font-semibold text-foreground hover:bg-background"
+                >
+                  <UsersRound size={12} /> Manage Members
+                </button>
+                <button
+                  onClick={() => void deleteGroup(g.id)}
+                  className="text-muted-foreground hover:text-danger p-1.5 rounded-md hover:bg-background"
+                >
+                  <Trash2 size={14} />
+                </button>
+              </div>
             </div>
           ))}
         </div>
       )}
 
       <CreateGroupDialog open={open} onOpenChange={setOpen} programs={programs} onCreate={handleCreate} />
+      <ManageMembersDialog
+        group={managingGroup}
+        onOpenChange={(isOpen) => !isOpen && setManagingGroup(null)}
+        clients={clients}
+        fetchMemberIds={fetchMemberIds}
+        addMember={addMember}
+        removeMember={removeMember}
+      />
     </div>
   );
 }

@@ -27,6 +27,9 @@ export interface UseTrainingGroups {
   error: string | null;
   createGroup: (input: { name: string; description: string; programId: string }) => Promise<{ error: string | null }>;
   deleteGroup: (id: string) => Promise<{ error: string | null }>;
+  fetchMemberIds: (groupId: string) => Promise<{ memberIds: string[]; error: string | null }>;
+  addMember: (groupId: string, clientId: string) => Promise<{ error: string | null }>;
+  removeMember: (groupId: string, clientId: string) => Promise<{ error: string | null }>;
 }
 
 export function useTrainingGroups(coachId: string): UseTrainingGroups {
@@ -82,5 +85,32 @@ export function useTrainingGroups(coachId: string): UseTrainingGroups {
     return { error: deleteError?.message ?? null };
   };
 
-  return { groups, isLoading, error, createGroup, deleteGroup };
+  const fetchMemberIds: UseTrainingGroups['fetchMemberIds'] = async (groupId) => {
+    const { data, error: queryError } = await supabase
+      .from('training_group_members')
+      .select('client_id')
+      .eq('group_id', groupId);
+    if (queryError) return { memberIds: [], error: queryError.message };
+    return { memberIds: (data ?? []).map((r) => r.client_id as string), error: null };
+  };
+
+  const addMember: UseTrainingGroups['addMember'] = async (groupId, clientId) => {
+    const { error: insertError } = await supabase
+      .from('training_group_members')
+      .insert({ group_id: groupId, client_id: clientId });
+    if (!insertError) await fetchGroups();
+    return { error: insertError?.message ?? null };
+  };
+
+  const removeMember: UseTrainingGroups['removeMember'] = async (groupId, clientId) => {
+    const { error: deleteError } = await supabase
+      .from('training_group_members')
+      .delete()
+      .eq('group_id', groupId)
+      .eq('client_id', clientId);
+    if (!deleteError) await fetchGroups();
+    return { error: deleteError?.message ?? null };
+  };
+
+  return { groups, isLoading, error, createGroup, deleteGroup, fetchMemberIds, addMember, removeMember };
 }
