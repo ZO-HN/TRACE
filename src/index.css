@@ -56,7 +56,52 @@
   }
 }
 
+/* Muscle model (react-body-highlighter SVG) — smooth color/scale feedback on
+   hover. The library gives each region its own <polygon>, so plain CSS
+   :hover is enough; no per-region JS identification needed. */
+.muscle-model-canvas polygon {
+  transform-box: fill-box;
+  transform-origin: center;
+  transition: transform 0.15s ease, filter 0.15s ease, fill 0.2s ease;
+}
+
+.muscle-model-canvas polygon:hover {
+  transform: scale(1.05);
+  filter: brightness(1.25) drop-shadow(0 0 6px rgba(255, 255, 255, 0.25));
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .muscle-model-canvas polygon {
+    transition: fill 0.2s ease;
+  }
+  .muscle-model-canvas polygon:hover {
+    transform: none;
+  }
+}
+
 /* Floating dock nav — see design_handoff_sidebar_copilot/README.md */
+/* Hidden by default; reveals on hover/focus near the bottom edge so it doesn't
+   sit on screen permanently. The trigger zone stays taller than the nav itself
+   so there's no dead gap between "mouse near bottom" and "dock visible". */
+.dock-nav {
+  opacity: 0;
+  transform: translateY(140%);
+  transition: opacity 0.2s ease, transform 0.25s cubic-bezier(0.22, 1, 0.36, 1);
+}
+
+.dock-reveal-zone:hover .dock-nav,
+.dock-nav:focus-within,
+.dock-reveal-zone:has(.dock-nav:focus-within) .dock-nav {
+  opacity: 1;
+  transform: translateY(0);
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .dock-nav {
+    transition: opacity 0.2s ease;
+  }
+}
+
 .dock-tile {
   --isz: 46px;
   width: var(--isz);

@@ -72,8 +72,8 @@ export default function MuscleModel({ muscleGroups, primary, secondary, onSetRol
         </div>
       </div>
 
-      <div className="flex-1 min-h-0 rounded-xl border border-border bg-background flex items-center justify-center relative overflow-hidden py-4">
-        <div className="h-full max-h-96 [&_.rbh-wrapper]:h-full [&_svg]:h-full [&_svg]:w-auto [&_polygon]:transition-colors [&_polygon]:stroke-[var(--border-soft)]">
+      <div className="flex-1 min-h-[600px] rounded-xl border border-border bg-background flex items-center justify-center relative overflow-hidden py-6">
+        <div className="muscle-model-canvas h-full [&_.rbh-wrapper]:h-full [&_svg]:h-full [&_svg]:w-auto [&_polygon]:stroke-[var(--border-soft)]">
           <Model
             type={side === 'front' ? 'anterior' : 'posterior'}
             data={data}

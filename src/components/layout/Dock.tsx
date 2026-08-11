@@ -49,23 +49,27 @@ function DockTile({ item, color }: { item: NavItem; color: string }) {
 
 export default function Dock() {
   return (
-    <nav
-      className="fixed left-1/2 bottom-5 z-40 flex items-end gap-2.5"
-      style={{ transform: 'translateX(-50%)' }}
-      aria-label="Primary"
+    <div
+      className="dock-reveal-zone fixed left-0 right-0 bottom-0 z-40 h-20 flex items-end justify-center pointer-events-none"
+      aria-label="Primary navigation trigger"
     >
-      {GROUPS.map((group, groupIndex) => (
-        <div key={group.key} className="flex items-end gap-2.5">
-          {groupIndex > 0 && <span className="dock-divider" />}
-          {group.items.map((item, i) => (
-            <DockTile
-              key={item.path}
-              item={item}
-              color={SECTION_COLORS[group.key][i % SECTION_COLORS[group.key].length]}
-            />
-          ))}
-        </div>
-      ))}
-    </nav>
+      <nav
+        className="dock-nav flex items-end gap-2.5 mb-5 pointer-events-auto"
+        aria-label="Primary"
+      >
+        {GROUPS.map((group, groupIndex) => (
+          <div key={group.key} className="flex items-end gap-2.5">
+            {groupIndex > 0 && <span className="dock-divider" />}
+            {group.items.map((item, i) => (
+              <DockTile
+                key={item.path}
+                item={item}
+                color={SECTION_COLORS[group.key][i % SECTION_COLORS[group.key].length]}
+              />
+            ))}
+          </div>
+        ))}
+      </nav>
+    </div>
   );
 }
