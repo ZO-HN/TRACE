@@ -1,5 +1,4 @@
 import { useState, type FormEvent } from 'react';
-import { Link } from 'react-router';
 import { CheckCircle2, Loader2 } from 'lucide-react';
 import { supabase } from '@/lib/supabase';
 import { Input } from '@/components/ui/shadcn/field';
@@ -54,14 +53,6 @@ export default function LoginPage() {
     <AuthCard
       title="Welcome back!"
       subtitle="Enter your email below to login to your account"
-      footer={
-        <>
-          Don't have an account?{' '}
-          <Link to="/signup" className="text-primary hover:underline font-medium">
-            Sign up
-          </Link>
-        </>
-      }
     >
       <form onSubmit={handleSubmit} className="flex flex-col gap-3">
         <Input

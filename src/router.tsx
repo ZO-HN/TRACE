@@ -20,7 +20,6 @@ import CalendarPage from './components/pages/CalendarPage';
 import TrainingGroupsPage from './components/pages/TrainingGroupsPage';
 import EquipmentPage from './components/pages/EquipmentPage';
 import LoginPage from './components/pages/LoginPage';
-import SignupPage from './components/pages/SignupPage';
 import OnboardingWizardPage from './components/pages/OnboardingWizardPage';
 
 export default function AppRouter() {
@@ -28,7 +27,6 @@ export default function AppRouter() {
     <Routes>
       <Route path="/" element={<App />}>
         <Route path="login" element={<LoginPage />} />
-        <Route path="signup" element={<SignupPage />} />
         <Route path="onboarding" element={<OnboardingWizardPage />} />
         <Route element={<AppShell />}>
           <Route index element={<DashboardPage />} />
