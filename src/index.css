@@ -80,68 +80,72 @@
 }
 
 /* Floating dock nav — see design_handoff_sidebar_copilot/README.md */
-/* Hidden by default; reveals on hover/focus near the bottom edge so it doesn't
-   sit on screen permanently. The trigger zone stays taller than the nav itself
-   so there's no dead gap between "mouse near bottom" and "dock visible". */
+/* Pinned to the left edge below the header, capped to viewport height so it
+   never protrudes past the top or bottom edge; scrolls internally instead. */
 .dock-nav {
-  opacity: 0;
-  transform: translateY(140%);
-  transition: opacity 0.2s ease, transform 0.25s cubic-bezier(0.22, 1, 0.36, 1);
+  scrollbar-width: none;
 }
 
-.dock-reveal-zone:hover .dock-nav,
-.dock-nav:focus-within,
-.dock-reveal-zone:has(.dock-nav:focus-within) .dock-nav {
-  opacity: 1;
-  transform: translateY(0);
-}
-
-@media (prefers-reduced-motion: reduce) {
-  .dock-nav {
-    transition: opacity 0.2s ease;
-  }
+.dock-nav::-webkit-scrollbar {
+  display: none;
 }
 
 .dock-tile {
+  width: 46px;
+  height: 46px;
+}
+
+.dock-tile-fill {
   --isz: 46px;
   width: var(--isz);
   height: var(--isz);
   border-radius: 26%;
   background: var(--ic);
   box-shadow: 0 4px 10px rgba(0, 0, 0, 0.35);
-  transition: width 0.15s ease, height 0.15s ease, box-shadow 0.15s ease, transform 0.1s ease, background 0.15s ease;
+  transition: width 0.15s ease, height 0.15s ease, box-shadow 0.15s ease, background 0.15s ease;
 }
 
-.dock-tile:hover {
+.dock-tile:hover .dock-tile-fill {
   background: color-mix(in srgb, var(--ic) 88%, white 12%);
   box-shadow: 0 6px 16px rgba(0, 0, 0, 0.45);
   --isz: 54px;
 }
 
-.dock-tile:active {
+.dock-tile:active .dock-tile-fill {
   transform: scale(0.92);
+}
+
+.dock-tile-active .dock-tile-fill {
+  background: linear-gradient(135deg, #000000 0%, var(--ic) 100%);
+  box-shadow: 0 0 0 2px color-mix(in srgb, var(--ic) 55%, transparent), 0 4px 12px rgba(0, 0, 0, 0.5);
+}
+
+.dock-tooltip {
+  transition: opacity 0.15s ease;
+  font-feature-settings: "cv11", "cv02", "cv03";
+  -webkit-font-smoothing: antialiased;
 }
 
 .dock-tile-active-dot {
   position: absolute;
-  bottom: -8px;
-  left: 50%;
-  transform: translateX(-50%);
+  right: -8px;
+  top: 50%;
+  transform: translateY(-50%);
   width: 4px;
   height: 4px;
   border-radius: 50%;
-  background: var(--accent);
+  background: var(--ic);
 }
 
 .dock-divider {
-  width: 1px;
-  height: 26px;
+  height: 1px;
+  width: 26px;
   background: rgba(255, 255, 255, 0.12);
   align-self: center;
 }
 
 @media (prefers-reduced-motion: reduce) {
-  .dock-tile {
+  .dock-tile-fill {
     transition: none;
   }
 }

@@ -27,15 +27,15 @@ function DockTile({ item, color }: { item: NavItem; color: string }) {
     <NavLink
       to={item.path}
       end={item.path === '/'}
-      title={item.label}
-      className="dock-tile group relative flex items-center justify-center shrink-0"
-      style={({ isActive }) => ({ '--ic': isActive ? 'var(--accent)' : color }) as React.CSSProperties}
+      className={({ isActive }) => `dock-tile group relative flex items-center justify-center shrink-0 pointer-events-auto${isActive ? ' dock-tile-active' : ''}`}
+      style={{ '--ic': color } as React.CSSProperties}
     >
       {({ isActive }) => (
         <>
+          <span className="dock-tile-fill absolute inset-0 m-auto" />
           <span
-            className="absolute px-2.5 py-1 rounded-md bg-[#0c0d10] text-white text-xs font-medium whitespace-nowrap opacity-0 -translate-y-1 pointer-events-none transition-all duration-150 group-hover:opacity-100 group-hover:-translate-y-2 group-hover:pointer-events-auto"
-            style={{ bottom: 'calc(100% + 12px)' }}
+            className="dock-tooltip absolute px-2.5 py-1.5 rounded-lg bg-[#15171c] text-white text-[12.5px] font-medium tracking-tight leading-none whitespace-nowrap opacity-0 -translate-x-1.5 scale-95 pointer-events-none group-hover:opacity-100 group-hover:translate-x-0 group-hover:scale-100 group-hover:pointer-events-auto"
+            style={{ left: 'calc(100% + 14px)' }}
           >
             {item.label}
           </span>
@@ -49,27 +49,22 @@ function DockTile({ item, color }: { item: NavItem; color: string }) {
 
 export default function Dock() {
   return (
-    <div
-      className="dock-reveal-zone fixed left-0 right-0 bottom-0 z-40 h-20 flex items-end justify-center pointer-events-none"
-      aria-label="Primary navigation trigger"
+    <nav
+      className="dock-nav fixed left-3 top-20 bottom-4 z-40 flex flex-col items-center gap-2 overflow-y-auto overflow-x-visible py-1 pr-44 pointer-events-none"
+      aria-label="Primary"
     >
-      <nav
-        className="dock-nav flex items-end gap-2.5 mb-5 pointer-events-auto"
-        aria-label="Primary"
-      >
-        {GROUPS.map((group, groupIndex) => (
-          <div key={group.key} className="flex items-end gap-2.5">
-            {groupIndex > 0 && <span className="dock-divider" />}
-            {group.items.map((item, i) => (
-              <DockTile
-                key={item.path}
-                item={item}
-                color={SECTION_COLORS[group.key][i % SECTION_COLORS[group.key].length]}
-              />
-            ))}
-          </div>
-        ))}
-      </nav>
-    </div>
+      {GROUPS.map((group, groupIndex) => (
+        <div key={group.key} className="flex flex-col items-center gap-2.5">
+          {groupIndex > 0 && <span className="dock-divider" />}
+          {group.items.map((item, i) => (
+            <DockTile
+              key={item.path}
+              item={item}
+              color={SECTION_COLORS[group.key][i % SECTION_COLORS[group.key].length]}
+            />
+          ))}
+        </div>
+      ))}
+    </nav>
   );
 }

@@ -101,7 +101,7 @@ export default function Header({ profile, title }: { profile: TraceProfile | nul
   const navigate = useNavigate();
 
   return (
-    <header className="bg-surface border-b border-border py-3 px-6 flex items-center justify-between gap-4">
+    <header className="sticky top-0 z-50 bg-surface border-b border-border py-3 px-6 flex items-center justify-between gap-4">
       <div className="flex items-center gap-3 min-w-0">
         <div className="flex items-center gap-2 shrink-0">
           <div className="w-8 h-8 rounded-lg bg-primary/15 border border-primary/30 flex items-center justify-center shrink-0">

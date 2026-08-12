@@ -85,7 +85,7 @@ export default function AppShell() {
   return (
     <div className="min-h-screen bg-background text-foreground font-sans flex flex-col">
       <Header profile={profile} title={title} />
-      <main className="flex-1 min-w-0 pb-[120px]">
+      <main className="flex-1 min-w-0 pl-[104px]">
         <Outlet context={{ profile } satisfies AppShellContext} />
       </main>
       <Dock />
