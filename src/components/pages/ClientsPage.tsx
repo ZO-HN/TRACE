@@ -1,5 +1,5 @@
 import { useState } from 'react';
-import { ArrowUpDown, Check, Copy, Download, Link2, Plus, Search, Settings2, Tag, UserPlus, Users } from 'lucide-react';
+import { ArrowUpDown, Check, Copy, Download, Link2, Plus, Search, Settings2, Tag, UserMinus, UserPlus, Users } from 'lucide-react';
 import {
   Dialog,
   DialogContent,
@@ -15,7 +15,7 @@ import { useProfile } from '@/components/layout/AppShell';
 import { useClients } from '@/hooks/useClients';
 import { buildInviteLink, DEFAULT_ONBOARDING_SCREENS } from '@/config/onboardingScreens';
 
-const columns = ['Client', 'Email', 'Added'];
+const columns = ['Client', 'Email', 'Added', 'Status'];
 const statusOptions = ['Active', 'Trial', 'Archived', 'Deactivated'];
 
 function StatusFilter() {
@@ -222,7 +222,7 @@ function TagsDialog({ open, onOpenChange }: { open: boolean; onOpenChange: (open
 
 export default function ClientsPage() {
   const profile = useProfile();
-  const { clients, isLoading, error } = useClients(profile.id);
+  const { clients, isLoading, error, setChurned } = useClients(profile.id);
   const [inviteOpen, setInviteOpen] = useState(false);
   const [tagsOpen, setTagsOpen] = useState(false);
   const [filter, setFilter] = useState('');
@@ -268,7 +268,7 @@ export default function ClientsPage() {
       {error && <p className="text-sm text-danger">Could not load clients: {error}</p>}
 
       <div className="rounded-xl border border-border bg-card overflow-hidden">
-        <div className="grid grid-cols-3 gap-4 px-4 py-3 border-b border-border text-xs font-semibold text-muted-foreground">
+        <div className="grid grid-cols-4 gap-4 px-4 py-3 border-b border-border text-xs font-semibold text-muted-foreground">
           {columns.map((c) => (
             <span key={c} className="flex items-center gap-1">
               {c} <ArrowUpDown size={12} />
@@ -299,7 +299,7 @@ export default function ClientsPage() {
           filtered.map((c) => {
             const initials = `${c.first_name[0] ?? ''}${c.last_name[0] ?? ''}`.toUpperCase();
             return (
-              <div key={c.id} className="grid grid-cols-3 gap-4 px-4 py-3 border-b border-border last:border-b-0 items-center text-sm">
+              <div key={c.id} className="grid grid-cols-4 gap-4 px-4 py-3 border-b border-border last:border-b-0 items-center text-sm">
                 <div className="flex items-center gap-2.5">
                   <Avatar className="size-8">
                     <AvatarFallback className="text-xs">{initials || '?'}</AvatarFallback>
@@ -310,6 +310,21 @@ export default function ClientsPage() {
                 </div>
                 <span className="text-muted-foreground">{c.email}</span>
                 <span className="text-muted-foreground">{new Date(c.created_at).toLocaleDateString()}</span>
+                <div className="flex items-center gap-2">
+                  <span
+                    className={`text-xs font-medium px-2 py-0.5 rounded-full ${c.manually_marked_churned ? 'bg-danger/15 text-danger' : 'bg-success/15 text-success'}`}
+                  >
+                    {c.manually_marked_churned ? 'Churned' : 'Active'}
+                  </span>
+                  <button
+                    type="button"
+                    onClick={() => void setChurned(c.id, !c.manually_marked_churned)}
+                    title={c.manually_marked_churned ? 'Mark active' : 'Mark churned'}
+                    className="text-muted-foreground hover:text-foreground p-1 rounded-md hover:bg-background"
+                  >
+                    <UserMinus size={13} />
+                  </button>
+                </div>
               </div>
             );
           })

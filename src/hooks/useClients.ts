@@ -11,12 +11,14 @@ export interface ClientRow {
   last_name: string;
   email: string;
   created_at: string;
+  manually_marked_churned: boolean;
 }
 
 export interface UseClients {
   clients: ClientRow[];
   isLoading: boolean;
   error: string | null;
+  setChurned: (clientId: string, churned: boolean) => Promise<{ error: string | null }>;
 }
 
 export function useClients(coachId: string): UseClients {
@@ -24,28 +26,41 @@ export function useClients(coachId: string): UseClients {
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
 
+  const fetchClients = async () => {
+    const { data, error: queryError } = await supabase
+      .from('profiles')
+      .select('id, first_name, last_name, email, created_at, manually_marked_churned')
+      .eq('coach_id', coachId)
+      .order('created_at', { ascending: false });
+
+    if (queryError) {
+      setError(queryError.message);
+    } else {
+      setError(null);
+      setClients((data as ClientRow[]) ?? []);
+    }
+    setIsLoading(false);
+  };
+
   useEffect(() => {
     let cancelled = false;
     (async () => {
-      const { data, error: queryError } = await supabase
-        .from('profiles')
-        .select('id, first_name, last_name, email, created_at')
-        .eq('coach_id', coachId)
-        .order('created_at', { ascending: false });
-
-      if (cancelled) return;
-      if (queryError) {
-        setError(queryError.message);
-      } else {
-        setError(null);
-        setClients((data as ClientRow[]) ?? []);
-      }
-      setIsLoading(false);
+      if (!cancelled) await fetchClients();
     })();
     return () => {
       cancelled = true;
     };
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [coachId]);
 
-  return { clients, isLoading, error };
+  const setChurned: UseClients['setChurned'] = async (clientId, churned) => {
+    const { error: updateError } = await supabase
+      .from('profiles')
+      .update({ manually_marked_churned: churned })
+      .eq('id', clientId);
+    if (!updateError) await fetchClients();
+    return { error: updateError?.message ?? null };
+  };
+
+  return { clients, isLoading, error, setChurned };
 }

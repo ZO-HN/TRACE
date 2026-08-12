@@ -5,23 +5,25 @@ import { useProfile } from '@/components/layout/AppShell';
 import { useClients } from '@/hooks/useClients';
 import { useCheckIns } from '@/hooks/useCheckIns';
 import { useFormChecks } from '@/hooks/useFormChecks';
+import { useDashboardStats } from '@/hooks/useDashboardStats';
 import StatCard from './StatCard';
 import EmptyPanel from './EmptyPanel';
 
-// New signups / workouts / churned and the nutrition & cardio panels below
-// need historical rollups over set_logs/workout_sessions/nutrition_logs/
-// wearable_biometrics (7/30-day windows) — a separate, larger analytics
-// effort than a plain "read the current rows" hook. Left as explicit
-// placeholders rather than fabricated numbers.
+// Client steps / Client cardio stay explicit placeholders on purpose:
+// wearable_biometrics has no step-count column, and no table distinguishes
+// cardio vs strength sessions — there's no real data to read yet, not just
+// a missing query. Revisit if/when TRACE-client starts collecting either.
 
 export default function CoachDashboard({ firstName }: { firstName?: string }) {
   const profile = useProfile();
   const { clients } = useClients(profile.id);
   const { needsReview } = useCheckIns(profile.id);
   const { formChecks } = useFormChecks(profile.id);
+  const { stats, wins, nutrition, error: statsError } = useDashboardStats(profile.id);
 
   const unreviewedFormChecks = formChecks.filter((f) => f.status === 'unreviewed').length;
   const needsAttentionCount = needsReview.length + unreviewedFormChecks;
+  const loggingClients = nutrition.filter((n) => n.log_count > 0);
 
   return (
     <motion.div
@@ -32,17 +34,42 @@ export default function CoachDashboard({ firstName }: { firstName?: string }) {
     >
       <h1 className="text-xl font-bold text-foreground">Welcome, {firstName ?? 'Coach'}</h1>
 
+      {statsError && <p className="text-sm text-danger">Could not load dashboard stats: {statsError}</p>}
+
       <div className="grid grid-cols-2 lg:grid-cols-4 gap-4">
         <StatCard label="Total clients" value={clients.length} icon={Users} helperText="Currently on your roster" />
-        <StatCard label="New signups" value={0} icon={UserPlus} helperText="Not tracked yet — last 7 days" />
-        <StatCard label="Workouts" value={0} icon={Activity} helperText="Not tracked yet — last 7 days" />
-        <StatCard label="Churned" value={0} icon={UserMinus} helperText="Not tracked yet — last 30 days" />
+        <StatCard label="New signups" value={stats?.newSignups7d ?? 0} icon={UserPlus} helperText="Last 7 days" />
+        <StatCard label="Workouts" value={stats?.workouts7d ?? 0} icon={Activity} helperText="Last 7 days" />
+        <StatCard
+          label="Churned"
+          value={stats?.churnedCount ?? 0}
+          icon={UserMinus}
+          helperText="21+ days inactive, or marked manually"
+        />
       </div>
 
       <div>
         <h2 className="text-sm font-semibold text-foreground mb-2">Wins this week</h2>
         <Card>
-          <EmptyPanel icon={Trophy} title="No new wins to celebrate yet" description="Check back soon." />
+          {wins.length === 0 ? (
+            <EmptyPanel icon={Trophy} title="No new wins to celebrate yet" description="Check back soon." />
+          ) : (
+            <div className="px-5 pb-5 flex flex-col gap-2">
+              {wins.map((w, i) => (
+                <div
+                  key={`${w.client_id}-${w.exercise_name}-${i}`}
+                  className="flex items-center justify-between text-sm bg-background border border-border rounded-lg px-3 py-2"
+                >
+                  <span className="text-foreground">
+                    <span className="font-semibold">{w.client_name}</span> hit a new PR on {w.exercise_name}
+                  </span>
+                  <span className="font-semibold text-primary">
+                    {w.weight_kg}kg × {w.reps}
+                  </span>
+                </div>
+              ))}
+            </div>
+          )}
         </Card>
       </div>
 
@@ -106,16 +133,36 @@ export default function CoachDashboard({ firstName }: { firstName?: string }) {
         <h2 className="text-sm font-semibold text-foreground mb-2">Client nutrition</h2>
         <p className="text-xs text-muted-foreground -mt-1 mb-2">Last 7 days — who's logging and how intake tracks to goal</p>
         <Card>
-          <EmptyPanel
-            icon={Apple}
-            title={clients.length === 0 ? 'No clients yet' : 'Not tracked yet'}
-            description={
-              clients.length === 0
-                ? 'Add clients to see their nutrition logging here.'
-                : "Nutrition rollups aren't wired up yet — nutrition_logs has the raw data."
-            }
-            ctaLabel={clients.length === 0 ? 'Invite a client' : undefined}
-          />
+          {clients.length === 0 ? (
+            <EmptyPanel
+              icon={Apple}
+              title="No clients yet"
+              description="Add clients to see their nutrition logging here."
+              ctaLabel="Invite a client"
+            />
+          ) : loggingClients.length === 0 ? (
+            <EmptyPanel
+              icon={Apple}
+              title="No nutrition logged this week"
+              description="Nothing in nutrition_logs for your clients in the last 7 days."
+            />
+          ) : (
+            <div className="px-5 pb-5 flex flex-col gap-2">
+              {nutrition.map((n) => (
+                <div
+                  key={n.client_id}
+                  className="flex items-center justify-between text-sm bg-background border border-border rounded-lg px-3 py-2"
+                >
+                  <span className="text-foreground">{n.client_name}</span>
+                  <span className="text-muted-foreground">
+                    {n.log_count === 0
+                      ? 'No logs this week'
+                      : `${n.log_count} log${n.log_count === 1 ? '' : 's'}${n.avg_calories ? ` · avg ${Math.round(n.avg_calories)} kcal` : ''}`}
+                  </span>
+                </div>
+              ))}
+            </div>
+          )}
         </Card>
       </div>
 
