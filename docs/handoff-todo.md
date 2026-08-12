@@ -6,11 +6,11 @@ Outstanding TODOs for this repo (`TRACE`, the coach dashboard). Cross-repo QA te
 
 ## Part 1 — Open TODOs (need a decision/credential from the user)
 
-### 1. Client invite emails
+### 1. Client invite emails — removed (2026-08-13)
 
-Clients → Invite Client → Email tab is disabled with an explanatory note (Share Link tab works today and needs no email). Sending a real email invitation needs a Supabase Edge Function + an email provider secret (Resend, SendGrid, Postmark, etc.) — needs the user's account/API key to wire up.
+Was built and wired to Resend (`supabase/functions/send-client-invite`, `ClientsPage.tsx` Email tab), then explicitly removed at user request before deploy — not wanted for now. The Email tab is gone entirely from Invite Clients (not just disabled); only Share Link and Find User remain. If wanted again later, `git log` around 2026-08-12/13 has the original implementation to resurrect rather than rebuilding from scratch.
 
-The header "Feedback" button no longer needs this — it links straight to the GitHub repo (`https://github.com/ZO-HN/TRACE`) instead of an in-app form.
+The header "Feedback" button doesn't need an email provider either — it links straight to the GitHub repo (`https://github.com/ZO-HN/TRACE`) instead of an in-app form.
 
 ### 2. Onboarding wizard → real trainee account
 

@@ -1,5 +1,5 @@
 import { useState } from 'react';
-import { ArrowUpDown, Check, Copy, Download, Link2, Mail, Plus, Search, Settings2, Tag, UserPlus, Users } from 'lucide-react';
+import { ArrowUpDown, Check, Copy, Download, Link2, Plus, Search, Settings2, Tag, UserPlus, Users } from 'lucide-react';
 import {
   Dialog,
   DialogContent,
@@ -101,8 +101,7 @@ function InviteClientDialog({
   onOpenChange: (open: boolean) => void;
   coachName: string;
 }) {
-  const [tab, setTab] = useState<'email' | 'link' | 'find'>('email');
-  const [email, setEmail] = useState('');
+  const [tab, setTab] = useState<'link' | 'find'>('link');
   const [copied, setCopied] = useState(false);
 
   const inviteLink = buildInviteLink(DEFAULT_ONBOARDING_SCREENS, coachName);
@@ -127,13 +126,6 @@ function InviteClientDialog({
         <div className="flex gap-1 rounded-lg bg-background p-1 text-sm">
           <button
             type="button"
-            onClick={() => setTab('email')}
-            className={`flex-1 flex items-center justify-center gap-1.5 rounded-md py-1.5 font-medium transition-colors ${tab === 'email' ? 'bg-surface text-foreground' : 'text-muted-foreground hover:text-foreground'}`}
-          >
-            <Mail size={14} /> Email
-          </button>
-          <button
-            type="button"
             onClick={() => setTab('link')}
             className={`flex-1 flex items-center justify-center gap-1.5 rounded-md py-1.5 font-medium transition-colors ${tab === 'link' ? 'bg-surface text-foreground' : 'text-muted-foreground hover:text-foreground'}`}
           >
@@ -147,31 +139,6 @@ function InviteClientDialog({
             <Search size={14} /> Find User
           </button>
         </div>
-
-        {tab === 'email' && (
-          <div className="flex flex-col gap-2">
-            <label className="text-sm font-semibold text-foreground">Client Email</label>
-            <Input
-              type="email"
-              placeholder="client@example.com"
-              value={email}
-              onChange={(e) => setEmail(e.target.value)}
-            />
-            <p className="text-xs text-muted-foreground">
-              Sending an email invitation needs an email provider connected — not set up yet. Use the Share Link tab in the meantime.
-            </p>
-            <DialogFooter>
-              <button
-                type="button"
-                disabled
-                title="Email sending isn't connected yet — use Share Link instead"
-                className="flex items-center gap-2 h-10 px-4 rounded-lg bg-foreground text-background disabled:opacity-40 text-sm font-semibold cursor-not-allowed"
-              >
-                <Mail size={14} /> Send Email Invitation
-              </button>
-            </DialogFooter>
-          </div>
-        )}
 
         {tab === 'link' && (
           <div className="flex flex-col gap-2">
