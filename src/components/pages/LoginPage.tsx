@@ -16,9 +16,13 @@ export default function LoginPage() {
     setSubmitting(true);
     setError(null);
 
+    // shouldCreateUser is true because the coach/trainee role is now decided
+    // server-side by handle_new_user() against the coach_allowlist — a
+    // non-invited email just gets a harmless trainee profile with no
+    // dashboard access (see AppShell's role gate), not a coach account.
     const { error: otpError } = await supabase.auth.signInWithOtp({
       email,
-      options: { shouldCreateUser: false, emailRedirectTo: window.location.origin },
+      options: { shouldCreateUser: true, emailRedirectTo: window.location.origin },
     });
 
     setSubmitting(false);
@@ -52,7 +56,7 @@ export default function LoginPage() {
   return (
     <AuthCard
       title="Welcome back!"
-      subtitle="Enter your email below to login to your account"
+      subtitle="Enter your email below — coaches who've been invited will get a login link"
     >
       <form onSubmit={handleSubmit} className="flex flex-col gap-3">
         <Input

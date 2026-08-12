@@ -2,6 +2,7 @@ import { useMemo } from 'react';
 import { Navigate, Outlet, useLocation, useOutletContext } from 'react-router';
 import { Loader2, AlertTriangle } from 'lucide-react';
 import { useTraceUser, type TraceProfile } from '@/hooks/useTraceUser';
+import { supabase } from '@/lib/supabase';
 import Button from '@/components/ui/Button';
 import { nav } from '@/config/nav';
 import Dock from './Dock';
@@ -55,6 +56,30 @@ export default function AppShell() {
 
   if (!profile) {
     return <Navigate to="/login" replace />;
+  }
+
+  if (profile.role !== 'coach') {
+    return (
+      <div className="min-h-screen bg-background flex items-center justify-center px-6">
+        <div className="text-center max-w-sm">
+          <AlertTriangle className="w-10 h-10 text-danger mx-auto mb-3" />
+          <h2 className="text-xl font-bold text-foreground mb-2">This is the coach dashboard</h2>
+          <p className="text-sm text-muted-foreground mb-4">
+            Your account ({profile.email}) isn't a coach account. If you're a trainee, use the TRACE mobile app
+            instead. If you were expecting coach access, ask your platform admin to add your email to the coach
+            allowlist.
+          </p>
+          <Button
+            onClick={async () => {
+              await supabase.auth.signOut();
+              window.location.href = '/login';
+            }}
+          >
+            Sign out
+          </Button>
+        </div>
+      </div>
+    );
   }
 
   return (

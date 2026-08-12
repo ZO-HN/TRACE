@@ -2,7 +2,9 @@
 
 ## What this repo is
 
-**This is the Coach Web Dashboard only** — one repo of two. TRACE is now a single-coach platform: every trainee who signs up through the separate native client app is auto-enrolled as this coach's client (see `platform_settings`/`handle_new_user()` in the latest migration). There is no trainee-facing UI, offline outbox, or unit-conversion logic in this repo anymore — that all lives in the client app's repo at `C:\Users\imint\TRACE-client` (Expo/React Native/NativeWind, same Supabase backend). This repo only ever *reads* trainee-logged data (sets, sessions, biometrics) to display it; it never writes `set_logs`/`workout_sessions`.
+**This is the Coach Web Dashboard only** — one repo of two. There is no trainee-facing UI, offline outbox, or unit-conversion logic in this repo anymore — that all lives in the client app's repo at `C:\Users\imint\TRACE-client` (Expo/React Native/NativeWind, same Supabase backend). This repo only ever *reads* trainee-logged data (sets, sessions, biometrics) to display it; it never writes `set_logs`/`workout_sessions`.
+
+TRACE is a **multi-coach, invite-only platform** (as of the `coach_allowlist` migration, 2026-08-12): any number of coaches can use this deployment, each with an isolated set of clients (every coach-owned table is scoped by `coach_id`/`created_by_coach_id`), but only emails on `public.coach_allowlist` (managed by a platform admin — `profiles.is_platform_admin`) can ever become a coach account. `handle_new_user()` decides `role` server-side from that allowlist on every signup (email OTP or Google OAuth) — never trust client-supplied role metadata for this. Trainees who sign up through the client app with no coach selection still auto-enroll under `platform_settings.default_coach_id` (see below) — that fallback is unrelated to the coach allowlist and still needs its own bootstrap step. `AppShell` gates the whole dashboard on `profile.role === 'coach'` — a trainee account (including one created by an uninvited email logging into this dashboard) gets a "not authorized" screen, not the app.
 
 ## Git policy (hard rule)
 

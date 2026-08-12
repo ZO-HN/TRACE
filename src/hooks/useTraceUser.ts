@@ -18,6 +18,7 @@ export interface TraceProfile {
   id: string;
   email: string;
   role: UserRole;
+  is_platform_admin: boolean;
   coach_id: string | null;       // null = solo trainee
   first_name: string;
   last_name: string;

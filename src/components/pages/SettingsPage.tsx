@@ -8,8 +8,11 @@ import {
   GripVertical,
   Link2,
   ListChecks,
+  Plus,
   RotateCcw,
+  ShieldCheck,
   Smartphone,
+  Trash2,
   User,
 } from 'lucide-react';
 import { Card, CardHeader, CardTitle, CardContent } from '@/components/ui/shadcn/card';
@@ -19,6 +22,7 @@ import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from '
 import { useProfile } from '@/components/layout/AppShell';
 import { cn } from '@/lib/utils';
 import { useToast } from '@/components/ui/toast';
+import { useCoachAllowlist } from '@/hooks/useCoachAllowlist';
 import { DEFAULT_ONBOARDING_SCREENS, buildInviteLink, type OnboardingScreen } from '@/config/onboardingScreens';
 
 const ACCOUNT_TABS = [
@@ -29,7 +33,9 @@ const ACCOUNT_TABS = [
 
 const CLIENT_EXPERIENCE_TABS = [{ id: 'onboarding', label: 'Client onboarding screens', icon: ListChecks }] as const;
 
-const TABS = [...ACCOUNT_TABS, ...CLIENT_EXPERIENCE_TABS];
+const PLATFORM_ADMIN_TABS = [{ id: 'coach-access', label: 'Coach access', icon: ShieldCheck }] as const;
+
+const TABS = [...ACCOUNT_TABS, ...CLIENT_EXPERIENCE_TABS, ...PLATFORM_ADMIN_TABS];
 
 type TabId = (typeof TABS)[number]['id'];
 
@@ -669,6 +675,104 @@ function OnboardingScreensTab() {
   );
 }
 
+function CoachAccessTab() {
+  const profile = useProfile();
+  const { entries, isLoading, error, addEmail, removeEmail } = useCoachAllowlist();
+  const { toast } = useToast();
+  const [email, setEmail] = useState('');
+  const [note, setNote] = useState('');
+  const [submitting, setSubmitting] = useState(false);
+  const [formError, setFormError] = useState<string | null>(null);
+
+  const handleAdd = async () => {
+    if (!email.trim()) return;
+    setSubmitting(true);
+    setFormError(null);
+    const { error: addError } = await addEmail(email, note, profile.id);
+    setSubmitting(false);
+    if (addError) {
+      setFormError(addError);
+      return;
+    }
+    setEmail('');
+    setNote('');
+    toast('Coach invite added.');
+  };
+
+  return (
+    <div className="flex flex-col gap-5">
+      <p className="text-xs text-muted-foreground -mt-1">
+        Only emails on this list can ever become a coach account — via email login link or Google sign-in. Everyone
+        else who signs in gets a trainee account with no dashboard access. Enforced server-side, not just in this UI.
+      </p>
+
+      <Card>
+        <CardHeader>
+          <CardTitle className="text-foreground text-sm font-semibold">Invite a coach</CardTitle>
+        </CardHeader>
+        <CardContent className="pt-0 flex flex-col gap-3">
+          <div className="grid grid-cols-2 gap-3">
+            <div className="flex flex-col gap-1.5">
+              <Label>Email</Label>
+              <Input
+                type="email"
+                placeholder="coach@example.com"
+                value={email}
+                onChange={(e) => setEmail(e.target.value)}
+              />
+            </div>
+            <div className="flex flex-col gap-1.5">
+              <Label>Note (optional)</Label>
+              <Input placeholder="e.g. name, why they're invited" value={note} onChange={(e) => setNote(e.target.value)} />
+            </div>
+          </div>
+          {formError && <p className="text-xs text-danger">{formError}</p>}
+          <button
+            type="button"
+            disabled={!email.trim() || submitting}
+            onClick={() => void handleAdd()}
+            className="flex items-center gap-1.5 h-10 w-fit px-4 rounded-lg bg-success text-white text-sm font-semibold disabled:opacity-40 hover:opacity-90 transition-opacity"
+          >
+            <Plus size={14} /> {submitting ? 'Adding...' : 'Add to allowlist'}
+          </button>
+        </CardContent>
+      </Card>
+
+      <Card>
+        <CardHeader>
+          <CardTitle className="text-foreground text-sm font-semibold">Allowed coach emails</CardTitle>
+        </CardHeader>
+        <CardContent className="pt-0">
+          {error && <p className="text-xs text-danger mb-2">Could not load allowlist: {error}</p>}
+          {isLoading ? (
+            <p className="text-sm text-muted-foreground py-4">Loading...</p>
+          ) : entries.length === 0 ? (
+            <p className="text-sm text-muted-foreground py-4">No coach invites yet.</p>
+          ) : (
+            <div className="flex flex-col gap-1">
+              {entries.map((e) => (
+                <div key={e.email} className="flex items-center justify-between h-11 px-2 rounded-lg hover:bg-background">
+                  <div>
+                    <p className="text-sm text-foreground">{e.email}</p>
+                    {e.note && <p className="text-xs text-muted-foreground">{e.note}</p>}
+                  </div>
+                  <button
+                    type="button"
+                    onClick={() => void removeEmail(e.email).then(() => toast('Removed from allowlist.'))}
+                    className="text-muted-foreground hover:text-danger p-1.5 rounded-md hover:bg-surface"
+                  >
+                    <Trash2 size={14} />
+                  </button>
+                </div>
+              ))}
+            </div>
+          )}
+        </CardContent>
+      </Card>
+    </div>
+  );
+}
+
 function NotificationsTab() {
   return (
     <Card>
@@ -688,6 +792,7 @@ function NotificationsTab() {
 }
 
 export default function SettingsPage() {
+  const profile = useProfile();
   const [tab, setTab] = useState<TabId>('profile');
 
   return (
@@ -726,6 +831,27 @@ export default function SettingsPage() {
             {t.label}
           </button>
         ))}
+
+        {profile.is_platform_admin && (
+          <>
+            <span className="text-[11px] font-semibold uppercase tracking-wide text-muted-foreground px-2 mt-3 mb-1">
+              Platform admin
+            </span>
+            {PLATFORM_ADMIN_TABS.map((t) => (
+              <button
+                key={t.id}
+                onClick={() => setTab(t.id)}
+                className={cn(
+                  'flex items-center gap-2 px-2 py-2 rounded-lg text-sm font-medium text-left transition-colors',
+                  tab === t.id ? 'bg-surface text-foreground' : 'text-muted-foreground hover:bg-surface hover:text-foreground',
+                )}
+              >
+                <t.icon size={14} />
+                {t.label}
+              </button>
+            ))}
+          </>
+        )}
       </nav>
 
       <div className="flex-1 min-w-0 flex flex-col gap-4">
@@ -736,6 +862,7 @@ export default function SettingsPage() {
         {tab === 'app' && <AppTab />}
         {tab === 'notifications' && <NotificationsTab />}
         {tab === 'onboarding' && <OnboardingScreensTab />}
+        {tab === 'coach-access' && profile.is_platform_admin && <CoachAccessTab />}
       </div>
     </div>
   );

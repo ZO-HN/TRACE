@@ -32,9 +32,9 @@ The TDEE calculator and top-level plan (goal, method, calorie target, assigned c
 
 The Form Checks page is real (reads/reviews `public.form_checks`, plays back video via the existing R2 media viewer) but nothing populates it until a trainee submits one from the client app. See `docs/cross-repo-qa.md` for the insert shape and the known-unverified exercise-name join.
 
-### 7. Coach dashboard signup page removed (2026-08-12)
+### 7. Coach dashboard signup page removed, then superseded by item 10 (2026-08-12)
 
-TRACE is single-coach — the coach account already exists and trainee signup happens in TRACE-client. Removed `/signup`, `SignupPage.tsx`, and the "Sign up" link on the login page; login now reads login-only (`shouldCreateUser: false`, already the case before this change).
+Originally removed `/signup` since TRACE was single-coach. Superseded same day by item 10 below — TRACE is now multi-coach, and the login page itself handles both login and first-time coach account creation (no separate signup page needed, since the allowlist decides server-side who actually gets coach powers).
 
 ### 8. Exercise Muscle Model tab — bigger, smoother, hover feedback (2026-08-12)
 
@@ -43,6 +43,22 @@ TRACE is single-coach — the coach account already exists and trainee signup ha
 ### 9. Bottom dock nav — auto-hide (2026-08-12)
 
 The floating bottom dock (`Dock.tsx`) was always on-screen. It now stays hidden (`opacity: 0`, slid down) and reveals with a smooth transition when the mouse is near the bottom edge of the screen, or via `:focus-within` for keyboard navigation so it's never unreachable without a mouse.
+
+### 10. Coach allowlist (multi-coach, invite-only signup) — migration written, NOT YET APPLIED (2026-08-12)
+
+TRACE moved from "single default coach" to multi-coach: any number of coaches can use this deployment, each with their own isolated clients (already true structurally — every coach-owned table is scoped by `coach_id`/`created_by_coach_id`), but only emails on a platform-admin-curated allowlist can ever become a coach — via email login link *or* Google sign-in. Non-invited emails still get an account (harmless trainee profile), they just can't get into the coach dashboard (`AppShell` now gates on `profile.role === 'coach'`, which it didn't before — this was a real gap: previously any authenticated user, including a trainee via Google OAuth, could load the full coach dashboard).
+
+**What shipped in code (`supabase/migrations/20260812010000_coach_allowlist.sql`):**
+- `profiles.is_platform_admin` boolean column.
+- `coach_allowlist` table (email, note, invited_by, created_at), RLS-gated to platform admins only.
+- `handle_new_user()` trigger rewritten to decide `role` from allowlist membership server-side, instead of trusting client-supplied signup metadata (closes a real trust gap — previously any client could pass `role: 'coach'` in the signup payload).
+- Settings → "Coach access" tab (visible only to platform admins) to add/remove allowlisted emails — `src/hooks/useCoachAllowlist.ts` + `CoachAccessTab` in `SettingsPage.tsx`.
+- `LoginPage.tsx` now uses `shouldCreateUser: true` (safe now that role is decided server-side, not client-side).
+
+**Still needs from the user, in order:**
+1. Apply the migration to the live DB (`npx supabase db push` from this repo, or via the Supabase dashboard) — declined during this session, not yet run.
+2. After it's applied: `UPDATE public.profiles SET is_platform_admin = TRUE WHERE id = '<your-profile-id>';` (one-time, run directly against the DB) so you can see/use the new Settings tab. This is the same `profiles.id` needed for the still-open `platform_settings.default_coach_id` bootstrap from the 2026-08-12 QA session doc — worth doing both in the same sitting.
+3. Optionally seed your own email into `coach_allowlist` for the audit trail (not required for your own access, since your profile row already exists).
 
 ---
 
