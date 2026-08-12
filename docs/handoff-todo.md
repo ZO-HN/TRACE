@@ -44,7 +44,7 @@ Originally removed `/signup` since TRACE was single-coach. Superseded same day b
 
 The floating bottom dock (`Dock.tsx`) was always on-screen. It now stays hidden (`opacity: 0`, slid down) and reveals with a smooth transition when the mouse is near the bottom edge of the screen, or via `:focus-within` for keyboard navigation so it's never unreachable without a mouse.
 
-### 10. Coach allowlist (multi-coach, invite-only signup) — migration written, NOT YET APPLIED (2026-08-12)
+### 10. Coach allowlist (multi-coach, invite-only signup) ✅ done, migration applied (2026-08-12)
 
 TRACE moved from "single default coach" to multi-coach: any number of coaches can use this deployment, each with their own isolated clients (already true structurally — every coach-owned table is scoped by `coach_id`/`created_by_coach_id`), but only emails on a platform-admin-curated allowlist can ever become a coach — via email login link *or* Google sign-in. Non-invited emails still get an account (harmless trainee profile), they just can't get into the coach dashboard (`AppShell` now gates on `profile.role === 'coach'`, which it didn't before — this was a real gap: previously any authenticated user, including a trainee via Google OAuth, could load the full coach dashboard).
 
@@ -55,10 +55,9 @@ TRACE moved from "single default coach" to multi-coach: any number of coaches ca
 - Settings → "Coach access" tab (visible only to platform admins) to add/remove allowlisted emails — `src/hooks/useCoachAllowlist.ts` + `CoachAccessTab` in `SettingsPage.tsx`.
 - `LoginPage.tsx` now uses `shouldCreateUser: true` (safe now that role is decided server-side, not client-side).
 
-**Still needs from the user, in order:**
-1. Apply the migration to the live DB (`npx supabase db push` from this repo, or via the Supabase dashboard) — declined during this session, not yet run.
-2. After it's applied: `UPDATE public.profiles SET is_platform_admin = TRUE WHERE id = '<your-profile-id>';` (one-time, run directly against the DB) so you can see/use the new Settings tab. This is the same `profiles.id` needed for the still-open `platform_settings.default_coach_id` bootstrap from the 2026-08-12 QA session doc — worth doing both in the same sitting.
-3. Optionally seed your own email into `coach_allowlist` for the audit trail (not required for your own access, since your profile row already exists).
+Migration confirmed applied via `npx supabase migration list` (2026-08-12) — `20260812010000` now shows a synced remote timestamp. `is_platform_admin` bootstrap for `iminthemoodlol@gmail.com` was handled per `docs/handoff-supabase-migration-coach-allowlist.md`.
+
+`platform_settings.default_coach_id` (separate table/concern — controls which coach new TRACE-client trainee signups fall under when they don't pick one) is now also set, to `iminthemoodlol@gmail.com`'s profile id (`dc41fbd3-afba-4dcd-ad7d-ef85e6bf1735`), confirmed live (2026-08-12). New trainee signups from TRACE-client with no coach selected will now correctly land under this coach instead of `coach_id = NULL`.
 
 ---
 

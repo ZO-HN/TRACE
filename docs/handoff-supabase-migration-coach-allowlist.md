@@ -1,5 +1,7 @@
 # Handoff: apply the coach_allowlist migration
 
+**✅ Done (2026-08-12).** Migration applied and confirmed synced via `migration list`. `is_platform_admin = TRUE` confirmed set on `iminthemoodlol@gmail.com`'s profile. Kept below for reference/audit trail only — no further action needed from this doc.
+
 For whichever agent/session has direct Supabase access. One job: apply `supabase/migrations/20260812010000_coach_allowlist.sql` to the live project and run the two bootstrap steps after it. This repo's coding agent wrote the migration but does not have permission to push schema changes to the live DB itself — that's why this is a separate handoff.
 
 ## Project
