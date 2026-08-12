@@ -38,4 +38,6 @@ supabase/.temp
 CLAUDE.md
 AGENTS.md
 skills-lock.json
+sync.py
+
 
