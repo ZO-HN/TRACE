@@ -20,6 +20,7 @@ export interface TraceProfile {
   role: UserRole;
   is_platform_admin: boolean;
   coach_id: string | null;       // null = solo trainee
+  coach_code: string | null;     // set for role='coach' rows; trainees enter this to self-link
   first_name: string;
   last_name: string;
   dob: string | null;

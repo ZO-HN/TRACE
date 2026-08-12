@@ -96,13 +96,16 @@ function InviteClientDialog({
   open,
   onOpenChange,
   coachName,
+  coachCode,
 }: {
   open: boolean;
   onOpenChange: (open: boolean) => void;
   coachName: string;
+  coachCode: string | null;
 }) {
-  const [tab, setTab] = useState<'link' | 'find'>('link');
+  const [tab, setTab] = useState<'link' | 'code' | 'find'>('link');
   const [copied, setCopied] = useState(false);
+  const [codeCopied, setCodeCopied] = useState(false);
 
   const inviteLink = buildInviteLink(DEFAULT_ONBOARDING_SCREENS, coachName);
 
@@ -113,6 +116,17 @@ function InviteClientDialog({
       setTimeout(() => setCopied(false), 2000);
     } catch {
       window.prompt('Copy this invite link:', inviteLink);
+    }
+  };
+
+  const copyCode = async () => {
+    if (!coachCode) return;
+    try {
+      await navigator.clipboard.writeText(coachCode);
+      setCodeCopied(true);
+      setTimeout(() => setCodeCopied(false), 2000);
+    } catch {
+      window.prompt('Copy your referral code:', coachCode);
     }
   };
 
@@ -133,6 +147,13 @@ function InviteClientDialog({
           </button>
           <button
             type="button"
+            onClick={() => setTab('code')}
+            className={`flex-1 flex items-center justify-center gap-1.5 rounded-md py-1.5 font-medium transition-colors ${tab === 'code' ? 'bg-surface text-foreground' : 'text-muted-foreground hover:text-foreground'}`}
+          >
+            <Tag size={14} /> Referral Code
+          </button>
+          <button
+            type="button"
             onClick={() => setTab('find')}
             className={`flex-1 flex items-center justify-center gap-1.5 rounded-md py-1.5 font-medium transition-colors ${tab === 'find' ? 'bg-surface text-foreground' : 'text-muted-foreground hover:text-foreground'}`}
           >
@@ -144,6 +165,7 @@ function InviteClientDialog({
           <div className="flex flex-col gap-2">
             <p className="text-xs text-muted-foreground">
               Share this link with a new client — it opens the onboarding form configured in Settings → Client onboarding screens.
+              It doesn't create their TRACE account — they still sign up in the app separately.
             </p>
             <div className="flex items-center gap-2">
               <Input readOnly value={inviteLink} className="text-xs" />
@@ -155,6 +177,29 @@ function InviteClientDialog({
                 {copied ? <Check size={14} /> : <Copy size={14} />} {copied ? 'Copied' : 'Copy'}
               </button>
             </div>
+          </div>
+        )}
+
+        {tab === 'code' && (
+          <div className="flex flex-col gap-2">
+            <p className="text-xs text-muted-foreground">
+              After signing up in the TRACE app, a new client is asked to choose a coach. Have them enter this code
+              on that screen to link to you directly, instead of browsing the coach list.
+            </p>
+            {coachCode ? (
+              <div className="flex items-center gap-2">
+                <Input readOnly value={coachCode} className="text-xs font-mono tracking-widest" />
+                <button
+                  type="button"
+                  onClick={() => void copyCode()}
+                  className="flex items-center gap-1.5 h-10 px-3 rounded-lg bg-foreground text-background text-sm font-semibold shrink-0"
+                >
+                  {codeCopied ? <Check size={14} /> : <Copy size={14} />} {codeCopied ? 'Copied' : 'Copy'}
+                </button>
+              </div>
+            ) : (
+              <p className="text-xs text-muted-foreground">No referral code yet — refresh the page.</p>
+            )}
           </div>
         )}
 
@@ -345,7 +390,12 @@ export default function ClientsPage() {
         </div>
       </div>
 
-      <InviteClientDialog open={inviteOpen} onOpenChange={setInviteOpen} coachName={profile.first_name ?? ''} />
+      <InviteClientDialog
+        open={inviteOpen}
+        onOpenChange={setInviteOpen}
+        coachName={profile.first_name ?? ''}
+        coachCode={profile.coach_code}
+      />
       <TagsDialog open={tagsOpen} onOpenChange={setTagsOpen} />
     </div>
   );
