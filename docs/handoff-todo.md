@@ -16,9 +16,17 @@ The header "Feedback" button doesn't need an email provider either — it links 
 
 Fully scoped in `docs/migrations/TODO-onboarding-account-linking.md`. Short version: the `/onboarding` wizard is real UI but writes nothing to Supabase — needs a decision on where sign-in happens in the flow and what table the answers land in before that part gets built.
 
-### 3. Dashboard analytics (signups, workouts, churn, nutrition/cardio/steps)
+### 3. Dashboard analytics (signups, workouts, churn, nutrition) ✅ mostly done (2026-08-13)
 
-The dashboard's four top stat cards and the nutrition/cardio/steps panels honestly say "not tracked yet" instead of showing fake numbers. Building these for real means 7/30-day rollup queries over `set_logs`, `workout_sessions`, `nutrition_logs`, and `wearable_biometrics` — a distinct analytics effort (likely Postgres RPCs, similar to the existing `solo_analytics_rpcs.sql` migration), not a simple read hook. Flagged rather than guessed at, since "churn" or "workout compliance" need a business definition first.
+Built with business definitions confirmed by the user first:
+- **Churned** = no `workout_sessions` in 21 days (and had at least one before that, so brand-new clients aren't miscounted), OR the coach manually marks them churned via the new Status column on the Clients page.
+- **Wins this week** = a set logged in the last 7 days beating that client's prior best `estimated_1rm` for that exercise.
+- **New signups / Workouts** = simple 7-day counts, no definitional ambiguity.
+- **Client nutrition** = per-client `nutrition_logs` count + avg calories, last 7 days.
+
+`supabase/migrations/20260813000000_coach_dashboard_analytics.sql` adds `profiles.manually_marked_churned` and three RPCs (`get_coach_dashboard_stats`, `get_coach_weekly_wins`, `get_coach_nutrition_summary`), same SECURITY DEFINER + `auth.uid()` ownership check pattern as the existing solo-analytics RPCs. Applied and confirmed synced live.
+
+**Explicitly NOT built — Client steps / Client cardio panels**, left as "not tracked yet": `wearable_biometrics` has no step-count column at all, and no table distinguishes cardio vs strength sessions. This isn't a missing query, it's a missing schema — would need new columns (and TRACE-client would need to start writing them) before these panels can show anything real.
 
 ### 4. Training Groups — member management ✅ done (2026-08-12)
 
@@ -61,10 +69,11 @@ Migration confirmed applied via `npx supabase migration list` (2026-08-12) — `
 
 ---
 
-## Which open items need a dataset (not just a decision/credential) to be fully functional
+## Which open items need a dataset or schema (not just a decision/credential) to be fully functional
 
-Most items above are blocked on a decision or an API key, not on data. One is different:
+Most items above are blocked on a decision or an API key, not on data. Two are different:
 
 - **Item 5 (Meal Plan food rows)** — `public.foods` has zero seed rows (checked: no `INSERT INTO foods` anywhere in `supabase/migrations/`). Even once the `meal_plan_items` join table and search UI exist, the per-meal food picker has nothing to search until either the coach manually enters every food via the Foods page, or a nutrition dataset (e.g. USDA FoodData Central, an off-the-shelf food/nutrition API) is imported. Worth deciding which before building the picker UI, since the UI shape differs (autocomplete over local `foods` rows vs. a live external API call).
+- **Item 3's Client steps / Client cardio panels** — not a missing dataset so much as missing *schema*: `wearable_biometrics` has no step-count column, and nothing distinguishes cardio vs strength sessions. Needs new columns added (and TRACE-client would need to start writing them) before either panel can show real data — decided to skip for now rather than add schema speculatively.
 
-No other open item needs a dataset — Exercises, Training Groups, Form Checks, and Dashboard analytics all operate on data the coach/trainees generate themselves, not a pre-seeded reference dataset.
+No other open item needs a dataset — Exercises, Training Groups, Form Checks, and the rest of Dashboard analytics all operate on data the coach/trainees already generate themselves.
