@@ -13,6 +13,8 @@ import { Input, Select } from '@/components/ui/shadcn/field';
 import { Avatar, AvatarFallback } from '@/components/ui/shadcn/avatar';
 import { useProfile } from '@/components/layout/AppShell';
 import { useClients } from '@/hooks/useClients';
+import { supabase } from '@/lib/supabase';
+import { useToast } from '@/components/ui/toast';
 import { buildInviteLink, DEFAULT_ONBOARDING_SCREENS } from '@/config/onboardingScreens';
 
 const columns = ['Client', 'Email', 'Added'];
@@ -101,11 +103,30 @@ function InviteClientDialog({
   onOpenChange: (open: boolean) => void;
   coachName: string;
 }) {
+  const { toast } = useToast();
   const [tab, setTab] = useState<'email' | 'link' | 'find'>('email');
   const [email, setEmail] = useState('');
   const [copied, setCopied] = useState(false);
+  const [sending, setSending] = useState(false);
+  const [sendError, setSendError] = useState<string | null>(null);
 
   const inviteLink = buildInviteLink(DEFAULT_ONBOARDING_SCREENS, coachName);
+
+  const handleSendEmail = async () => {
+    setSending(true);
+    setSendError(null);
+    const { error } = await supabase.functions.invoke('send-client-invite', {
+      body: { email, inviteLink, coachName },
+    });
+    setSending(false);
+    if (error) {
+      setSendError(error.message);
+      return;
+    }
+    toast(`Invite sent to ${email}.`);
+    setEmail('');
+    onOpenChange(false);
+  };
 
   const copyLink = async () => {
     try {
@@ -158,16 +179,18 @@ function InviteClientDialog({
               onChange={(e) => setEmail(e.target.value)}
             />
             <p className="text-xs text-muted-foreground">
-              Sending an email invitation needs an email provider connected — not set up yet. Use the Share Link tab in the meantime.
+              Sent via Resend's shared test address — until a custom domain is verified, delivery only works to the
+              email on the Resend account itself. Ask your platform admin if an invite doesn't arrive.
             </p>
+            {sendError && <p className="text-xs text-danger">{sendError}</p>}
             <DialogFooter>
               <button
                 type="button"
-                disabled
-                title="Email sending isn't connected yet — use Share Link instead"
-                className="flex items-center gap-2 h-10 px-4 rounded-lg bg-foreground text-background disabled:opacity-40 text-sm font-semibold cursor-not-allowed"
+                disabled={!email.trim() || sending}
+                onClick={() => void handleSendEmail()}
+                className="flex items-center gap-2 h-10 px-4 rounded-lg bg-foreground text-background disabled:opacity-40 text-sm font-semibold hover:opacity-90 transition-opacity"
               >
-                <Mail size={14} /> Send Email Invitation
+                <Mail size={14} /> {sending ? 'Sending...' : 'Send Email Invitation'}
               </button>
             </DialogFooter>
           </div>
