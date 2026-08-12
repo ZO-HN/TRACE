@@ -40,9 +40,9 @@ Originally removed `/signup` since TRACE was single-coach. Superseded same day b
 
 `MuscleModel.tsx` model canvas is bigger (`min-h-[600px]`, was capped at `max-h-96`) and each SVG muscle region now scales/brightens on hover via pure CSS (`.muscle-model-canvas polygon:hover` in `index.css`) instead of only reacting on click. Note: `react-body-highlighter` doesn't expose which muscle a given `<polygon>` represents outside its internal `onClick` closure, so a hover tooltip naming the muscle (e.g. "Rectus Femoris (Quadriceps)") isn't possible without forking the library — flagging rather than faking it. Click-to-cycle (primary → secondary → none) still works as before.
 
-### 9. Bottom dock nav — auto-hide (2026-08-12)
+### 9. Bottom dock nav — auto-hide, then superseded (2026-08-12)
 
-The floating bottom dock (`Dock.tsx`) was always on-screen. It now stays hidden (`opacity: 0`, slid down) and reveals with a smooth transition when the mouse is near the bottom edge of the screen, or via `:focus-within` for keyboard navigation so it's never unreachable without a mouse.
+Originally made the bottom dock hide until hovered near the screen edge. Superseded same day by a left-sidebar rework (picked up from a parallel session's uncommitted work, not built here) — `Dock.tsx` is now a pinned left-edge sidebar instead of a bottom dock, so the auto-hide behavior no longer applies. Left for history; no action needed.
 
 ### 10. Coach allowlist (multi-coach, invite-only signup) ✅ done, migration applied (2026-08-12)
 
