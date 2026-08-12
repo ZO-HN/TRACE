@@ -6,19 +6,11 @@ Outstanding TODOs for this repo (`TRACE`, the coach dashboard). Cross-repo QA te
 
 ## Part 1 — Open TODOs (need a decision/credential from the user)
 
-### 1. Client invite emails — code written, deploy deferred until full production deploy (2026-08-12)
+### 1. Client invite emails
 
-Provider: Resend, sending from the shared test address (`onboarding@resend.dev`) for now — user will verify a custom domain and swap `RESEND_FROM` in the function later.
+Clients → Invite Client → Email tab is disabled with an explanatory note (Share Link tab works today and needs no email). Sending a real email invitation needs a Supabase Edge Function + an email provider secret (Resend, SendGrid, Postmark, etc.) — needs the user's account/API key to wire up.
 
-**What shipped in code:**
-- `supabase/functions/send-client-invite/index.ts` — verifies the caller's JWT + `role = 'coach'` before sending, calls the Resend API with `RESEND_API_KEY`. Not yet deployed (`supabase functions deploy send-client-invite`) and `RESEND_API_KEY` secret not yet set.
-- `ClientsPage.tsx`'s Email tab now calls `supabase.functions.invoke('send-client-invite', ...)` instead of showing a disabled button — will fail with a fetch/deploy error until the function above is deployed and the secret is set.
-
-The invite link itself (whether sent by email or copied via Share Link) already points straight at `/onboarding` with the coach's enabled screens encoded in the URL (`buildInviteLink()` in `src/config/onboardingScreens.ts`) — both paths land the client in the same onboarding wizard, so there was no separate "make it go to onboarding" step needed.
-
-**Still needed from the user, deferred to the full deploy:** a Resend API key, `npx supabase secrets set RESEND_API_KEY=...`, and `npx supabase functions deploy send-client-invite`.
-
-The header "Feedback" button no longer needs an email provider — it links straight to the GitHub repo (`https://github.com/ZO-HN/TRACE`) instead of an in-app form.
+The header "Feedback" button no longer needs this — it links straight to the GitHub repo (`https://github.com/ZO-HN/TRACE`) instead of an in-app form.
 
 ### 2. Onboarding wizard → real trainee account
 
