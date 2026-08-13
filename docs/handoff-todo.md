@@ -32,9 +32,14 @@ Built with business definitions confirmed by the user first:
 
 Added `fetchMemberIds`/`addMember`/`removeMember` to `useTrainingGroups` and a "Manage Members" dialog per group card in `TrainingGroupsPage.tsx`, backed by the existing `training_group_members` table/RLS. UX chosen: a dedicated per-group dialog rather than a roster picker baked into the create step, since groups are usually created empty and staffed after.
 
-### 5. Meal Plan builder — per-meal food rows
+### 5. Meal Plan builder — per-meal food rows ✅ done, manual-entry only (2026-08-13)
 
-The TDEE calculator and top-level plan (goal, method, calorie target, assigned client) save for real. The granular per-meal, per-row food search grid inside the builder is still local-only — wiring each row to a real food reference with quantity would need a `meal_plan_items` join table and more UI.
+User confirmed: no nutrition dataset import needed right now, and can be added later without rework (bulk `INSERT` into `public.foods` — same table the manual picker reads from, so imported rows show up automatically once added).
+
+Built without a new `meal_plan_items` table — `meal_plans.data` is already the established JSONB persistence pattern for this table (holds the TDEE inputs too), so per-meal food rows are saved there as `data.meals[].items[]` (`{foodId, servings}`) instead of a new relational table. Simpler, no migration needed, same effective result.
+
+- Each row in the builder is now a real food search (typeahead over the coach's own `public.foods`, via `useFoods`) + a servings quantity, with live-computed macros (calories/protein/carbs/fat) per row and a real meal total in the header — replaces the old placeholder `—` grid and non-functional "Add food" button.
+- Still single-meal ("Meal 1") — multi-meal (breakfast/lunch/dinner as separate sections) wasn't asked for and the UI already had that as a static header, not wired to add more meals; flag if that's wanted next.
 
 ### 6. Form Checks — nothing to test until TRACE-client writes to it
 
@@ -71,9 +76,7 @@ Migration confirmed applied via `npx supabase migration list` (2026-08-12) — `
 
 ## Which open items need a dataset or schema (not just a decision/credential) to be fully functional
 
-Most items above are blocked on a decision or an API key, not on data. Two are different:
-
-- **Item 5 (Meal Plan food rows)** — `public.foods` has zero seed rows (checked: no `INSERT INTO foods` anywhere in `supabase/migrations/`). Even once the `meal_plan_items` join table and search UI exist, the per-meal food picker has nothing to search until either the coach manually enters every food via the Foods page, or a nutrition dataset (e.g. USDA FoodData Central, an off-the-shelf food/nutrition API) is imported. Worth deciding which before building the picker UI, since the UI shape differs (autocomplete over local `foods` rows vs. a live external API call).
+- **Item 5 (Meal Plan food rows)** — resolved as manual-entry-only (see above), no dataset import needed. `public.foods` still has zero seed rows until the coach adds some via the Foods page, or a nutrition dataset (USDA FoodData Central etc.) gets imported later — either way the picker UI already reads whatever's in that table, so this is no longer a blocker on the UI, just an empty-state the coach fills in over time.
 - **Item 3's Client steps / Client cardio panels** — not a missing dataset so much as missing *schema*: `wearable_biometrics` has no step-count column, and nothing distinguishes cardio vs strength sessions. Needs new columns added (and TRACE-client would need to start writing them) before either panel can show real data — decided to skip for now rather than add schema speculatively.
 
 No other open item needs a dataset — Exercises, Training Groups, Form Checks, and the rest of Dashboard analytics all operate on data the coach/trainees already generate themselves.

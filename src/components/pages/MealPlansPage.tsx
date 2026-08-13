@@ -6,7 +6,103 @@ import { Label, Input, Select } from '@/components/ui/shadcn/field';
 import { useProfile } from '@/components/layout/AppShell';
 import { useClients } from '@/hooks/useClients';
 import { useMealPlans } from '@/hooks/useMealPlans';
+import { useFoods, type FoodRow } from '@/hooks/useFoods';
 import { useToast } from '@/components/ui/toast';
+
+interface PlanFoodRow {
+  rowId: string;
+  foodId: string | null;
+  query: string;
+  servings: string;
+}
+
+function emptyRow(): PlanFoodRow {
+  return { rowId: crypto.randomUUID(), foodId: null, query: '', servings: '1' };
+}
+
+function FoodRowInput({
+  row,
+  foods,
+  onChange,
+  onRemove,
+}: {
+  row: PlanFoodRow;
+  foods: FoodRow[];
+  onChange: (next: PlanFoodRow) => void;
+  onRemove: () => void;
+}) {
+  const [open, setOpen] = useState(false);
+  const selected = foods.find((f) => f.id === row.foodId) ?? null;
+
+  const matches =
+    open && row.query.trim() && !selected
+      ? foods.filter((f) => f.name.toLowerCase().includes(row.query.trim().toLowerCase())).slice(0, 8)
+      : [];
+
+  const servingsNum = Number(row.servings) || 0;
+  const scaled = (v: number | null) => (selected && v != null ? Math.round(v * servingsNum * 10) / 10 : null);
+
+  return (
+    <div className="grid grid-cols-[1fr_60px_repeat(6,60px)_24px] items-center gap-2 px-3 py-1.5 text-xs relative">
+      <div className="relative">
+        <Input
+          placeholder="Search foods..."
+          className="h-8 text-xs"
+          value={selected ? selected.name : row.query}
+          onChange={(e) => {
+            onChange({ ...row, query: e.target.value, foodId: null });
+            setOpen(true);
+          }}
+          onFocus={() => setOpen(true)}
+          onBlur={() => setTimeout(() => setOpen(false), 120)}
+        />
+        {matches.length > 0 && (
+          <div className="absolute z-10 top-full left-0 mt-1 w-56 max-h-48 overflow-y-auto rounded-lg border border-border bg-card shadow-lg">
+            {matches.map((f) => (
+              <button
+                key={f.id}
+                type="button"
+                onMouseDown={(e) => e.preventDefault()}
+                onClick={() => {
+                  onChange({ ...row, foodId: f.id, query: f.name });
+                  setOpen(false);
+                }}
+                className="w-full text-left px-3 py-1.5 text-xs hover:bg-background text-foreground"
+              >
+                {f.name}
+                {f.calories != null && <span className="text-muted-foreground"> · {f.calories} cal</span>}
+              </button>
+            ))}
+          </div>
+        )}
+        {open && row.query.trim() && !selected && matches.length === 0 && (
+          <p className="absolute z-10 top-full left-0 mt-1 text-[11px] text-muted-foreground bg-card border border-border rounded-lg px-3 py-1.5">
+            No matching foods — add it on the Foods page first.
+          </p>
+        )}
+      </div>
+      <Input
+        type="number"
+        min="0"
+        step="0.5"
+        className="h-8 text-xs text-center"
+        value={row.servings}
+        onChange={(e) => onChange({ ...row, servings: e.target.value })}
+        disabled={!selected}
+      />
+      {(['calories', 'protein_g', 'carbs_g', 'fat_g'] as const).map((k) => (
+        <span key={k} className="text-center text-muted-foreground">
+          {scaled(selected?.[k] ?? null) ?? '—'}
+        </span>
+      ))}
+      <span className="text-center text-muted-foreground">—</span>
+      <span className="text-center text-muted-foreground">—</span>
+      <button type="button" onClick={onRemove} className="text-muted-foreground hover:text-danger">
+        <X size={13} />
+      </button>
+    </div>
+  );
+}
 
 const GOAL_ADJUSTMENT: Record<'Maintain' | 'Cut' | 'Surplus' | 'Manual', number> = {
   Maintain: 0,
@@ -53,10 +149,12 @@ function MealPlanBuilder({
   onClose: () => void;
   onSave: (input: { name: string; clientId: string; data: Record<string, unknown> }) => Promise<{ error: string | null }>;
 }) {
+  const profile = useProfile();
+  const { foods } = useFoods(profile.id);
   const [tdeeOpen, setTdeeOpen] = useState(true);
   const [goal, setGoal] = useState<'Maintain' | 'Cut' | 'Surplus' | 'Manual'>('Maintain');
   const [method, setMethod] = useState<'formula' | 'kcal-per-kg'>('formula');
-  const [rows, setRows] = useState(5);
+  const [foodRows, setFoodRows] = useState<PlanFoodRow[]>([emptyRow()]);
   const [clientId, setClientId] = useState('');
   const [sex, setSex] = useState('unspecified');
   const [age, setAge] = useState('');
@@ -82,12 +180,53 @@ function MealPlanBuilder({
 
   const client = clients.find((c) => c.id === clientId);
 
+  const byId = useMemo(() => new Map(foods.map((f) => [f.id, f])), [foods]);
+  const mealTotals = useMemo(() => {
+    return foodRows.reduce(
+      (acc, r) => {
+        const f = r.foodId ? byId.get(r.foodId) : null;
+        const servings = Number(r.servings) || 0;
+        if (!f) return acc;
+        return {
+          calories: acc.calories + (f.calories ?? 0) * servings,
+          protein_g: acc.protein_g + (f.protein_g ?? 0) * servings,
+          carbs_g: acc.carbs_g + (f.carbs_g ?? 0) * servings,
+          fat_g: acc.fat_g + (f.fat_g ?? 0) * servings,
+        };
+      },
+      { calories: 0, protein_g: 0, carbs_g: 0, fat_g: 0 },
+    );
+  }, [foodRows, byId]);
+
+  const updateRow = (rowId: string, next: PlanFoodRow) =>
+    setFoodRows((rs) => rs.map((r) => (r.rowId === rowId ? next : r)));
+  const removeRow = (rowId: string) => setFoodRows((rs) => rs.filter((r) => r.rowId !== rowId));
+
   const handleSave = async () => {
     setSaving(true);
     const { error } = await onSave({
       name: client ? `${client.first_name}'s plan` : 'Untitled plan',
       clientId,
-      data: { goal, method, sex, age, heightCm, weightKg, kcalPerKg, manualCalories, maintenanceEstimate, appliedTarget },
+      data: {
+        goal,
+        method,
+        sex,
+        age,
+        heightCm,
+        weightKg,
+        kcalPerKg,
+        manualCalories,
+        maintenanceEstimate,
+        appliedTarget,
+        meals: [
+          {
+            name: 'Meal 1',
+            items: foodRows
+              .filter((r) => r.foodId)
+              .map((r) => ({ foodId: r.foodId, servings: Number(r.servings) || 0 })),
+          },
+        ],
+      },
     });
     setSaving(false);
     if (!error) onClose();
@@ -299,37 +438,42 @@ function MealPlanBuilder({
                 </Select>
               </div>
               <div className="flex items-center gap-3 text-xs text-muted-foreground">
-                <span>0</span>
-                <span>0gP</span>
-                <span>0gC</span>
-                <span>0gF</span>
-                <button className="text-muted-foreground hover:text-danger">
-                  <Trash2 size={14} />
-                </button>
+                <span>{Math.round(mealTotals.calories)} cal</span>
+                <span>{Math.round(mealTotals.protein_g)}gP</span>
+                <span>{Math.round(mealTotals.carbs_g)}gC</span>
+                <span>{Math.round(mealTotals.fat_g)}gF</span>
               </div>
             </div>
-            <div className="divide-y divide-border">
-              {Array.from({ length: rows }).map((_, i) => (
-                <div key={i} className="grid grid-cols-[1fr_repeat(6,60px)_24px] items-center gap-2 px-3 py-1.5 text-xs">
-                  <Input placeholder="Search foods..." className="h-8 text-xs" />
-                  {['Cal', 'Protein', 'Carbs', 'Fat', 'Fiber', 'Sodium'].map((m) => (
-                    <span key={m} className="text-center text-muted-foreground">—</span>
-                  ))}
-                  <button className="text-muted-foreground hover:text-danger">
-                    <X size={13} />
-                  </button>
-                </div>
+            <div className="grid grid-cols-[1fr_60px_repeat(6,60px)_24px] gap-2 px-3 pt-2 text-[10px] uppercase tracking-wide text-muted-foreground">
+              <span />
+              <span className="text-center">Qty</span>
+              {['Cal', 'Protein', 'Carbs', 'Fat', 'Fiber', 'Sodium'].map((m) => (
+                <span key={m} className="text-center">{m}</span>
               ))}
+              <span />
+            </div>
+            <div className="divide-y divide-border">
+              {foodRows.length === 0 ? (
+                <p className="text-xs text-muted-foreground px-3 py-3">No foods added to this meal yet.</p>
+              ) : (
+                foodRows.map((row) => (
+                  <FoodRowInput
+                    key={row.rowId}
+                    row={row}
+                    foods={foods}
+                    onChange={(next) => updateRow(row.rowId, next)}
+                    onRemove={() => removeRow(row.rowId)}
+                  />
+                ))
+              )}
             </div>
             <div className="flex items-center gap-3 px-3 py-2 border-t border-border">
-              <button className="flex items-center gap-1 text-xs font-medium text-primary hover:underline">
-                <Plus size={12} /> Add food
-              </button>
               <button
-                onClick={() => setRows((r) => r + 1)}
+                type="button"
+                onClick={() => setFoodRows((rs) => [...rs, emptyRow()])}
                 className="flex items-center gap-1 text-xs font-medium text-primary hover:underline"
               >
-                <Plus size={12} /> Add row
+                <Plus size={12} /> Add food
               </button>
             </div>
           </div>
