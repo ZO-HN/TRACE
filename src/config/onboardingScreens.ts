@@ -281,12 +281,13 @@ function base64UrlDecode(str: string) {
   return decodeURIComponent(escape(atob(padded)));
 }
 
-export function buildInviteLink(screens: OnboardingScreen[], coachName: string): string {
+export function buildInviteLink(screens: OnboardingScreen[], coachName: string, coachId?: string): string {
   const payload = screens.map((s) => ({ k: s.key, e: s.enabled }));
   const encoded = base64UrlEncode(JSON.stringify(payload));
   const url = new URL('/onboarding', window.location.origin);
   url.searchParams.set('config', encoded);
   if (coachName) url.searchParams.set('coach', coachName);
+  if (coachId) url.searchParams.set('coachId', coachId);
   return url.toString();
 }
 

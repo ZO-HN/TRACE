@@ -1,4 +1,4 @@
-import { useMemo, useState } from 'react';
+import { useEffect, useMemo, useState, type FormEvent } from 'react';
 import { useLocation, Link } from 'react-router';
 import {
   AlertTriangle,
@@ -15,6 +15,7 @@ import {
   Footprints,
   Heart,
   Info,
+  Loader2,
   Mail,
   Pencil,
   PlayCircle,
@@ -30,6 +31,9 @@ import {
   X,
 } from 'lucide-react';
 import { cn } from '@/lib/utils';
+import { supabase } from '@/lib/supabase';
+import { Input } from '@/components/ui/shadcn/field';
+import OAuthButtons from '@/components/auth/OAuthButtons';
 import { DEFAULT_ONBOARDING_SCREENS, parseInviteConfig, STEP_DEFS, type StepDef } from '@/config/onboardingScreens';
 
 const STEP_ICONS: Record<string, typeof User> = {
@@ -483,7 +487,9 @@ type Answer = string | string[] | { month: string; day: string; year: string } |
 export default function OnboardingWizardPage() {
   const location = useLocation();
   const screens = useMemo(() => parseInviteConfig(location.search), [location.search]);
-  const coachName = useMemo(() => new URLSearchParams(location.search).get('coach') || 'your coach', [location.search]);
+  const params = useMemo(() => new URLSearchParams(location.search), [location.search]);
+  const coachName = useMemo(() => params.get('coach') || 'your coach', [params]);
+  const coachId = useMemo(() => params.get('coachId'), [params]);
 
   const steps = useMemo(
     () =>
@@ -494,11 +500,35 @@ export default function OnboardingWizardPage() {
     [screens],
   );
 
-  const [phase, setPhase] = useState<'intro' | 'form' | 'review' | 'done'>('intro');
+  const [phase, setPhase] = useState<'intro' | 'auth' | 'form' | 'review' | 'done'>('intro');
   const [stepIndex, setStepIndex] = useState(0);
   const [answers, setAnswers] = useState<Record<string, Answer>>({});
   const [linkCopied, setLinkCopied] = useState(false);
-  const clientId = useMemo(() => crypto.randomUUID(), []);
+  const [userId, setUserId] = useState<string | null>(null);
+  const [authChecked, setAuthChecked] = useState(false);
+  const [authEmail, setAuthEmail] = useState('');
+  const [authSubmitting, setAuthSubmitting] = useState(false);
+  const [authSent, setAuthSent] = useState(false);
+  const [authError, setAuthError] = useState<string | null>(null);
+  const [submitting, setSubmitting] = useState(false);
+  const [submitError, setSubmitError] = useState<string | null>(null);
+
+  useEffect(() => {
+    supabase.auth.getSession().then(({ data }) => {
+      setUserId(data.session?.user.id ?? null);
+      setAuthChecked(true);
+    });
+    const { data: sub } = supabase.auth.onAuthStateChange((_event, session) => {
+      setUserId(session?.user.id ?? null);
+    });
+    return () => sub.subscription.unsubscribe();
+  }, []);
+
+  useEffect(() => {
+    if (phase === 'auth' && userId) setPhase('form');
+  }, [phase, userId]);
+
+  const clientId = userId ?? '—';
 
   const current = steps[stepIndex];
   const percent = steps.length > 0 ? Math.round(((stepIndex + 1) / steps.length) * 100) : 0;
@@ -511,6 +541,55 @@ export default function OnboardingWizardPage() {
     } else {
       setStepIndex((i) => i + 1);
     }
+  };
+
+  const handleAuthSubmit = async (e: FormEvent) => {
+    e.preventDefault();
+    setAuthSubmitting(true);
+    setAuthError(null);
+    const { error } = await supabase.auth.signInWithOtp({
+      email: authEmail,
+      options: { shouldCreateUser: true, emailRedirectTo: window.location.href },
+    });
+    setAuthSubmitting(false);
+    if (error) {
+      setAuthError(error.message);
+      return;
+    }
+    setAuthSent(true);
+  };
+
+  const handleComplete = async () => {
+    if (!userId || !coachId) {
+      setSubmitError('Missing coach or account info — try reopening this link.');
+      return;
+    }
+    setSubmitting(true);
+    setSubmitError(null);
+
+    const { data: profileRow } = await supabase.from('profiles').select('coach_id').eq('id', userId).maybeSingle();
+    if (profileRow && profileRow.coach_id !== coachId) {
+      const { error: claimError } = await supabase.rpc('claim_coach_by_id', { p_coach_id: coachId });
+      if (claimError) {
+        setSubmitting(false);
+        setSubmitError(
+          claimError.message.includes('already have a coach')
+            ? "You're already linked to a different coach — contact them to switch."
+            : claimError.message,
+        );
+        return;
+      }
+    }
+
+    const { error: insertError } = await supabase
+      .from('onboarding_responses')
+      .insert({ trainee_id: userId, coach_id: coachId, answers });
+    setSubmitting(false);
+    if (insertError) {
+      setSubmitError(insertError.message);
+      return;
+    }
+    setPhase('done');
   };
 
   const jumpToStep = (key: string) => {
@@ -610,16 +689,81 @@ export default function OnboardingWizardPage() {
         <div className="border-t border-border bg-surface px-6 py-5 flex flex-col items-center gap-3">
           <button
             type="button"
-            onClick={() => setPhase('form')}
-            className="w-full max-w-2xl flex items-center justify-center gap-2 h-12 rounded-xl bg-primary text-primary-foreground text-base font-semibold hover:opacity-90 transition-opacity"
+            disabled={!authChecked}
+            onClick={() => setPhase(userId ? 'form' : 'auth')}
+            className="w-full max-w-2xl flex items-center justify-center gap-2 h-12 rounded-xl bg-primary text-primary-foreground text-base font-semibold hover:opacity-90 transition-opacity disabled:opacity-60"
           >
             Get Started <ArrowRight size={16} />
           </button>
-          <p className="text-xs text-muted-foreground">
+          {!coachId && (
+            <p className="text-xs text-danger text-center max-w-md">
+              This link doesn't have a coach attached — ask your coach to re-share their invite link.
+            </p>
+          )}
+        </div>
+      </div>
+    );
+  }
+
+  if (phase === 'auth') {
+    if (authSent) {
+      return (
+        <div className="min-h-screen flex items-center justify-center bg-background text-foreground px-6">
+          <div className="max-w-sm w-full flex flex-col items-center text-center gap-3">
+            <CheckCircle2 size={32} className="text-primary" />
+            <h1 className="text-xl font-bold">Check your email</h1>
+            <p className="text-sm text-muted-foreground">
+              We sent a sign-in link to {authEmail}. Click it to come back here and continue.
+            </p>
+            <button type="button" onClick={() => setAuthSent(false)} className="text-sm font-medium text-primary hover:underline">
+              Use a different email
+            </button>
+          </div>
+        </div>
+      );
+    }
+
+    return (
+      <div className="min-h-screen flex items-center justify-center bg-background text-foreground px-6">
+        <div className="max-w-sm w-full flex flex-col gap-4">
+          <div className="flex flex-col items-center gap-2 text-center">
+            <h1 className="text-xl font-bold">Sign in to continue</h1>
+            <p className="text-sm text-muted-foreground">
+              We need your email so {coachName} can find your answers once you're done.
+            </p>
+          </div>
+          <form onSubmit={(e) => void handleAuthSubmit(e)} className="flex flex-col gap-3">
+            <Input
+              type="email"
+              autoComplete="email"
+              required
+              value={authEmail}
+              onChange={(e) => setAuthEmail(e.target.value)}
+              placeholder="name@example.com"
+              className="h-12 text-center"
+            />
+            {authError && <p className="text-xs text-danger text-center">{authError}</p>}
+            <button
+              type="submit"
+              disabled={authSubmitting || !authEmail}
+              className="flex items-center justify-center gap-2 h-11 rounded-lg bg-foreground text-background text-sm font-semibold hover:opacity-90 transition-opacity disabled:opacity-60"
+            >
+              {authSubmitting && <Loader2 size={14} className="animate-spin" />}
+              {authSubmitting ? 'Sending link...' : 'Continue with Email'}
+            </button>
+            <div className="flex items-center gap-3 py-1">
+              <div className="flex-1 h-px bg-border" />
+              <span className="text-[11px] font-medium text-muted-foreground tracking-wide">OR CONTINUE WITH</span>
+              <div className="flex-1 h-px bg-border" />
+            </div>
+            <OAuthButtons />
+          </form>
+          <p className="text-xs text-muted-foreground text-center">
             Already have a TRACE account?{' '}
             <Link to="/login" className="text-primary underline">
-              Sign in to connect it
-            </Link>
+              Sign in there instead
+            </Link>{' '}
+            then reopen this link.
           </p>
         </div>
       </div>
@@ -695,13 +839,16 @@ export default function OnboardingWizardPage() {
           </div>
         </div>
 
-        <div className="border-t border-border bg-surface px-6 py-4">
+        <div className="border-t border-border bg-surface px-6 py-4 flex flex-col items-center gap-2 max-w-2xl mx-auto w-full">
+          {submitError && <p className="text-xs text-danger text-center">{submitError}</p>}
           <button
             type="button"
-            onClick={() => setPhase('done')}
-            className="w-full max-w-2xl mx-auto flex items-center justify-center h-12 rounded-xl bg-primary text-primary-foreground text-base font-semibold hover:opacity-90 transition-opacity"
+            disabled={submitting}
+            onClick={() => void handleComplete()}
+            className="w-full flex items-center justify-center gap-2 h-12 rounded-xl bg-primary text-primary-foreground text-base font-semibold hover:opacity-90 transition-opacity disabled:opacity-60"
           >
-            Complete onboarding
+            {submitting && <Loader2 size={16} className="animate-spin" />}
+            {submitting ? 'Submitting...' : 'Complete onboarding'}
           </button>
         </div>
       </div>
@@ -730,8 +877,8 @@ export default function OnboardingWizardPage() {
           <span className="rounded-full bg-primary/10 text-primary text-xs font-semibold px-3 py-1.5">Application sent</span>
           <h1 className="text-2xl font-extrabold">Thanks for reaching out to {displayCoach}</h1>
           <p className="text-sm text-muted-foreground max-w-md">
-            Your application was sent to {displayCoach}. This is a preview link, so nothing was actually submitted — in a live invite,
-            the trainee would download the TRACE app and sign in for {displayCoach.toLowerCase()} to review and reach out from there.
+            Your answers were sent to {displayCoach} and your account is linked to them. Download the TRACE app and sign in with the
+            same email to see your training and nutrition plan once {displayCoach.toLowerCase()} sets it up.
           </p>
 
           <div className="w-full rounded-xl border border-border p-5 mt-4 flex items-center justify-between gap-4 flex-wrap">
@@ -760,13 +907,13 @@ export default function OnboardingWizardPage() {
               { n: 1, title: 'Install the TRACE app', body: 'Download the app on your phone using the App Store or Google Play links below.' },
               {
                 n: 2,
-                title: 'Sign up or log in',
-                body: 'Create your account with the same email you entered during onboarding so we can connect you instantly.',
+                title: 'Log in with the same email',
+                body: 'Your account is already linked to your coach — just sign in with the email you used here.',
               },
               {
                 n: 3,
-                title: 'Wait for coach review',
-                body: `${displayCoach} will review your application and reach out in the app once they accept.`,
+                title: 'Wait for your coach',
+                body: `${displayCoach} will review your answers and set up your training in the app.`,
               },
             ].map((s) => (
               <div key={s.n} className="rounded-xl border border-border p-4 text-left">
@@ -785,8 +932,7 @@ export default function OnboardingWizardPage() {
             </div>
             <p className="text-base font-bold">Download the TRACE app</p>
             <p className="text-xs text-muted-foreground max-w-sm">
-              Install the app on your phone and sign in with the same email you used during onboarding. Your application will be linked
-              to your account automatically.
+              Install the app on your phone and sign in with the same email you used here — your account and coach are already linked.
             </p>
             <div className="flex flex-wrap items-center justify-center gap-3 mt-1">
               <span className="h-11 px-4 rounded-lg border border-border flex items-center gap-2 text-sm font-medium text-muted-foreground cursor-not-allowed">

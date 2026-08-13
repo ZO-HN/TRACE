@@ -96,18 +96,20 @@ function InviteClientDialog({
   open,
   onOpenChange,
   coachName,
+  coachId,
   coachCode,
 }: {
   open: boolean;
   onOpenChange: (open: boolean) => void;
   coachName: string;
+  coachId: string;
   coachCode: string | null;
 }) {
   const [tab, setTab] = useState<'link' | 'code' | 'find'>('link');
   const [copied, setCopied] = useState(false);
   const [codeCopied, setCodeCopied] = useState(false);
 
-  const inviteLink = buildInviteLink(DEFAULT_ONBOARDING_SCREENS, coachName);
+  const inviteLink = buildInviteLink(DEFAULT_ONBOARDING_SCREENS, coachName, coachId);
 
   const copyLink = async () => {
     try {
@@ -394,6 +396,7 @@ export default function ClientsPage() {
         open={inviteOpen}
         onOpenChange={setInviteOpen}
         coachName={profile.first_name ?? ''}
+        coachId={profile.id}
         coachCode={profile.coach_code}
       />
       <TagsDialog open={tagsOpen} onOpenChange={setTagsOpen} />

@@ -536,7 +536,7 @@ function OnboardingScreensTab() {
   const [copied, setCopied] = useState(false);
 
   const copyInviteLink = async () => {
-    const link = buildInviteLink(screens, profile.first_name ?? '');
+    const link = buildInviteLink(screens, profile.first_name ?? '', profile.id);
     try {
       await navigator.clipboard.writeText(link);
       setCopied(true);
@@ -588,7 +588,7 @@ function OnboardingScreensTab() {
               {copied ? <Check size={13} /> : <Copy size={13} />} {copied ? 'Copied' : 'Copy invite link'}
             </button>
             <a
-              href={buildInviteLink(screens, profile.first_name ?? '')}
+              href={buildInviteLink(screens, profile.first_name ?? '', profile.id)}
               target="_blank"
               rel="noreferrer"
               className="flex items-center gap-1.5 h-9 px-3 rounded-lg border border-border text-sm font-medium text-foreground hover:bg-surface transition-colors"
@@ -654,7 +654,7 @@ function OnboardingScreensTab() {
               onClick={() => {
                 setPreviewKey((k) => (k === screen.key ? null : screen.key));
                 const single: OnboardingScreen[] = [{ ...screen, enabled: true }];
-                window.open(buildInviteLink(single, profile.first_name ?? ''), '_blank', 'noreferrer');
+                window.open(buildInviteLink(single, profile.first_name ?? '', profile.id), '_blank', 'noreferrer');
               }}
               aria-label={`Preview ${screen.label}`}
               className={cn(
