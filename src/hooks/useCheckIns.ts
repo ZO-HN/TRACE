@@ -115,15 +115,27 @@ export function useCheckIns(coachId: string): UseCheckIns {
   }, [rows]);
 
   const markReviewed = async (id: string, notes: string) => {
+    const reviewedAt = new Date().toISOString();
     const { error: updateError } = await supabase
       .from('check_ins')
       .update({
         status: 'reviewed',
-        reviewed_at: new Date().toISOString(),
+        reviewed_at: reviewedAt,
         reviewed_by: coachId,
         coach_notes: notes,
       })
       .eq('id', id);
+    // Update local state directly rather than relying solely on the
+    // realtime subscription — that channel can lag, be disconnected, or
+    // reconnecting, which previously left a just-reviewed check-in showing
+    // as still needing review until (if ever) the socket caught up.
+    if (!updateError) {
+      setRows((prev) =>
+        prev.map((r) =>
+          r.id === id ? { ...r, status: 'reviewed', reviewed_at: reviewedAt, coach_notes: notes } : r,
+        ),
+      );
+    }
     return { error: updateError?.message ?? null };
   };
 

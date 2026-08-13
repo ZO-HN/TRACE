@@ -70,12 +70,27 @@ export function useNotifications(coachId: string): UseNotifications {
 
   const markRead = async (id: string) => {
     setNotifications((prev) => prev.map((n) => (n.id === id ? { ...n, read: true } : n)));
-    await supabase.from('notifications').update({ read: true }).eq('id', id);
+    const { error: updateError } = await supabase.from('notifications').update({ read: true }).eq('id', id);
+    if (updateError) {
+      // Roll back the optimistic update so the UI doesn't silently drift
+      // from the server on a failed write (RLS reject, network drop, etc).
+      setNotifications((prev) => prev.map((n) => (n.id === id ? { ...n, read: false } : n)));
+      setError(updateError.message);
+    }
   };
 
   const markAllRead = async () => {
+    const previouslyUnread = new Set(notifications.filter((n) => !n.read).map((n) => n.id));
     setNotifications((prev) => prev.map((n) => ({ ...n, read: true })));
-    await supabase.from('notifications').update({ read: true }).eq('coach_id', coachId).eq('read', false);
+    const { error: updateError } = await supabase
+      .from('notifications')
+      .update({ read: true })
+      .eq('coach_id', coachId)
+      .eq('read', false);
+    if (updateError) {
+      setNotifications((prev) => prev.map((n) => (previouslyUnread.has(n.id) ? { ...n, read: false } : n)));
+      setError(updateError.message);
+    }
   };
 
   const unreadCount = notifications.filter((n) => !n.read).length;

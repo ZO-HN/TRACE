@@ -54,10 +54,13 @@ export function useClients(coachId: string): UseClients {
   }, [coachId]);
 
   const setChurned: UseClients['setChurned'] = async (clientId, churned) => {
-    const { error: updateError } = await supabase
-      .from('profiles')
-      .update({ manually_marked_churned: churned })
-      .eq('id', clientId);
+    // Plain .update() can't work here: profiles' RLS only lets a user write
+    // their own row, not a coach writing a client's row. See
+    // supabase/migrations/20260814010000_fix_client_churn_update.sql.
+    const { error: updateError } = await supabase.rpc('set_client_churned', {
+      p_client_id: clientId,
+      p_churned: churned,
+    });
     if (!updateError) await fetchClients();
     return { error: updateError?.message ?? null };
   };

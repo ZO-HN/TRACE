@@ -93,10 +93,21 @@ export function useFormChecks(coachId: string): UseFormChecks {
   }, [coachId]);
 
   const markReviewed = async (id: string, notes: string) => {
+    const reviewedAt = new Date().toISOString();
     const { error: updateError } = await supabase
       .from('form_checks')
-      .update({ status: 'reviewed', reviewed_at: new Date().toISOString(), coach_notes: notes })
+      .update({ status: 'reviewed', reviewed_at: reviewedAt, coach_notes: notes })
       .eq('id', id);
+    // Update local state directly rather than relying solely on the
+    // realtime subscription, which can lag or be mid-reconnect and
+    // previously left a just-reviewed form check showing as unreviewed.
+    if (!updateError) {
+      setFormChecks((prev) =>
+        prev.map((f) =>
+          f.id === id ? { ...f, status: 'reviewed', reviewed_at: reviewedAt, coach_notes: notes } : f,
+        ),
+      );
+    }
     return { error: updateError?.message ?? null };
   };
 
