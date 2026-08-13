@@ -12,9 +12,18 @@ Was built and wired to Resend (`supabase/functions/send-client-invite`, `Clients
 
 The header "Feedback" button doesn't need an email provider either — it links straight to the GitHub repo (`https://github.com/ZO-HN/TRACE`) instead of an in-app form.
 
-### 2. Onboarding wizard → real trainee account
+### 2. Onboarding wizard → real trainee account ✅ done (2026-08-13)
 
-Fully scoped in `docs/migrations/TODO-onboarding-account-linking.md`. Short version: the `/onboarding` wizard is real UI but writes nothing to Supabase — needs a decision on where sign-in happens in the flow and what table the answers land in before that part gets built.
+Decisions confirmed with the user: sign-in at the **start** of the wizard (before any questions), answers land in a **new `onboarding_responses` table** (not directly on `profiles`).
+
+- `buildInviteLink` now carries `coachId`, not just `coachName` — needed so the wizard knows which coach to attach the trainee to (was previously just a display string).
+- New `auth` phase between intro and form: email OTP or Google, reusing the existing `OAuthButtons` component. Auto-advances once a session exists (handles the magic-link return trip since `emailRedirectTo` points back at the same onboarding URL with all its query params intact).
+- On "Complete onboarding": calls the existing `claim_coach_by_id` RPC (from item 10.5 below — the parallel session's referral-code migration) to attach the coach if not already linked, then inserts the real answers into `onboarding_responses`. Deliberately did **not** write a second, competing claim mechanism.
+- Rewrote the "done" screen — it previously said "this is a preview link, nothing was actually submitted," which stopped being true.
+
+`supabase/migrations/20260813010000_onboarding_responses.sql` adds only the response table + RLS (trainee reads/inserts own rows, coach reads their own trainees' rows). Applied and confirmed synced live.
+
+`docs/migrations/TODO-onboarding-account-linking.md` is now resolved/historical — the scoping questions it raised were answered and built.
 
 ### 3. Dashboard analytics (signups, workouts, churn, nutrition) ✅ mostly done (2026-08-13)
 
@@ -71,6 +80,8 @@ TRACE moved from "single default coach" to multi-coach: any number of coaches ca
 Migration confirmed applied via `npx supabase migration list` (2026-08-12) — `20260812010000` now shows a synced remote timestamp. `is_platform_admin` bootstrap for `iminthemoodlol@gmail.com` was handled per `docs/handoff-supabase-migration-coach-allowlist.md`.
 
 `platform_settings.default_coach_id` (separate table/concern — controls which coach new TRACE-client trainee signups fall under when they don't pick one) is now also set, to `iminthemoodlol@gmail.com`'s profile id (`dc41fbd3-afba-4dcd-ad7d-ef85e6bf1735`), confirmed live (2026-08-12). New trainee signups from TRACE-client with no coach selected will now correctly land under this coach instead of `coach_id = NULL`.
+
+**Superseded same day (2026-08-13) by a parallel session, not built here:** `supabase/migrations/20260813000001_coach_referral_and_signup_gate.sql` removed the `default_coach_id` auto-enroll entirely — new trainees now sign up with `coach_id = NULL` and TRACE-client is expected to gate them behind a "choose your coach" screen (browse coaches or enter a referral code, via new `list_available_coaches`/`claim_coach_by_id`/`claim_coach_by_code` RPCs). It also added `profiles.coach_code`, surfaced in this repo's Clients → Invite Client dialog as a "Referral Code" tab. The `default_coach_id` bootstrap above is now dead/unused rather than wrong — left in place per that migration's own comment, in case a fallback is wanted again later. Item 2's onboarding-link flow reuses `claim_coach_by_id` from this same migration rather than duplicating it.
 
 ---
 

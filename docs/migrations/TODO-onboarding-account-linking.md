@@ -1,5 +1,7 @@
 # TODO: wire onboarding wizard answers into a real trainee account
 
+**✅ Resolved 2026-08-13.** Sign-in at the start, answers in a new `onboarding_responses` table — see `docs/handoff-todo.md` item 2 for what shipped. Kept below for historical context on the original scoping questions.
+
 ## Current state
 
 `/onboarding` ([OnboardingWizardPage.tsx](../../src/components/pages/OnboardingWizardPage.tsx)) is a fully client-side wizard. It collects answers into local component state and, at the end, shows a "Thanks for reaching out" screen — nothing is persisted or sent anywhere. The invite link's screen config travels in the URL (`buildInviteLink`/`parseInviteConfig` in [src/config/onboardingScreens.ts](../../src/config/onboardingScreens.ts)), not from a live fetch, because there's no backend table for it yet.
