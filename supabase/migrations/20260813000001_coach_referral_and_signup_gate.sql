@@ -8,6 +8,12 @@
 -- server-side pieces that screen needs; platform_settings.default_coach_id
 -- is left in place (harmless, just unused) rather than dropped, in case a
 -- future admin-configured fallback is wanted again.
+--
+-- Renumbered from the original 20260813000000 draft (collided on timestamp
+-- with 20260813000000_coach_dashboard_analytics.sql) and updated to
+-- preserve the coach_allowlist invite-only role check added in
+-- 20260812010000_coach_allowlist.sql, which the original draft would have
+-- silently overwritten (drafted against a stale copy of handle_new_user()).
 
 -- ---------- Coach referral codes ----------
 -- Short, human-typeable code per coach. Generated on insert for coach rows;
@@ -56,13 +62,25 @@ UPDATE public.profiles
 SET coach_code = public.generate_coach_code()
 WHERE role = 'coach' AND coach_code IS NULL;
 
--- ---------- handle_new_user: stop auto-enrolling under a default coach ----------
+-- ---------- handle_new_user: keep the coach_allowlist check, drop the
+-- default_coach_id auto-enroll ----------
+-- Preserves the invite-only role assignment from 20260812010000_coach_allowlist.sql
+-- (email on public.coach_allowlist => role='coach', else 'trainee') so this
+-- migration does NOT reopen client-side role tampering. The only change
+-- from that version: trainees always insert with coach_id = NULL instead of
+-- being looked up from platform_settings.default_coach_id.
 CREATE OR REPLACE FUNCTION public.handle_new_user()
 RETURNS TRIGGER AS $$
 DECLARE
   v_role public.user_role;
 BEGIN
-  v_role := COALESCE((new.raw_user_meta_data->>'role')::public.user_role, 'trainee'::public.user_role);
+  IF EXISTS (
+    SELECT 1 FROM public.coach_allowlist WHERE lower(email) = lower(new.email)
+  ) THEN
+    v_role := 'coach'::public.user_role;
+  ELSE
+    v_role := 'trainee'::public.user_role;
+  END IF;
 
   INSERT INTO public.profiles (id, email, first_name, last_name, role, coach_id)
   VALUES (
