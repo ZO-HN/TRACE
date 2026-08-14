@@ -1,102 +1,47 @@
 # TRACE — Implementation Audit & Technical Recommendations
 
-A grounded assessment of what is actually built in the repository versus what the [architecture spec](trace_architecture.md) describes, followed by the recommended technical path to a fully functional app. All findings are anchored to real files.
+A grounded assessment of what is actually built in this repository, scoped to what this repository actually is.
 
-> **Scope note:** The architecture spec describes the *target* platform. This document describes the *current* build and the decisions needed to close the gap. Where the two diverge, this document reflects the repository.
+> **Scope note:** this repo (`TRACE`) is the **coach web dashboard only**. It's one of two apps — the trainee-facing mobile client (`GymLogger`, offline outbox, WebRTC calling, on-device set logging) lives in the separate `TRACE-client` repo (Expo/React Native), not here. Earlier drafts of this document described a single combined app; that architecture was split. Anything below that reads as "not built" refers to this repo's own scope — check `TRACE-client` separately for the mobile-side items.
 
 ---
 
-## 1. Foundational Correction: Framework
+## Stack
 
-The architecture spec repeatedly references **Next.js** (dynamic `/[slug]` routing, serverless page rendering). The repository is **not** a Next.js project.
+- **Vite 8 + React 19 + TypeScript**, client-rendered SPA, `react-router` for routing.
+- `@supabase/supabase-js` against a shared Supabase project (`lfaxkrorjljdeefnafjb`) — same backend `TRACE-client` uses, independent auth sessions per device/app, RLS is what scopes visibility.
+- Tailwind CSS v4, oxlint, Vitest.
+- Media (video/photos) goes to Cloudflare R2 via presigned URLs, never Supabase Storage — see [ADR 0001](adr/0001-media-storage.md). This repo only *views* media (Form Checks video playback); uploading happens client-side in `TRACE-client`.
 
-- `package.json` has **no `next` dependency** and **no routing library** of any kind.
-- The stack is **Vite 8 + React 19 + TypeScript**, a client-rendered PWA shell, with `@supabase/supabase-js`, Tailwind CSS v4, and oxlint.
+## Current state by area
 
-Every plan must be built on the real stack. The Next.js serverless page model is aspirational and unimplemented.
-
-## 2. Current State by Axiom
-
-> **Status update (2026-07-19):** the build sequence in §4.6 has been executed. The table reflects the post-implementation state; the original findings below it are kept for history.
-
-| Axiom | Status | Reality |
+| Area | Status | Reality |
 | --- | --- | --- |
-| Single codebase, dual role | **Built** | One Vite app; roles resolved from Supabase profile. |
-| Role-based resolution (coach / coached / solo) | **Built** | `useTraceUser.ts` derives role booleans from `role` + `coach_id`. |
-| Viewport partition (≥1024 coach / <1024 trainee) | **Built** | `useDeviceSize` (`matchMedia` on the `lg` breakpoint) composed with role in `LayoutResolver`. |
-| Mobile trainee logger | **Built** (mock template) | `GymLogger` mounted for trainees, queues real `set_logs`/`workout_sessions` payloads (lbs→kg, catalog ids). Workout content itself is still the mock template until template loading lands. |
-| Offline outbox / IndexedDB sync | **Built** | Zustand + `idb` outbox; sessions flush before sets; idempotent upserts with backoff on the `online` event. |
-| WebRTC (Jitsi) | **Built** (v1) | `JitsiCall` via meet.jit.si external API; per-coach room, coach hosts / coached trainee joins. Open-room limitation documented. |
-| 1-on-1 chat | **Built** (migration pending) | `direct_messages` migration + realtime `ChatPanel`; wired for both sides (trainee panel + coach roster cards). |
-| Media (video/photos) | **Built** (deploy pending) | Direct-to-R2 presigned upload; `GymLogger` form-clip capture writes the key to `set_logs.form_video_s3_key`. See [ADR 0001](adr/0001-media-storage.md). |
-| Coach public pages (`/:slug`) | **Built** | `react-router` + `CoachPage` rendering validated `layout_config`. |
-| Coach roster + telemetry | **Built** | `get_coach_roster_telemetry` RPC → readiness-banded cards with per-trainee chat. |
-| Coach template builder | **Built** | Author `workout_templates` + `template_items` in-app; trainee logger loads real content. |
-| TRACE Brain (AI chat) | **Built** (RAG pending) | Persisted chat + `trace-brain` function; RAG/LLM pipeline is a documented placeholder. |
-| Deployment hardening | **Built** | Fail-fast env screen, error boundary, PWA manifest, SPA `_redirects`. |
-| RLS coverage | **Built** | ai_* + biometrics RLS added (were unprotected); see migration `20260719000002`. |
+| Auth (email OTP + Google OAuth) | **Built** | `LoginPage.tsx`; role decided server-side by `handle_new_user()` against `coach_allowlist`, not trusted from client-supplied signup metadata. |
+| Multi-coach, invite-only signup | **Built** | Any number of coaches can use this deployment, each with isolated clients (every coach-owned table scoped by `coach_id`/`created_by_coach_id`). Only allowlisted emails can become a coach account; a platform admin manages the allowlist via Settings → Coach access. |
+| Dashboard gate (`AppShell`) | **Built** | Non-coach accounts get a "not authorized" screen instead of the dashboard — previously any authenticated user (including a trainee) could load it. |
+| Clients roster | **Built** | List, churn status (auto: 21+ days no `workout_sessions`, or manual toggle), find/filter. |
+| Client invite links | **Built** | Server-issued, revocable — `client_invites` table, one active link per coach, `rotate_invite_link`/`revoke_invite_link`/`get_invite_link` RPCs. Replaces an earlier client-side-only base64-encoded link that had no server record and couldn't be revoked. |
+| Client invite emails | **Removed** | Was built (Resend integration), explicitly pulled by the user before deploy — not wanted for now. |
+| Onboarding wizard (`/onboarding`) | **Built** | Public invite-link flow: sign in (email or Google) → answer questions → real write to `onboarding_responses`, attaches the trainee to the inviting coach via `claim_coach_by_id`. Previously collected answers into local state only and never persisted anything. |
+| Check-ins | **Built** | Templates (author, schedule, starter picker), review queue, realtime + optimistic local state on review. |
+| Form Checks | **Built** | Reviews `form_checks`, plays video via R2 signed URL. Nothing populates it until a trainee submits one from `TRACE-client` — not a bug on this side, just waiting on cross-repo activity. |
+| Messaging | **Built** | 1:1 `direct_messages` + realtime, symmetric both directions. |
+| Exercises / muscle groups / equipment | **Built** | Full CRUD, muscle-role tagging (primary/secondary) via `exercise_muscles`, 3D-ish muscle-model picker with hover feedback. Library shows the coach's own exercises plus any shared/seeded ones (`created_by_coach_id IS NULL`) — none seeded yet. |
+| Programs / Roadmaps / Vault | **Built** | Full CRUD, coach-scoped. |
+| Training Groups | **Built** | Create groups, add/remove members via a per-group dialog. |
+| Foods / Meals / Meal Plans | **Built**, manual-entry only | TDEE calculator (Mifflin-St Jeor), per-meal food rows are a real search over the coach's own `foods` table with live-computed macros. No nutrition dataset import (e.g. USDA) — `foods` starts empty per coach; can be bulk-seeded later without UI changes. |
+| Dashboard analytics | **Built**, partial | Real 7-day new-signups/workouts counts, 21-day-inactive-or-manual churn count, weekly PR wins, per-client nutrition logging summary. Client steps / cardio panels are honest placeholders — `wearable_biometrics` has no step-count column and no table distinguishes cardio vs. strength sessions; this is a schema gap, not a missing query. |
+| AI Copilot (TRACE Brain) | **Built**, RAG pending | `CopilotDrawer` now calls the real `useAiChat` hook (`ai_chat_sessions`/`ai_messages`, persisted, RLS'd) and the `trace-brain` edge function. The function returns a clear placeholder reply until the RAG pipeline (embedding → vector search → LLM) is wired — that's a documented TODO in the function itself, not a bug. Previously the UI used a localStorage-only fake "paste an API key" flow with hardcoded canned responses; that's been removed. |
+| Solo-trainee analytics RPCs | **Built** | `get_personal_records`, `get_exercise_stats`, `get_muscle_analytics` — used by `TRACE-client`, not this dashboard directly. |
 
-### How routing works today
+## Known gaps / deliberately out of scope here
 
-```
-App.tsx  →  LayoutResolver  →  useTraceUser()  →  { isCoach, isCoachedTrainee, isSoloTrainee }
-```
+1. **Client steps / cardio dashboard panels** — schema gap (see table above), not scheduled.
+2. **Meal plan multi-day/multi-meal structure** — the builder persists a single "Meal 1"; the UI has static "Daily" tabs implying multi-day support but no add-day handler exists. Not requested yet.
+3. **A handful of hooks can warn (not corrupt) on unmount-mid-save** — was broader before a CRUD QA sweep fixed the worst offenders (`useClients`, `useCheckIns`, `useFormChecks`, `useNotifications`, plus 8 others guarded against setState-after-unmount). Cosmetic, not a priority.
+4. **`docs/trace_architecture.md`'s Next.js references** — the architecture spec was written against a different framework assumption than what's actually built (Vite, not Next.js). Treat that doc as aspirational/target where it conflicts with this one.
 
-`LayoutResolver` branches on **role only**. The viewport axis from the spec does not exist in code, so the app renders identically at every width. The intended (viewport × role) matrix is currently one-dimensional (role).
+## For the mobile trainee app
 
-## 3. Code Integrity Findings
-
-1. **`src/hooks/useDeviceSize.ts` is empty** — the viewport dimension has no implementation. Axiom for the responsive partition cannot hold until this exists.
-2. **`GymLogger` is orphaned + mock-driven** — `initialWorkout` is hardcoded; state is local `useState`; nothing reads or writes Supabase; the component is never mounted by `LayoutResolver`. The flagship mobile feature is unreachable at runtime.
-3. **No offline persistence** — logs live in component state and vanish on reload. This is the single biggest gap against the "no data loss in gym basements" goal. See [specs/offline-sync-outbox](specs/offline-sync-outbox.md).
-4. **e1RM write hazard** — `GymLogger.calculateE1RM` computes Epley client-side:
-   ```
-   e1RM = weight * (1 + reps / 30)
-   ```
-   `useTraceUser.ts` documents that `estimated_1rm` is a **generated column** in `set_logs` and must never be in a write payload. Persistence must send `weight`/`reps` only and treat client e1RM as display-only.
-5. **Silent misconfiguration** — `src/lib/supabase.ts` falls back to `placeholder-project.supabase.co` when env vars are missing, so a broken build appears to work while talking to nothing.
-6. **No test framework** — `package.json` declares no test runner; there is no automated verification surface.
-7. **No error boundaries** — an auth/fetch failure in `LayoutResolver` degrades to a single generic error card.
-
----
-
-## 4. Executive Technical Recommendations
-
-These are the recommended paths to make TRACE fully functional, chosen for the stated "zero-budget, single-codebase PWA" intent.
-
-### 4.1 Stay on Vite — do **not** migrate to Next.js
-
-Migrating a working Vite SPA to Next.js is a large, high-risk change that the goals do not require. Keep Vite and add:
-
-- **`react-router`** for client-side routing, including the coach public page route `/:slug`.
-- Coach landing pages render **client-side** from the `landing_pages` JSONB config (already schematized in the architecture spec). If public-page SEO becomes a requirement later, add a Supabase Edge Function or a prerender step for just those routes — a targeted addition, not a framework migration.
-
-**Tradeoff:** no server-side rendering for public coach pages out of the box. Acceptable at this stage; mitigable per-route later.
-
-### 4.2 Implement the viewport × role matrix
-
-- Fill `useDeviceSize.ts` with a `matchMedia('(min-width: 1024px)')` hook (with a resize/`change` listener and SSR-safe default).
-- Compose it in `LayoutResolver`: role selects the feature set, viewport selects the density (desktop coach grid vs. mobile trainee logger). Mount `GymLogger` on the trainee/mobile path.
-
-### 4.3 Offline outbox: Zustand + IndexedDB
-
-Adopt **`zustand`** (client store) + **`idb`** (IndexedDB) for the durable outbox. On a web PWA the persistence layer is IndexedDB, not SQLite (SQLite in the spec is native-app language). Full design in [specs/offline-sync-outbox](specs/offline-sync-outbox.md).
-
-### 4.4 WebRTC via the Jitsi external API
-
-For zero infrastructure cost, embed **Jitsi Meet** (external `meet.jit.si` or self-host later) through its iframe/external API rather than building raw WebRTC signaling. Gate it to coach and coached-trainee roles.
-
-### 4.5 Add Vitest + fail-fast config
-
-- Add **Vitest** + `@testing-library/react` as the first test surface, targeting the outbox logic and role resolution first.
-- Make `src/lib/supabase.ts` throw (or surface a visible banner) on missing env vars instead of silently using placeholders.
-
-### 4.6 Recommended sequencing
-
-1. `useDeviceSize` + mount `GymLogger` (makes the trainee path real).
-2. Offline outbox (durability — highest user-facing risk).
-3. Persistence wiring for `set_logs` (respecting the e1RM generated-column rule).
-4. WebRTC + chat.
-5. Coach public pages (`/:slug`).
-
-Each step should land with a Vitest check and no regression to the role-resolution path that already works.
+Everything about `GymLogger`, the offline IndexedDB outbox, WebRTC/Jitsi calling, sweat-resistant logging UI, and on-device set persistence lives in the **`TRACE-client`** repo, not here. See [specs/offline-sync-outbox](specs/offline-sync-outbox.md) for that design (written before the repo split; still the reference for that work, just executed in the other repo now) and `docs/client-app-contract-check-ins-exercises.md` for the write-direction contract between the two apps.
