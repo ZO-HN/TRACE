@@ -20,7 +20,7 @@ A grounded assessment of what is actually built in this repository, scoped to wh
 | Auth (email OTP + Google OAuth) | **Built** | `LoginPage.tsx`; role decided server-side by `handle_new_user()` against `coach_allowlist`, not trusted from client-supplied signup metadata. |
 | Multi-coach, invite-only signup | **Built** | Any number of coaches can use this deployment, each with isolated clients (every coach-owned table scoped by `coach_id`/`created_by_coach_id`). Only allowlisted emails can become a coach account; a platform admin manages the allowlist via Settings → Coach access. |
 | Dashboard gate (`AppShell`) | **Built** | Non-coach accounts get a "not authorized" screen instead of the dashboard — previously any authenticated user (including a trainee) could load it. |
-| Clients roster | **Built** | List, churn status (auto: 21+ days no `workout_sessions`, or manual toggle), find/filter. |
+| Clients roster | **Built** | List, churn status (auto: 21+ days no `workout_sessions`, or manual toggle), find/filter, tags (create/delete real, per-client assignment not built yet), CSV export, column-visibility toggle. |
 | Client invite links | **Built** | Server-issued, revocable — `client_invites` table, one active link per coach, `rotate_invite_link`/`revoke_invite_link`/`get_invite_link` RPCs. Replaces an earlier client-side-only base64-encoded link that had no server record and couldn't be revoked. |
 | Client invite emails | **Removed** | Was built (Resend integration), explicitly pulled by the user before deploy — not wanted for now. |
 | Onboarding wizard (`/onboarding`) | **Built** | Public invite-link flow: sign in (email or Google) → answer questions → real write to `onboarding_responses`, attaches the trainee to the inviting coach via `claim_coach_by_id`. Previously collected answers into local state only and never persisted anything. |
@@ -37,12 +37,15 @@ A grounded assessment of what is actually built in this repository, scoped to wh
 
 ## Known gaps / deliberately out of scope here
 
-1. **`docs/trace_architecture.md`'s Next.js references** — the architecture spec was written against a different framework assumption than what's actually built (Vite, not Next.js). Treat that doc as aspirational/target where it conflicts with this one.
+1. **Clients page: per-client tag assignment UI** — `client_tags`/`client_tag_assignments` tables exist and the Tags dialog (create/list/delete) is real, but there's no "add tag to this client" control anywhere yet, so the Tags column on the client table will show real chips once that ships — right now it's always empty. Not scheduled; flagged when the Tags dialog itself was built.
+2. **Clients page: Monthly Value column has no data source** — included in the View → Toggle columns menu to match the intended design, but there's no billing/payments table anywhere in this schema. Always renders "—", defaults off. Would need a real payments feature before this could show anything.
 
 **Resolved since last pass:**
 - Meal plan builder now has real multi-day/multi-meal structure (day tabs, per-day meal lists, live macro rollups) — was a single hardcoded "Meal 1" with a dead add-day button.
 - Every CRUD hook in `src/hooks` now guards against setState-after-unmount (a mounted-ref check before any post-mutation `fetch*()` refresh). No longer a known gap — closed out entirely, not just the worst offenders.
 - Client steps / cardio dashboard panels — schema gap closed (`wearable_biometrics.step_count`, `workout_sessions.session_type` added), panels wired to real RPCs. Will show real zeros until TRACE App starts writing those columns — see `docs/trace-app-open-items.md` item 4, now the cross-repo ask instead of a coach-dashboard gap.
+- `docs/trace_architecture.md`'s Next.js references fixed (corrected to react-router, scope note added clarifying it's a target-architecture spec).
+- Clients page: Tags, Export, and View toolbar buttons were all dead (no `onClick`/handler). All three now real — Tags persists for real (see gap 1 above for what's still missing), Export downloads a real CSV of the filtered client list, View is a real column-visibility toggle (see gap 2 above for the one column with no data behind it).
 
 ## For the mobile trainee app
 
