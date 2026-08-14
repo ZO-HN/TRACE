@@ -293,6 +293,67 @@ function InviteClientDialog({
   );
 }
 
+function TagAssignPopover({
+  clientId,
+  tags,
+  assignedTags,
+  assignTag,
+  unassignTag,
+}: {
+  clientId: string;
+  tags: ClientTag[];
+  assignedTags: ClientTag[];
+  assignTag: (clientId: string, tagId: string) => Promise<{ error: string | null }>;
+  unassignTag: (clientId: string, tagId: string) => Promise<{ error: string | null }>;
+}) {
+  const [pendingId, setPendingId] = useState<string | null>(null);
+  const assignedIds = new Set(assignedTags.map((t) => t.id));
+
+  const toggle = async (tagId: string, isAssigned: boolean) => {
+    setPendingId(tagId);
+    await (isAssigned ? unassignTag(clientId, tagId) : assignTag(clientId, tagId));
+    setPendingId(null);
+  };
+
+  return (
+    <Popover>
+      <PopoverTrigger asChild>
+        <button
+          type="button"
+          onClick={(e) => e.stopPropagation()}
+          className="flex items-center justify-center w-5 h-5 rounded-full border border-dashed border-border text-muted-foreground hover:text-foreground hover:border-foreground transition-colors shrink-0"
+        >
+          <Plus size={11} />
+        </button>
+      </PopoverTrigger>
+      <PopoverContent align="start" className="w-48 p-1">
+        {tags.length === 0 ? (
+          <p className="text-xs text-muted-foreground text-center py-2 px-2">No tags yet — create one first.</p>
+        ) : (
+          tags.map((t) => {
+            const isAssigned = assignedIds.has(t.id);
+            return (
+              <button
+                key={t.id}
+                type="button"
+                disabled={pendingId === t.id}
+                onClick={() => void toggle(t.id, isAssigned)}
+                className="flex items-center gap-2 w-full px-2 py-1.5 rounded-md text-sm text-foreground hover:bg-muted transition-colors disabled:opacity-50"
+              >
+                <span className={`w-4 shrink-0 ${isAssigned ? 'text-primary' : 'text-transparent'}`}>
+                  <Check size={14} />
+                </span>
+                <span className="w-2.5 h-2.5 rounded-full shrink-0" style={{ backgroundColor: t.color }} />
+                {t.name}
+              </button>
+            );
+          })
+        )}
+      </PopoverContent>
+    </Popover>
+  );
+}
+
 function TagsDialog({
   open,
   onOpenChange,
@@ -405,7 +466,7 @@ function TagsDialog({
 export default function ClientsPage() {
   const profile = useProfile();
   const { clients, isLoading, error, setChurned } = useClients(profile.id);
-  const { assignmentsByClient } = useClientTags(profile.id);
+  const { tags, assignmentsByClient, assignTag, unassignTag } = useClientTags(profile.id);
   const { needsReview } = useCheckIns(profile.id);
   const { formChecks } = useFormChecks(profile.id);
   const { roster } = useCoachRoster(profile.id);
@@ -556,22 +617,26 @@ export default function ClientsPage() {
                     </button>
                   </div>
                 )}
-                {visibleColumns.has('tags') &&
-                  (clientTags.length === 0 ? (
-                    <span className="text-muted-foreground">—</span>
-                  ) : (
-                    <div className="flex flex-wrap items-center gap-1">
-                      {clientTags.map((t) => (
-                        <span
-                          key={t.id}
-                          className="flex items-center gap-1 text-[11px] font-medium px-1.5 py-0.5 rounded-full"
-                          style={{ backgroundColor: `${t.color}26`, color: t.color }}
-                        >
-                          {t.name}
-                        </span>
-                      ))}
-                    </div>
-                  ))}
+                {visibleColumns.has('tags') && (
+                  <div className="flex flex-wrap items-center gap-1">
+                    {clientTags.map((t) => (
+                      <span
+                        key={t.id}
+                        className="flex items-center gap-1 text-[11px] font-medium px-1.5 py-0.5 rounded-full"
+                        style={{ backgroundColor: `${t.color}26`, color: t.color }}
+                      >
+                        {t.name}
+                      </span>
+                    ))}
+                    <TagAssignPopover
+                      clientId={c.id}
+                      tags={tags}
+                      assignedTags={clientTags}
+                      assignTag={assignTag}
+                      unassignTag={unassignTag}
+                    />
+                  </div>
+                )}
                 {visibleColumns.has('attention') &&
                   (attentionCount > 0 ? (
                     <span className="text-xs font-semibold text-warning w-fit px-2 py-0.5 rounded-full bg-warning/15">

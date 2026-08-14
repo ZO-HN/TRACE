@@ -1,7 +1,5 @@
 // Coach-authored client tags (Clients page → Tags dialog) + which clients
-// each tag is assigned to. Assignment UI (an "add tag" control per client
-// row) isn't built yet — assignmentsByClient will be empty until that
-// follow-up ships; this hook is real, just nothing writes assignments yet.
+// each tag is assigned to (Clients page → per-row Tags popover).
 
 import { useEffect, useRef, useState } from 'react';
 import { supabase } from '../lib/supabase';
@@ -20,6 +18,8 @@ export interface UseClientTags {
   error: string | null;
   createTag: (name: string, color: string) => Promise<{ error: string | null }>;
   deleteTag: (id: string) => Promise<{ error: string | null }>;
+  assignTag: (clientId: string, tagId: string) => Promise<{ error: string | null }>;
+  unassignTag: (clientId: string, tagId: string) => Promise<{ error: string | null }>;
 }
 
 export function useClientTags(coachId: string): UseClientTags {
@@ -82,5 +82,23 @@ export function useClientTags(coachId: string): UseClientTags {
     return { error: deleteError?.message ?? null };
   };
 
-  return { tags, assignmentsByClient, isLoading, error, createTag, deleteTag };
+  const assignTag: UseClientTags['assignTag'] = async (clientId, tagId) => {
+    const { error: insertError } = await supabase
+      .from('client_tag_assignments')
+      .insert({ client_id: clientId, tag_id: tagId });
+    if (!insertError) await fetchAll();
+    return { error: insertError?.message ?? null };
+  };
+
+  const unassignTag: UseClientTags['unassignTag'] = async (clientId, tagId) => {
+    const { error: deleteError } = await supabase
+      .from('client_tag_assignments')
+      .delete()
+      .eq('client_id', clientId)
+      .eq('tag_id', tagId);
+    if (!deleteError) await fetchAll();
+    return { error: deleteError?.message ?? null };
+  };
+
+  return { tags, assignmentsByClient, isLoading, error, createTag, deleteTag, assignTag, unassignTag };
 }

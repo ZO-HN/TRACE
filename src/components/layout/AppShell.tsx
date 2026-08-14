@@ -11,10 +11,15 @@ import CopilotFab from '@/components/copilot/CopilotFab';
 
 export interface AppShellContext {
   profile: TraceProfile;
+  refreshProfile: () => Promise<void>;
 }
 
 export function useProfile(): TraceProfile {
   return useOutletContext<AppShellContext>().profile;
+}
+
+export function useRefreshProfile(): () => Promise<void> {
+  return useOutletContext<AppShellContext>().refreshProfile;
 }
 
 function usePageTitle(): string {
@@ -27,7 +32,7 @@ function usePageTitle(): string {
 }
 
 export default function AppShell() {
-  const { isLoading, error, profile } = useTraceUser();
+  const { isLoading, error, profile, refreshProfile } = useTraceUser();
   const title = usePageTitle();
 
   if (isLoading) {
@@ -86,7 +91,7 @@ export default function AppShell() {
     <div className="min-h-screen bg-background text-foreground font-sans flex flex-col">
       <Header profile={profile} title={title} />
       <main className="flex-1 min-w-0 pl-[104px]">
-        <Outlet context={{ profile } satisfies AppShellContext} />
+        <Outlet context={{ profile, refreshProfile } satisfies AppShellContext} />
       </main>
       <Dock />
       <CopilotFab userId={profile.id} />

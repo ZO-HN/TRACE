@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useRef } from 'react';
 import { supabase } from '../lib/supabase';
 import type { User } from '@supabase/supabase-js';
 
@@ -24,6 +24,11 @@ export interface TraceProfile {
   first_name: string;
   last_name: string;
   dob: string | null;
+  bio: string | null;
+  height_cm: number | null;
+  biological_sex: string | null;
+  phone: string | null;
+  username: string | null;
   experience_level: ExperienceTier;
   primary_goal: string | null;
   injury_notes: string | null;
@@ -42,6 +47,7 @@ export interface UseTraceUserReturn {
   isCoach: boolean;
   isCoachedTrainee: boolean;
   isSoloTrainee: boolean;
+  refreshProfile: () => Promise<void>;
 }
 
 // ==========================================
@@ -52,6 +58,22 @@ export function useTraceUser(): UseTraceUserReturn {
   const [profile, setProfile] = useState<TraceProfile | null>(null);
   const [isLoading, setIsLoading] = useState<boolean>(true);
   const [error, setError] = useState<Error | null>(null);
+  const mountedRef = useRef(true);
+  useEffect(() => () => {
+    mountedRef.current = false;
+  }, []);
+
+  const refreshProfile = async () => {
+    const { data: { user: currentUser } } = await supabase.auth.getUser();
+    if (!currentUser) return;
+    const { data, error: profileError } = await supabase
+      .from('profiles')
+      .select('*')
+      .eq('id', currentUser.id)
+      .single();
+    if (!mountedRef.current) return;
+    if (!profileError) setProfile(data as TraceProfile);
+  };
 
   useEffect(() => {
     let isMounted = true;
@@ -133,6 +155,7 @@ export function useTraceUser(): UseTraceUserReturn {
     isCoach,
     isCoachedTrainee,
     isSoloTrainee,
+    refreshProfile,
   };
 }
 

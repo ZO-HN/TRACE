@@ -1,4 +1,4 @@
-import { Routes, Route } from 'react-router';
+import { createBrowserRouter, createRoutesFromElements, Route } from 'react-router';
 import App from './App';
 import CoachPage from './components/pages/CoachPage';
 import AppShell from './components/layout/AppShell';
@@ -22,33 +22,33 @@ import EquipmentPage from './components/pages/EquipmentPage';
 import LoginPage from './components/pages/LoginPage';
 import OnboardingWizardPage from './components/pages/OnboardingWizardPage';
 
-export default function AppRouter() {
-  return (
-    <Routes>
-      <Route path="/" element={<App />}>
-        <Route path="login" element={<LoginPage />} />
-        <Route path="onboarding" element={<OnboardingWizardPage />} />
-        <Route element={<AppShell />}>
-          <Route index element={<DashboardPage />} />
-          <Route path="clients" element={<ClientsPage />} />
-          <Route path="messages" element={<MessagesPage />} />
-          <Route path="calendar" element={<CalendarPage />} />
-          <Route path="check-ins" element={<CheckInsPage />} />
-          <Route path="form-checks" element={<FormChecksPage />} />
-          <Route path="roadmaps" element={<RoadmapsPage />} />
-          <Route path="training-groups" element={<TrainingGroupsPage />} />
-          <Route path="vault" element={<VaultPage />} />
-          <Route path="programs" element={<ProgramsPage />} />
-          <Route path="workouts" element={<WorkoutsPage />} />
-          <Route path="exercises" element={<ExercisesPage />} />
-          <Route path="equipment" element={<EquipmentPage />} />
-          <Route path="foods" element={<FoodsPage />} />
-          <Route path="meals" element={<MealsPage />} />
-          <Route path="meal-plans" element={<MealPlansPage />} />
-          <Route path="settings" element={<SettingsPage />} />
-        </Route>
+const routes = createRoutesFromElements(
+  <>
+    <Route path="/" element={<App />}>
+      <Route path="login" element={<LoginPage />} />
+      <Route path="onboarding" element={<OnboardingWizardPage />} />
+      <Route element={<AppShell />}>
+        <Route index element={<DashboardPage />} />
+        <Route path="clients" element={<ClientsPage />} />
+        <Route path="messages" element={<MessagesPage />} />
+        <Route path="calendar" element={<CalendarPage />} />
+        <Route path="check-ins" element={<CheckInsPage />} />
+        <Route path="form-checks" element={<FormChecksPage />} />
+        <Route path="roadmaps" element={<RoadmapsPage />} />
+        <Route path="training-groups" element={<TrainingGroupsPage />} />
+        <Route path="vault" element={<VaultPage />} />
+        <Route path="programs" element={<ProgramsPage />} />
+        <Route path="workouts" element={<WorkoutsPage />} />
+        <Route path="exercises" element={<ExercisesPage />} />
+        <Route path="equipment" element={<EquipmentPage />} />
+        <Route path="foods" element={<FoodsPage />} />
+        <Route path="meals" element={<MealsPage />} />
+        <Route path="meal-plans" element={<MealPlansPage />} />
+        <Route path="settings" element={<SettingsPage />} />
       </Route>
-      <Route path="/:slug" element={<CoachPage />} />
-    </Routes>
-  );
-}
+    </Route>
+    <Route path="/:slug" element={<CoachPage />} />
+  </>,
+);
+
+export const router = createBrowserRouter(routes);

@@ -1,5 +1,7 @@
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
+import { useBlocker } from 'react-router';
 import {
+  AlertTriangle,
   Bell,
   Check,
   Copy,
@@ -20,10 +22,11 @@ import { Card, CardHeader, CardTitle, CardContent } from '@/components/ui/shadcn
 import { Label, Input, Select, Textarea } from '@/components/ui/shadcn/field';
 import { Avatar, AvatarImage, AvatarFallback } from '@/components/ui/shadcn/avatar';
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from '@/components/ui/shadcn/dialog';
-import { useProfile } from '@/components/layout/AppShell';
+import { useProfile, useRefreshProfile } from '@/components/layout/AppShell';
 import { cn } from '@/lib/utils';
 import { useToast } from '@/components/ui/toast';
 import { useCoachAllowlist } from '@/hooks/useCoachAllowlist';
+import { useProfileForm, HEIGHT_OPTIONS, BIOLOGICAL_SEX_OPTIONS, type ProfileForm } from '@/hooks/useProfileForm';
 import {
   DEFAULT_ONBOARDING_SCREENS,
   buildInviteLink,
@@ -88,32 +91,67 @@ function SettingRow({
   );
 }
 
-const HEIGHT_OPTIONS = ['152 cm', '160 cm', '168 cm', '175 cm', '182 cm', '190 cm', '198 cm'];
-const BIOLOGICAL_SEX_OPTIONS = ['Prefer not to say', 'Male', 'Female'];
+// Shown both for the in-app "Save all changes" bar and for navigation
+// attempts (Settings tabs, Dock/Header links, browser back) made while the
+// Profile tab has unsaved edits.
+function UnsavedChangesDialog({
+  open,
+  onOpenChange,
+  saving,
+  onSave,
+  onDiscard,
+}: {
+  open: boolean;
+  onOpenChange: (open: boolean) => void;
+  saving: boolean;
+  onSave: () => void;
+  onDiscard: () => void;
+}) {
+  return (
+    <Dialog open={open} onOpenChange={onOpenChange}>
+      <DialogContent className="max-w-sm">
+        <DialogHeader>
+          <DialogTitle className="flex items-center gap-2">
+            <AlertTriangle size={16} className="text-warning" /> Unsaved changes
+          </DialogTitle>
+        </DialogHeader>
+        <p className="text-sm text-muted-foreground">
+          You have unsaved changes on your profile. Save them before leaving, or discard them?
+        </p>
+        <DialogFooter className="gap-2">
+          <button
+            onClick={onDiscard}
+            disabled={saving}
+            className="h-10 px-4 rounded-lg border border-border text-sm font-medium text-foreground hover:bg-surface transition-colors disabled:opacity-50"
+          >
+            Don't save
+          </button>
+          <button
+            onClick={onSave}
+            disabled={saving}
+            className="h-10 px-4 rounded-lg bg-success text-white text-sm font-semibold hover:opacity-90 transition-opacity disabled:opacity-50"
+          >
+            {saving ? 'Saving...' : 'Save all changes'}
+          </button>
+        </DialogFooter>
+      </DialogContent>
+    </Dialog>
+  );
+}
 
-function ProfileTab() {
+function ProfileTab({ form }: { form: ProfileForm }) {
   const profile = useProfile();
   const { toast } = useToast();
   const initials = `${profile.first_name?.[0] ?? ''}${profile.last_name?.[0] ?? ''}`.toUpperCase();
-
-  const [firstName, setFirstName] = useState(profile.first_name ?? '');
-  const [lastName, setLastName] = useState(profile.last_name ?? '');
-  const [bio, setBio] = useState('');
-  const [height, setHeight] = useState('182 cm');
-  const [dob, setDob] = useState('');
-  const [biologicalSex, setBiologicalSex] = useState('Prefer not to say');
-  const [phone, setPhone] = useState('');
-  const [username, setUsername] = useState(`${profile.first_name ?? ''} ${profile.last_name ?? ''}`.trim());
-  const [avatarUrl, setAvatarUrl] = useState<string | null>(null);
   const [deleteDialogOpen, setDeleteDialogOpen] = useState(false);
 
-  const handleAvatarPick = (e: React.ChangeEvent<HTMLInputElement>) => {
-    const file = e.target.files?.[0];
-    if (file) setAvatarUrl(URL.createObjectURL(file));
+  const handleSaveAll = async () => {
+    const { error } = await form.saveAll();
+    if (!error) toast('Successfully updated profile settings.');
   };
 
   return (
-    <div className="flex flex-col gap-5">
+    <div className="flex flex-col gap-5 pb-16">
       <Card>
         <CardHeader>
           <CardTitle className="text-foreground text-sm font-semibold">Attributes</CardTitle>
@@ -123,7 +161,7 @@ function ProfileTab() {
           <div className="grid grid-cols-2 gap-4">
             <div className="flex flex-col gap-1.5">
               <Label>Height</Label>
-              <Select value={height} onChange={(e) => setHeight(e.target.value)}>
+              <Select value={form.height} onChange={(e) => form.setHeight(e.target.value)}>
                 {HEIGHT_OPTIONS.map((h) => (
                   <option key={h}>{h}</option>
                 ))}
@@ -134,15 +172,9 @@ function ProfileTab() {
             </div>
             <div className="flex flex-col gap-1.5">
               <Label>Date of birth</Label>
-              <Input type="date" placeholder="Pick a date" value={dob} onChange={(e) => setDob(e.target.value)} />
+              <Input type="date" placeholder="Pick a date" value={form.dob} onChange={(e) => form.setDob(e.target.value)} />
               <p className="text-xs text-muted-foreground">Your date of birth is used to calculate your age.</p>
             </div>
-          </div>
-          <div className="flex items-center justify-between">
-            <p className="text-xs text-muted-foreground">May be used within team data by coaches.</p>
-            <button onClick={() => toast('Successfully updated profile settings.')} className="h-9 px-4 rounded-lg bg-success text-white text-sm font-semibold hover:opacity-90 transition-opacity">
-              Save
-            </button>
           </div>
         </CardContent>
       </Card>
@@ -155,11 +187,11 @@ function ProfileTab() {
           <p className="text-xs text-muted-foreground -mt-2">Update your personal information.</p>
           <div className="flex items-center gap-3">
             <Avatar className="size-12">
-              {avatarUrl ? <AvatarImage src={avatarUrl} /> : <AvatarFallback className="text-sm">{initials || '?'}</AvatarFallback>}
+              {form.avatarUrl ? <AvatarImage src={form.avatarUrl} /> : <AvatarFallback className="text-sm">{initials || '?'}</AvatarFallback>}
             </Avatar>
             <div>
               <p className="text-sm font-semibold text-foreground">
-                {firstName} {lastName}
+                {form.firstName} {form.lastName}
               </p>
               <p className="text-xs text-muted-foreground">{profile.email}</p>
             </div>
@@ -167,26 +199,20 @@ function ProfileTab() {
           <div className="grid grid-cols-2 gap-4">
             <div className="flex flex-col gap-1.5">
               <Label>Given Name</Label>
-              <Input value={firstName} onChange={(e) => setFirstName(e.target.value)} />
+              <Input value={form.firstName} onChange={(e) => form.setFirstName(e.target.value)} />
             </div>
             <div className="flex flex-col gap-1.5">
               <Label>Family Name</Label>
-              <Input value={lastName} onChange={(e) => setLastName(e.target.value)} />
+              <Input value={form.lastName} onChange={(e) => form.setLastName(e.target.value)} />
             </div>
           </div>
           <div className="flex flex-col gap-1.5">
             <Label>Bio</Label>
             <Textarea
               placeholder="Tell us a little bit about yourself"
-              value={bio}
-              onChange={(e) => setBio(e.target.value)}
+              value={form.bio}
+              onChange={(e) => form.setBio(e.target.value)}
             />
-          </div>
-          <div className="flex items-center justify-between">
-            <p className="text-xs text-muted-foreground">Personal information.</p>
-            <button onClick={() => toast('Successfully updated profile settings.')} className="h-9 px-4 rounded-lg bg-success text-white text-sm font-semibold hover:opacity-90 transition-opacity">
-              Save
-            </button>
           </div>
         </CardContent>
       </Card>
@@ -196,17 +222,12 @@ function ProfileTab() {
           <CardTitle className="text-foreground text-sm font-semibold">Biological Sex</CardTitle>
         </CardHeader>
         <CardContent className="pt-0 flex flex-col gap-4">
-          <Select value={biologicalSex} onChange={(e) => setBiologicalSex(e.target.value)} className="max-w-xs">
+          <Select value={form.biologicalSex} onChange={(e) => form.setBiologicalSex(e.target.value)} className="max-w-xs">
             {BIOLOGICAL_SEX_OPTIONS.map((g) => (
               <option key={g}>{g}</option>
             ))}
           </Select>
-          <div className="flex items-center justify-between">
-            <p className="text-xs text-muted-foreground">Workout suggestions may be based on this.</p>
-            <button onClick={() => toast('Successfully updated profile settings.')} className="h-9 px-4 rounded-lg bg-success text-white text-sm font-semibold hover:opacity-90 transition-opacity">
-              Save
-            </button>
-          </div>
+          <p className="text-xs text-muted-foreground">Workout suggestions may be based on this.</p>
         </CardContent>
       </Card>
 
@@ -219,19 +240,14 @@ function ProfileTab() {
           <div className="grid grid-cols-2 gap-4">
             <div className="flex flex-col gap-1.5">
               <Label>Phone #</Label>
-              <Input placeholder="604-555-5555" value={phone} onChange={(e) => setPhone(e.target.value)} />
+              <Input placeholder="604-555-5555" value={form.phone} onChange={(e) => form.setPhone(e.target.value)} />
             </div>
             <div className="flex flex-col gap-1.5">
               <Label>Email</Label>
               <Input defaultValue={profile.email} disabled />
             </div>
           </div>
-          <div className="flex items-center justify-between">
-            <p className="text-xs text-muted-foreground">Your email is used for login and notifications.</p>
-            <button onClick={() => toast('Successfully updated profile settings.')} className="h-9 px-4 rounded-lg bg-success text-white text-sm font-semibold hover:opacity-90 transition-opacity">
-              Save
-            </button>
-          </div>
+          <p className="text-xs text-muted-foreground">Your email is used for login and notifications.</p>
         </CardContent>
       </Card>
 
@@ -241,15 +257,10 @@ function ProfileTab() {
         </CardHeader>
         <CardContent className="pt-0 flex flex-col gap-4">
           <p className="text-xs text-muted-foreground -mt-2">This is your username within TRACE. It must be unique.</p>
-          <Input value={username} onChange={(e) => setUsername(e.target.value)} />
-          <div className="flex items-center justify-between">
-            <p className="text-xs text-muted-foreground">
-              Usernames connect you to other users on <strong className="text-foreground">TRACE</strong>.
-            </p>
-            <button onClick={() => toast('Successfully updated profile settings.')} className="h-9 px-4 rounded-lg bg-success text-white text-sm font-semibold hover:opacity-90 transition-opacity">
-              Save
-            </button>
-          </div>
+          <Input value={form.username} onChange={(e) => form.setUsername(e.target.value)} />
+          <p className="text-xs text-muted-foreground">
+            Usernames connect you to other users on <strong className="text-foreground">TRACE</strong>.
+          </p>
         </CardContent>
       </Card>
 
@@ -265,22 +276,20 @@ function ProfileTab() {
             </div>
             <label className="cursor-pointer shrink-0">
               <Avatar className="size-16 rounded-xl">
-                {avatarUrl ? (
-                  <AvatarImage src={avatarUrl} className="rounded-xl" />
+                {form.avatarUrl ? (
+                  <AvatarImage src={form.avatarUrl} className="rounded-xl" />
                 ) : (
                   <AvatarFallback className="text-lg rounded-xl">{initials || '?'}</AvatarFallback>
                 )}
               </Avatar>
-              <input type="file" accept="image/*" className="hidden" onChange={handleAvatarPick} />
+              <input type="file" accept="image/*" className="hidden" onChange={form.handleAvatarPick} />
             </label>
           </div>
-          <button
-            onClick={() => toast('Successfully updated profile settings.')}
-            disabled={!avatarUrl}
-            className="h-9 w-fit px-4 rounded-lg bg-success text-white text-sm font-semibold hover:opacity-90 transition-opacity self-end disabled:opacity-40 disabled:pointer-events-none"
-          >
-            Save
-          </button>
+          {form.avatarUrl && (
+            <p className="text-xs text-muted-foreground self-end">
+              Preview only — avatar upload isn't wired to storage yet, so this won't persist after you leave the page.
+            </p>
+          )}
         </CardContent>
       </Card>
 
@@ -321,6 +330,27 @@ function ProfileTab() {
           </DialogFooter>
         </DialogContent>
       </Dialog>
+
+      {form.isDirty && (
+        <div className="fixed bottom-6 left-1/2 -translate-x-1/2 z-40 flex items-center gap-3 rounded-xl border border-border bg-card shadow-lg px-4 py-3">
+          <span className="text-sm text-foreground">You have unsaved changes.</span>
+          {form.error && <span className="text-xs text-danger">{form.error}</span>}
+          <button
+            onClick={form.discard}
+            disabled={form.saving}
+            className="h-9 px-3 rounded-lg border border-border text-sm font-medium text-foreground hover:bg-surface transition-colors disabled:opacity-50"
+          >
+            Discard
+          </button>
+          <button
+            onClick={() => void handleSaveAll()}
+            disabled={form.saving}
+            className="h-9 px-4 rounded-lg bg-success text-white text-sm font-semibold hover:opacity-90 transition-opacity disabled:opacity-50"
+          >
+            {form.saving ? 'Saving...' : 'Save all changes'}
+          </button>
+        </div>
+      )}
     </div>
   );
 }
@@ -873,7 +903,63 @@ function NotificationsTab() {
 
 export default function SettingsPage() {
   const profile = useProfile();
+  const refreshProfile = useRefreshProfile();
   const [tab, setTab] = useState<TabId>('profile');
+  const [pendingTab, setPendingTab] = useState<TabId | null>(null);
+  const { toast } = useToast();
+
+  const form = useProfileForm(profile, refreshProfile);
+  const isDirty = tab === 'profile' && form.isDirty;
+
+  const blocker = useBlocker(
+    ({ currentLocation, nextLocation }) => isDirty && currentLocation.pathname !== nextLocation.pathname,
+  );
+
+  useEffect(() => {
+    if (!isDirty) return;
+    const handler = (e: BeforeUnloadEvent) => {
+      e.preventDefault();
+      e.returnValue = '';
+    };
+    window.addEventListener('beforeunload', handler);
+    return () => window.removeEventListener('beforeunload', handler);
+  }, [isDirty]);
+
+  const handleTabClick = (id: TabId) => {
+    if (id === tab) return;
+    if (isDirty) {
+      setPendingTab(id);
+      return;
+    }
+    setTab(id);
+  };
+
+  const dialogOpen = pendingTab !== null || blocker.state === 'blocked';
+
+  const handleDialogSave = async () => {
+    const { error } = await form.saveAll();
+    if (error) return;
+    toast('Successfully updated profile settings.');
+    if (pendingTab) {
+      setTab(pendingTab);
+      setPendingTab(null);
+    }
+    if (blocker.state === 'blocked') blocker.proceed();
+  };
+
+  const handleDialogDiscard = () => {
+    form.discard();
+    if (pendingTab) {
+      setTab(pendingTab);
+      setPendingTab(null);
+    }
+    if (blocker.state === 'blocked') blocker.proceed();
+  };
+
+  const handleDialogClose = () => {
+    setPendingTab(null);
+    if (blocker.state === 'blocked') blocker.reset();
+  };
 
   return (
     <div className="p-6 flex gap-8 max-w-5xl mx-auto">
@@ -884,7 +970,7 @@ export default function SettingsPage() {
         {ACCOUNT_TABS.map((t) => (
           <button
             key={t.id}
-            onClick={() => setTab(t.id)}
+            onClick={() => handleTabClick(t.id)}
             className={cn(
               'flex items-center gap-2 px-2 py-2 rounded-lg text-sm font-medium text-left transition-colors',
               tab === t.id ? 'bg-surface text-foreground' : 'text-muted-foreground hover:bg-surface hover:text-foreground',
@@ -901,7 +987,7 @@ export default function SettingsPage() {
         {CLIENT_EXPERIENCE_TABS.map((t) => (
           <button
             key={t.id}
-            onClick={() => setTab(t.id)}
+            onClick={() => handleTabClick(t.id)}
             className={cn(
               'flex items-center gap-2 px-2 py-2 rounded-lg text-sm font-medium text-left transition-colors',
               tab === t.id ? 'bg-surface text-foreground' : 'text-muted-foreground hover:bg-surface hover:text-foreground',
@@ -920,7 +1006,7 @@ export default function SettingsPage() {
             {PLATFORM_ADMIN_TABS.map((t) => (
               <button
                 key={t.id}
-                onClick={() => setTab(t.id)}
+                onClick={() => handleTabClick(t.id)}
                 className={cn(
                   'flex items-center gap-2 px-2 py-2 rounded-lg text-sm font-medium text-left transition-colors',
                   tab === t.id ? 'bg-surface text-foreground' : 'text-muted-foreground hover:bg-surface hover:text-foreground',
@@ -938,12 +1024,20 @@ export default function SettingsPage() {
         <h1 className="text-lg font-bold text-foreground">
           {TABS.find((t) => t.id === tab)?.label}
         </h1>
-        {tab === 'profile' && <ProfileTab />}
+        {tab === 'profile' && <ProfileTab form={form} />}
         {tab === 'app' && <AppTab />}
         {tab === 'notifications' && <NotificationsTab />}
         {tab === 'onboarding' && <OnboardingScreensTab />}
         {tab === 'coach-access' && profile.is_platform_admin && <CoachAccessTab />}
       </div>
+
+      <UnsavedChangesDialog
+        open={dialogOpen}
+        onOpenChange={(open) => !open && handleDialogClose()}
+        saving={form.saving}
+        onSave={() => void handleDialogSave()}
+        onDiscard={handleDialogDiscard}
+      />
     </div>
   );
 }
