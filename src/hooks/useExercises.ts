@@ -98,10 +98,16 @@ export function useExercises(coachId: string): UseExercises {
   const [error, setError] = useState<string | null>(null);
 
   const fetchExercises = async () => {
+    // Own exercises + any shared/seeded ones (created_by_coach_id IS NULL).
+    // Other coaches' custom exercises stay out of this list even though
+    // exercises' SELECT RLS is open to any authenticated user — that
+    // policy exists for read paths like useExerciseCatalog.ts (workout
+    // logging lookups), not to blend every coach's private library
+    // together on this management page.
     const { data, error: queryError } = await supabase
       .from('exercises')
       .select(SELECT_COLUMNS)
-      .eq('created_by_coach_id', coachId)
+      .or(`created_by_coach_id.eq.${coachId},created_by_coach_id.is.null`)
       .order('created_at', { ascending: false });
 
     if (queryError) {
