@@ -21,7 +21,7 @@ Neither repo can write into the other's exclusive tables — Row Level Security 
 
 ![Login](docs/assets/login.png)
 
-**Dashboard** — real 7-day signup/workout counts, churn tracking, and a needs-attention queue for check-ins and form checks awaiting review. Client steps stays an honest "not tracked yet" rather than a fabricated number — the underlying schema has no step-count column yet.
+**Dashboard** — real 7-day signup/workout counts, churn tracking, a needs-attention queue for check-ins and form checks awaiting review, plus per-client steps/cardio/nutrition summaries. Steps and cardio read as honest zeros until the companion mobile app starts writing that data — the schema and queries are real, just waiting on the other side of the write path.
 
 ![Dashboard](docs/assets/dashboard.png)
 
