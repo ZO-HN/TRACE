@@ -1,6 +1,6 @@
 # TRACE — Coach Dashboard
 
-**The coach-facing half of TRACE, a two-repo fitness coaching platform.** This repo is a web dashboard coaches use to run their business — clients, programs, check-ins, messaging, nutrition, and analytics. It talks to the same Supabase backend as the trainee-facing mobile app, but ships and runs independently.
+**Open source.** The coach-facing half of TRACE, a two-repo fitness coaching platform. This repo is a web dashboard coaches use to run their business — clients, programs, check-ins, messaging, nutrition, and analytics. It talks to the same Supabase backend as the trainee-facing mobile app, but ships and runs independently.
 
 ---
 
@@ -14,6 +14,10 @@ TRACE is split across two repositories that share one Supabase project:
 | **TRACE-client** | Trainee-facing mobile app — Expo/React Native, on-device workout logging, offline sync | Not yet published — architecturally connected (same Supabase project, shared RLS/data contracts) but doesn't have a public repo link yet. Add it here once it does. |
 
 Neither repo can write into the other's exclusive tables — Row Level Security is what enforces the boundary, not app-level trust. See [docs/qa-testing-cross-repo.md](docs/qa-testing-cross-repo.md) for the exact table-by-table write-direction contract between the two apps, and [docs/client-app-contract-check-ins-exercises.md](docs/client-app-contract-check-ins-exercises.md) for what TRACE-client specifically needs to implement to interoperate.
+
+## Preview
+
+<!-- Screenshots pending — couldn't capture live pixels this pass, browser pane wasn't renderable. Add images here as they're captured: `docs/assets/login.png`, `docs/assets/dashboard.png`, etc. -->
 
 ## What's built here
 
@@ -160,4 +164,4 @@ Issues and PRs welcome. Run `npm run test && npm run lint && npm run build` befo
 
 ## License
 
-No license file is present yet. If you're planning to open-source this, add one (`LICENSE`) before treating the repo as publicly reusable — until then, treat it as all-rights-reserved by default.
+[MIT](LICENSE).
