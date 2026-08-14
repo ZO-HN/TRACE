@@ -38,10 +38,11 @@ A grounded assessment of what is actually built in this repository, scoped to wh
 ## Known gaps / deliberately out of scope here
 
 1. **Client steps / cardio dashboard panels** — schema gap (see table above), not scheduled.
-2. **A handful of hooks can warn (not corrupt) on unmount-mid-save** — was broader before a CRUD QA sweep fixed the worst offenders (`useClients`, `useCheckIns`, `useFormChecks`, `useNotifications`, plus 8 others guarded against setState-after-unmount). Cosmetic, not a priority.
-3. **`docs/trace_architecture.md`'s Next.js references** — the architecture spec was written against a different framework assumption than what's actually built (Vite, not Next.js). Treat that doc as aspirational/target where it conflicts with this one.
+2. **`docs/trace_architecture.md`'s Next.js references** — the architecture spec was written against a different framework assumption than what's actually built (Vite, not Next.js). Treat that doc as aspirational/target where it conflicts with this one.
 
-**Resolved since last pass:** meal plan builder now has real multi-day/multi-meal structure (day tabs, per-day meal lists, live macro rollups) — was a single hardcoded "Meal 1" with a dead add-day button.
+**Resolved since last pass:**
+- Meal plan builder now has real multi-day/multi-meal structure (day tabs, per-day meal lists, live macro rollups) — was a single hardcoded "Meal 1" with a dead add-day button.
+- Every CRUD hook in `src/hooks` now guards against setState-after-unmount (a mounted-ref check before any post-mutation `fetch*()` refresh). No longer a known gap — closed out entirely, not just the worst offenders.
 
 ## For the mobile trainee app
 
