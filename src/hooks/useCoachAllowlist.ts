@@ -2,7 +2,7 @@
 // Google OAuth). Enforced server-side in handle_new_user() — this hook is
 // just the admin UI over the coach_allowlist table; RLS is the real gate.
 
-import { useEffect, useState } from 'react';
+import { useEffect, useRef, useState } from 'react';
 import { supabase } from '../lib/supabase';
 
 export interface CoachAllowlistEntry {
@@ -23,12 +23,17 @@ export function useCoachAllowlist(): UseCoachAllowlist {
   const [entries, setEntries] = useState<CoachAllowlistEntry[]>([]);
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
+  const mountedRef = useRef(true);
+  useEffect(() => () => {
+    mountedRef.current = false;
+  }, []);
 
   const fetchEntries = async () => {
     const { data, error: queryError } = await supabase
       .from('coach_allowlist')
       .select('email, note, created_at')
       .order('created_at', { ascending: false });
+    if (!mountedRef.current) return;
     if (queryError) setError(queryError.message);
     else {
       setError(null);

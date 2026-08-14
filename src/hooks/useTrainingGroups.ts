@@ -1,4 +1,4 @@
-import { useEffect, useState } from 'react';
+import { useEffect, useRef, useState } from 'react';
 import { supabase } from '../lib/supabase';
 
 export interface TrainingGroupRow {
@@ -36,6 +36,10 @@ export function useTrainingGroups(coachId: string): UseTrainingGroups {
   const [groups, setGroups] = useState<TrainingGroupRow[]>([]);
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
+  const mountedRef = useRef(true);
+  useEffect(() => () => {
+    mountedRef.current = false;
+  }, []);
 
   const fetchGroups = async () => {
     const { data, error: queryError } = await supabase
@@ -43,6 +47,7 @@ export function useTrainingGroups(coachId: string): UseTrainingGroups {
       .select('id, name, description, program_id, created_at, program:programs(name), training_group_members(count)')
       .eq('coach_id', coachId)
       .order('created_at', { ascending: false });
+    if (!mountedRef.current) return;
     if (queryError) setError(queryError.message);
     else {
       setError(null);

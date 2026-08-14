@@ -1,7 +1,7 @@
 // Check-in templates a coach authors — the client app renders these as a
 // form for the trainee to fill out when submitting a check-in.
 
-import { useEffect, useState } from 'react';
+import { useEffect, useRef, useState } from 'react';
 import { supabase } from '../lib/supabase';
 
 export type CheckInQuestionType =
@@ -72,6 +72,10 @@ export function useCheckInTemplates(coachId: string): UseCheckInTemplates {
   const [templates, setTemplates] = useState<CheckInTemplate[]>([]);
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
+  const mountedRef = useRef(true);
+  useEffect(() => () => {
+    mountedRef.current = false;
+  }, []);
 
   const fetchTemplates = async () => {
     const { data, error: queryError } = await supabase
@@ -80,6 +84,7 @@ export function useCheckInTemplates(coachId: string): UseCheckInTemplates {
       .eq('coach_id', coachId)
       .order('created_at', { ascending: false });
 
+    if (!mountedRef.current) return;
     if (queryError) {
       setError(queryError.message);
     } else {

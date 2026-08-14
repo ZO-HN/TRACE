@@ -2,7 +2,7 @@
 // coach. Auto-populated by handle_new_user() on trainee signup (see
 // supabase/migrations/20260803000000_platform_settings_and_rls_fix.sql).
 
-import { useEffect, useState } from 'react';
+import { useEffect, useRef, useState } from 'react';
 import { supabase } from '../lib/supabase';
 
 export interface ClientRow {
@@ -25,6 +25,10 @@ export function useClients(coachId: string): UseClients {
   const [clients, setClients] = useState<ClientRow[]>([]);
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
+  const mountedRef = useRef(true);
+  useEffect(() => () => {
+    mountedRef.current = false;
+  }, []);
 
   const fetchClients = async () => {
     const { data, error: queryError } = await supabase
@@ -33,6 +37,7 @@ export function useClients(coachId: string): UseClients {
       .eq('coach_id', coachId)
       .order('created_at', { ascending: false });
 
+    if (!mountedRef.current) return;
     if (queryError) {
       setError(queryError.message);
     } else {
