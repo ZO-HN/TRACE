@@ -1,4 +1,4 @@
-import { useEffect, useState } from 'react';
+import { useEffect, useRef, useState } from 'react';
 import { supabase } from '../lib/supabase';
 
 export interface FoodRow {
@@ -38,6 +38,12 @@ export function useFoods(coachId: string): UseFoods {
   const [foods, setFoods] = useState<FoodRow[]>([]);
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
+  // Guards setState in fetchFoods when it's called from createFood/deleteFood
+  // after the component has unmounted (e.g. navigate away mid-save).
+  const mountedRef = useRef(true);
+  useEffect(() => () => {
+    mountedRef.current = false;
+  }, []);
 
   const fetchFoods = async () => {
     const { data, error: queryError } = await supabase
@@ -45,6 +51,7 @@ export function useFoods(coachId: string): UseFoods {
       .select('id, name, serving_size, calories, protein_g, carbs_g, fat_g, recipe, created_at')
       .eq('coach_id', coachId)
       .order('created_at', { ascending: false });
+    if (!mountedRef.current) return;
     if (queryError) setError(queryError.message);
     else {
       setError(null);

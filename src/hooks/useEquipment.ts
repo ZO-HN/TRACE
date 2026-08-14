@@ -1,4 +1,4 @@
-import { useEffect, useState } from 'react';
+import { useEffect, useRef, useState } from 'react';
 import { supabase } from '../lib/supabase';
 
 export interface EquipmentRow {
@@ -20,6 +20,10 @@ export function useEquipment(coachId: string): UseEquipment {
   const [equipment, setEquipment] = useState<EquipmentRow[]>([]);
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
+  const mountedRef = useRef(true);
+  useEffect(() => () => {
+    mountedRef.current = false;
+  }, []);
 
   const fetchEquipment = async () => {
     const { data, error: queryError } = await supabase
@@ -27,6 +31,7 @@ export function useEquipment(coachId: string): UseEquipment {
       .select('id, name, category, created_at')
       .eq('coach_id', coachId)
       .order('created_at', { ascending: false });
+    if (!mountedRef.current) return;
     if (queryError) setError(queryError.message);
     else {
       setError(null);

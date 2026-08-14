@@ -1,4 +1,4 @@
-import { useEffect, useState } from 'react';
+import { useEffect, useRef, useState } from 'react';
 import { supabase } from '../lib/supabase';
 
 export interface MealRow {
@@ -30,6 +30,10 @@ export function useMeals(coachId: string): UseMeals {
   const [meals, setMeals] = useState<MealRow[]>([]);
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
+  const mountedRef = useRef(true);
+  useEffect(() => () => {
+    mountedRef.current = false;
+  }, []);
 
   const fetchMeals = async () => {
     const { data, error: queryError } = await supabase
@@ -37,6 +41,7 @@ export function useMeals(coachId: string): UseMeals {
       .select('id, client_id, category, label, consumed_at, notes, food_ids, created_at')
       .eq('coach_id', coachId)
       .order('created_at', { ascending: false });
+    if (!mountedRef.current) return;
     if (queryError) setError(queryError.message);
     else {
       setError(null);

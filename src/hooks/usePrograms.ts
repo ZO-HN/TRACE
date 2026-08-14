@@ -1,4 +1,4 @@
-import { useEffect, useState } from 'react';
+import { useEffect, useRef, useState } from 'react';
 import { supabase } from '../lib/supabase';
 
 export interface ProgramRow {
@@ -21,6 +21,10 @@ export function usePrograms(coachId: string): UsePrograms {
   const [programs, setPrograms] = useState<ProgramRow[]>([]);
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
+  const mountedRef = useRef(true);
+  useEffect(() => () => {
+    mountedRef.current = false;
+  }, []);
 
   const fetchPrograms = async () => {
     const { data, error: queryError } = await supabase
@@ -28,6 +32,7 @@ export function usePrograms(coachId: string): UsePrograms {
       .select('id, name, description, category, created_at')
       .eq('coach_id', coachId)
       .order('created_at', { ascending: false });
+    if (!mountedRef.current) return;
     if (queryError) setError(queryError.message);
     else {
       setError(null);

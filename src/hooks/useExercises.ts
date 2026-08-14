@@ -3,7 +3,7 @@
 // supabase/migrations/20260805000001_exercise_details.sql); target_muscle_group
 // on exercises itself is kept in sync for the older solo-analytics RPCs.
 
-import { useEffect, useState } from 'react';
+import { useEffect, useRef, useState } from 'react';
 import { supabase } from '../lib/supabase';
 
 export type ExerciseType = 'regular' | 'isometric_yielding' | 'isometric_overcoming';
@@ -96,6 +96,10 @@ export function useExercises(coachId: string): UseExercises {
   const [exercises, setExercises] = useState<ExerciseRow[]>([]);
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
+  const mountedRef = useRef(true);
+  useEffect(() => () => {
+    mountedRef.current = false;
+  }, []);
 
   const fetchExercises = async () => {
     // Own exercises + any shared/seeded ones (created_by_coach_id IS NULL).
@@ -110,6 +114,7 @@ export function useExercises(coachId: string): UseExercises {
       .or(`created_by_coach_id.eq.${coachId},created_by_coach_id.is.null`)
       .order('created_at', { ascending: false });
 
+    if (!mountedRef.current) return;
     if (queryError) {
       setError(queryError.message);
     } else {

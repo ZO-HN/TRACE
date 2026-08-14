@@ -1,4 +1,4 @@
-import { useEffect, useState } from 'react';
+import { useEffect, useRef, useState } from 'react';
 import { supabase } from '../lib/supabase';
 
 export interface RoadmapRow {
@@ -44,6 +44,10 @@ export function useRoadmaps(coachId: string): UseRoadmaps {
   const [roadmaps, setRoadmaps] = useState<RoadmapRow[]>([]);
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
+  const mountedRef = useRef(true);
+  useEffect(() => () => {
+    mountedRef.current = false;
+  }, []);
 
   const fetchRoadmaps = async () => {
     const { data, error: queryError } = await supabase
@@ -51,6 +55,7 @@ export function useRoadmaps(coachId: string): UseRoadmaps {
       .select('id, client_id, title, description, status, start_date, target_end_date, created_at, client:profiles!roadmaps_client_id_fkey(first_name,last_name)')
       .eq('coach_id', coachId)
       .order('created_at', { ascending: false });
+    if (!mountedRef.current) return;
     if (queryError) setError(queryError.message);
     else {
       setError(null);
