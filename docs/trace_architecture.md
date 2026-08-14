@@ -2,6 +2,8 @@
 
 This document defines the screen partitions, state patterns, and custom algorithmic pipelines that govern the single-app, dual-role TRACE ecosystem. For a product-level view of what each role can do, see the [Feature Catalog](trace_features.md).
 
+> **Scope note:** this is a target-architecture spec, not a description of the current build — see [Implementation Audit](audit.md) for what's actually running today. Two corrections from the original draft: the frontend is **Vite + React + react-router**, not Next.js (there's no `next` dependency anywhere in this codebase, and dynamic routing is client-side); and the "single-app, dual-role" framing below predates a repo split — the coach dashboard (`TRACE`) and the trainee mobile app (`TRACE-client`, Expo/React Native) are two independent codebases sharing one Supabase backend, not one app that reshapes itself per role/viewport as described here.
+
 ---
 
 ## 1. Frontend View Division & Responsive Layouts
@@ -79,7 +81,7 @@ To enable zero-budget operations, TRACE uses a serverless dynamic page model for
                     [ Request: app.com/coach-alpha ]
                                   │
                                   ▼
-                [ Next.js Dynamic Router: /[slug] ]
+                [ react-router Dynamic Route: /:slug ]
                                   │
                                   ▼
            [ Fetch Row from Supabase: slug = 'coach-alpha' ]
@@ -87,6 +89,8 @@ To enable zero-budget operations, TRACE uses a serverless dynamic page model for
                                   ▼
              [ Parse and Render layout_config JSON ]
 ```
+
+(Implemented client-side, not server-rendered — see the scope note at the top of this document. `CoachPage.tsx` in the coach-dashboard repo is the current implementation.)
 
 ### 2.A. Static Layout Configuration Schema
 
@@ -135,7 +139,7 @@ A coach's page setup is stored as a single JSONB document inside the `landing_pa
 
 ### 2.B. Dynamic Component Rendering
 
-When users visit `trace.com/[slug]`, Next.js reads the requested dynamic parameter, queries the schema matching the slug, parses the JSON object on-the-fly, and mounts styled React blocks using zero additional server processing.
+When users visit `trace.com/:slug`, react-router resolves the dynamic route parameter client-side, the page queries `landing_pages` for the matching slug, parses the JSON config, and mounts styled React blocks — no server-side rendering step.
 
 ---
 
