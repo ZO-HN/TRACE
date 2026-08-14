@@ -40,4 +40,12 @@ AGENTS.md
 skills-lock.json
 sync.py
 
+# Ephemeral AI handoffs, agent prompts & session TODOs
+docs/handoff*
+docs/**/handoff*
+docs/TODO*
+docs/**/TODO*
+docs/**/supabase-agent-prompt*
+
+
 
