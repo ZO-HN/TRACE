@@ -1,5 +1,6 @@
 // Coach dashboard analytics — reads the RPCs from
-// supabase/migrations/20260813000000_coach_dashboard_analytics.sql.
+// supabase/migrations/20260813000000_coach_dashboard_analytics.sql and
+// supabase/migrations/20260815000000_steps_and_cardio_tracking.sql.
 // Churn = no workout_sessions in 21 days (and had at least one before
 // that) OR the coach manually marked the client churned via useClients.
 
@@ -29,10 +30,26 @@ export interface NutritionSummaryRow {
   avg_calories: number | null;
 }
 
+export interface StepsSummaryRow {
+  client_id: string;
+  client_name: string;
+  avg_daily_steps: number | null;
+  days_logged: number;
+}
+
+export interface CardioSummaryRow {
+  client_id: string;
+  client_name: string;
+  cardio_sessions: number;
+  cardio_minutes: number;
+}
+
 export interface UseDashboardStats {
   stats: DashboardStats | null;
   wins: WeeklyWin[];
   nutrition: NutritionSummaryRow[];
+  steps: StepsSummaryRow[];
+  cardio: CardioSummaryRow[];
   isLoading: boolean;
   error: string | null;
 }
@@ -41,6 +58,8 @@ export function useDashboardStats(coachId: string): UseDashboardStats {
   const [stats, setStats] = useState<DashboardStats | null>(null);
   const [wins, setWins] = useState<WeeklyWin[]>([]);
   const [nutrition, setNutrition] = useState<NutritionSummaryRow[]>([]);
+  const [steps, setSteps] = useState<StepsSummaryRow[]>([]);
+  const [cardio, setCardio] = useState<CardioSummaryRow[]>([]);
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
 
@@ -48,10 +67,12 @@ export function useDashboardStats(coachId: string): UseDashboardStats {
     let cancelled = false;
     (async () => {
       setIsLoading(true);
-      const [statsRes, winsRes, nutritionRes] = await Promise.all([
+      const [statsRes, winsRes, nutritionRes, stepsRes, cardioRes] = await Promise.all([
         supabase.rpc('get_coach_dashboard_stats', { p_coach_id: coachId }).maybeSingle(),
         supabase.rpc('get_coach_weekly_wins', { p_coach_id: coachId }),
         supabase.rpc('get_coach_nutrition_summary', { p_coach_id: coachId, p_days: 7 }),
+        supabase.rpc('get_coach_steps_summary', { p_coach_id: coachId, p_days: 7 }),
+        supabase.rpc('get_coach_cardio_summary', { p_coach_id: coachId, p_days: 7 }),
       ]);
       const statsRow = statsRes.data as {
         new_signups_7d: number;
@@ -61,7 +82,7 @@ export function useDashboardStats(coachId: string): UseDashboardStats {
 
       if (cancelled) return;
 
-      const firstError = statsRes.error ?? winsRes.error ?? nutritionRes.error;
+      const firstError = statsRes.error ?? winsRes.error ?? nutritionRes.error ?? stepsRes.error ?? cardioRes.error;
       if (firstError) {
         setError(firstError.message);
       } else {
@@ -77,6 +98,8 @@ export function useDashboardStats(coachId: string): UseDashboardStats {
         );
         setWins((winsRes.data as WeeklyWin[]) ?? []);
         setNutrition((nutritionRes.data as NutritionSummaryRow[]) ?? []);
+        setSteps((stepsRes.data as StepsSummaryRow[]) ?? []);
+        setCardio((cardioRes.data as CardioSummaryRow[]) ?? []);
       }
       setIsLoading(false);
     })();
@@ -85,5 +108,5 @@ export function useDashboardStats(coachId: string): UseDashboardStats {
     };
   }, [coachId]);
 
-  return { stats, wins, nutrition, isLoading, error };
+  return { stats, wins, nutrition, steps, cardio, isLoading, error };
 }
