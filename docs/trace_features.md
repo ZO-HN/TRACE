@@ -52,7 +52,7 @@ TRACE resolves the active role from the user's profile at launch and exposes a t
   | Strain Warning | Set inputs exceed a 10/10 RPE threshold |
   | Inactivity Warning | Zero logged biometrics or weight metrics for 7 consecutive days |
 
-- **Revocable Client Invite Links** — A coach's onboarding invite link is server-issued, not built client-side: generating one snapshots the coach's current onboarding-screen configuration into a DB row and returns an opaque id. Only one link is active per coach at a time — generating a new one immediately revokes the old, and a coach can revoke without replacing. A revoked or superseded link resolves to "this invite link is no longer valid" instead of silently continuing to work, closing the gap where a leaked link had no server record and couldn't be killed. See `supabase/migrations/20260814020000_server_invite_links.sql` and `src/hooks/useInviteLink.ts`.
+- **Revocable Client Invite Links** — A coach's onboarding invite link is server-issued, not built client-side: generating one snapshots the coach's current onboarding-screen configuration into a DB row and returns an opaque id. Only one link is active per coach at a time — generating a new one immediately revokes the old, and a coach can revoke without replacing. A revoked or superseded link resolves to "this invite link is no longer valid" instead of silently continuing to work, closing the gap where a leaked link had no server record and couldn't be killed.
 
 ---
 
