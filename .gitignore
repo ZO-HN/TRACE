@@ -46,6 +46,10 @@ docs/**/handoff*
 docs/TODO*
 docs/**/TODO*
 docs/**/supabase-agent-prompt*
+DEBUG.md
+*.debug.md
+DEBUG*.md
+
 
 
 
