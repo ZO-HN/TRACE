@@ -14,6 +14,7 @@ Central index for all TRACE architecture, product, audit, and specification docu
 | [provisioning](provisioning.md) | Runbook | One-shot backend setup: migrations, seed, edge functions, secrets. |
 | [client-app-contract-check-ins-exercises](client-app-contract-check-ins-exercises.md) | Contract | What `TRACE-client` must do to submit check-ins and read the exercise library this dashboard authors. |
 | [qa-testing-cross-repo](qa-testing-cross-repo.md) | Runbook | End-to-end test flows for exercising both `TRACE` and `TRACE-client` together, plus the full write-direction contract table. |
+| [trace-app-open-items](trace-app-open-items.md) | Handoff | Backend/schema already built here that `TRACE-client` needs to pick up or confirm it uses — periodized programs, coach-claim RPCs, solo analytics, orphaned tables. |
 | [deployment](deployment.md) | Runbook | Frontend build + static hosting + pre/post-deploy checklist. |
 
 ## Reading order
