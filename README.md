@@ -17,7 +17,21 @@ Neither repo can write into the other's exclusive tables — Row Level Security 
 
 ## Preview
 
-<!-- Screenshots pending — couldn't capture live pixels this pass, browser pane wasn't renderable. Add images here as they're captured: `docs/assets/login.png`, `docs/assets/dashboard.png`, etc. -->
+**Login** — email OTP or Google/Apple OAuth. Only allowlisted emails ever become a coach account; everyone else gets a harmless trainee account with no dashboard access.
+
+![Login](docs/assets/login.png)
+
+**Dashboard** — real 7-day signup/workout counts, churn tracking, and a needs-attention queue for check-ins and form checks awaiting review. Client steps stays an honest "not tracked yet" rather than a fabricated number — the underlying schema has no step-count column yet.
+
+![Dashboard](docs/assets/dashboard.png)
+
+**Workouts** — the building blocks coaches assemble into programs, sourced from the exercise library.
+
+![Workouts](docs/assets/workouts.png)
+
+**Settings → Client onboarding screens** — pick which of the 22 available onboarding questions a new client sees, drag to reorder, then generate a server-issued, revocable invite link from here.
+
+![Client onboarding screens](docs/assets/settings-onboarding.png)
 
 ## What's built here
 
