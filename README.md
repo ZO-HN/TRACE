@@ -11,9 +11,9 @@ TRACE is split across two repositories that share one Supabase project:
 | Repo | What it is | Where |
 | --- | --- | --- |
 | **TRACE** (this repo) | Coach web dashboard — Vite + React, desktop-oriented | You're looking at it |
-| **TRACE-client** | Trainee-facing mobile app — Expo/React Native, on-device workout logging, offline sync | Not yet published — architecturally connected (same Supabase project, shared RLS/data contracts) but doesn't have a public repo link yet. Add it here once it does. |
+| **TRACE App** | Trainee-facing mobile app — Expo/React Native, on-device workout logging, offline sync | Not yet published — architecturally connected (same Supabase project, shared RLS/data contracts) but doesn't have a public repo link yet. Add it here once it does. |
 
-Neither repo can write into the other's exclusive tables — Row Level Security is what enforces the boundary, not app-level trust. See [docs/qa-testing-cross-repo.md](docs/qa-testing-cross-repo.md) for the exact table-by-table write-direction contract between the two apps, and [docs/client-app-contract-check-ins-exercises.md](docs/client-app-contract-check-ins-exercises.md) for what TRACE-client specifically needs to implement to interoperate.
+Neither repo can write into the other's exclusive tables — Row Level Security is what enforces the boundary, not app-level trust. See [docs/qa-testing-cross-repo.md](docs/qa-testing-cross-repo.md) for the exact table-by-table write-direction contract between the two apps, and [docs/client-app-contract-check-ins-exercises.md](docs/client-app-contract-check-ins-exercises.md) for what TRACE App specifically needs to implement to interoperate.
 
 ## Preview
 
@@ -152,8 +152,8 @@ Full index: [docs/README.md](docs/README.md).
 | [Architecture](docs/trace_architecture.md) | Technical architecture — responsive partitioning, the coach page builder, offline sync, RAG pipeline. |
 | [Feature Catalog](docs/trace_features.md) | Product-level view of what each role can do. |
 | [Implementation Audit](docs/audit.md) | What's actually built vs. not, scoped to this repo, kept current. |
-| [Cross-repo QA guide](docs/qa-testing-cross-repo.md) | End-to-end test flows spanning this repo and TRACE-client. |
-| [Client-app contract](docs/client-app-contract-check-ins-exercises.md) | What TRACE-client must implement to interoperate. |
+| [Cross-repo QA guide](docs/qa-testing-cross-repo.md) | End-to-end test flows spanning this repo and TRACE App. |
+| [Client-app contract](docs/client-app-contract-check-ins-exercises.md) | What TRACE App must implement to interoperate. |
 | [Media storage ADR](docs/adr/0001-media-storage.md) | Why media lives in R2, not Supabase Storage. |
 | [Provisioning runbook](docs/provisioning.md) | One-shot backend setup: migrations, edge functions, secrets. |
 | [Deployment runbook](docs/deployment.md) | Frontend build + static hosting checklist. |
