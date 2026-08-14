@@ -42,14 +42,18 @@ The wizard's "done" screen tells them to download TRACE App and **sign in with t
 
 **To check:** does TRACE App handle "trainee already has `coach_id` set" gracefully on first login (skip the choose-a-coach screen), or would it currently force them through it again / conflict with the existing claim?
 
-## 4. Steps / cardio — schema gap, not a TRACE App bug, but relevant if adding either
+## 4. Steps / cardio — schema now exists, TRACE App needs to actually write to it
 
-The coach dashboard's dashboard analytics deliberately left "Client steps" and "Client cardio" panels as placeholders because:
+`supabase/migrations/20260815000000_steps_and_cardio_tracking.sql` added the columns that were missing:
 
-- `wearable_biometrics` has no step-count column at all (only `hrv_ms`, `resting_heart_rate`, `sleep_score`, `active_calories_burned`, `readiness_score`).
-- No table distinguishes cardio vs. strength `workout_sessions`.
+- `wearable_biometrics.step_count` (INT, nullable) — daily step count.
+- `workout_sessions.session_type` (`'strength' | 'cardio' | 'mixed'`, default `'strength'`) — lets a session be flagged as cardio-focused.
 
-If TRACE App is planning to track either, the coach dashboard will need matching schema (new column(s)/migration) before it can display anything real — currently there's nowhere for that data to even land. Flag before building either side so the schema gets designed once, not twice.
+The coach dashboard's "Client steps", "Client cardio", and "Behind on cardio" panels are now wired to real queries (`get_coach_steps_summary`, `get_coach_cardio_summary` RPCs) — but they'll show real **zeros/empty states** until TRACE App actually starts writing `step_count` on `wearable_biometrics` inserts and setting `session_type` on `workout_sessions` inserts (defaults to `'strength'`, so cardio sessions need to explicitly pass `'cardio'`).
+
+**To check:** does TRACE App sync step counts from HealthKit/Google Fit (or wherever it gets wearable data) into `wearable_biometrics.step_count`? Does it let a trainee mark a session as cardio, or infer it from session content, and set `session_type` accordingly on `workout_sessions` insert? Neither is wired up anywhere yet — confirmed via grep, this is a genuinely new ask, not something to assume already happens.
+
+Note: there's no per-client cardio *goal* anywhere in the schema (`onboarding_responses.answers` has a free-form `avg-cardio-per-week` answer, but it's unstructured JSON, not a queryable target). The "Behind on cardio" panel currently ranks by raw minutes done this week (least first), not % of a goal — if a real goal-tracking feature is wanted later, that needs its own structured column/table, not a JSON-parsing hack.
 
 ## 5. Solo-trainee analytics RPCs — already built, confirm TRACE App actually calls them
 

@@ -31,18 +31,18 @@ A grounded assessment of what is actually built in this repository, scoped to wh
 | Programs / Roadmaps / Vault | **Built** | Full CRUD, coach-scoped. |
 | Training Groups | **Built** | Create groups, add/remove members via a per-group dialog. |
 | Foods / Meals / Meal Plans | **Built**, manual-entry only | TDEE calculator (Mifflin-St Jeor), per-meal food rows are a real search over the coach's own `foods` table with live-computed macros. No nutrition dataset import (e.g. USDA) — `foods` starts empty per coach; can be bulk-seeded later without UI changes. |
-| Dashboard analytics | **Built**, partial | Real 7-day new-signups/workouts counts, 21-day-inactive-or-manual churn count, weekly PR wins, per-client nutrition logging summary. Client steps / cardio panels are honest placeholders — `wearable_biometrics` has no step-count column and no table distinguishes cardio vs. strength sessions; this is a schema gap, not a missing query. |
+| Dashboard analytics | **Built** | Real 7-day new-signups/workouts counts, 21-day-inactive-or-manual churn count, weekly PR wins, per-client nutrition/steps/cardio summaries. Steps and cardio will read as real zeros until TRACE App writes `wearable_biometrics.step_count` / `workout_sessions.session_type` — schema and queries are both real now, just waiting on the other repo's data. |
 | AI Copilot (TRACE Brain) | **Built**, RAG pending | `CopilotDrawer` now calls the real `useAiChat` hook (`ai_chat_sessions`/`ai_messages`, persisted, RLS'd) and the `trace-brain` edge function. The function returns a clear placeholder reply until the RAG pipeline (embedding → vector search → LLM) is wired — that's a documented TODO in the function itself, not a bug. Previously the UI used a localStorage-only fake "paste an API key" flow with hardcoded canned responses; that's been removed. |
 | Solo-trainee analytics RPCs | **Built** | `get_personal_records`, `get_exercise_stats`, `get_muscle_analytics` — used by `TRACE-client`, not this dashboard directly. |
 
 ## Known gaps / deliberately out of scope here
 
-1. **Client steps / cardio dashboard panels** — schema gap (see table above), not scheduled.
-2. **`docs/trace_architecture.md`'s Next.js references** — the architecture spec was written against a different framework assumption than what's actually built (Vite, not Next.js). Treat that doc as aspirational/target where it conflicts with this one.
+1. **`docs/trace_architecture.md`'s Next.js references** — the architecture spec was written against a different framework assumption than what's actually built (Vite, not Next.js). Treat that doc as aspirational/target where it conflicts with this one.
 
 **Resolved since last pass:**
 - Meal plan builder now has real multi-day/multi-meal structure (day tabs, per-day meal lists, live macro rollups) — was a single hardcoded "Meal 1" with a dead add-day button.
 - Every CRUD hook in `src/hooks` now guards against setState-after-unmount (a mounted-ref check before any post-mutation `fetch*()` refresh). No longer a known gap — closed out entirely, not just the worst offenders.
+- Client steps / cardio dashboard panels — schema gap closed (`wearable_biometrics.step_count`, `workout_sessions.session_type` added), panels wired to real RPCs. Will show real zeros until TRACE App starts writing those columns — see `docs/trace-app-open-items.md` item 4, now the cross-repo ask instead of a coach-dashboard gap.
 
 ## For the mobile trainee app
 
