@@ -13,7 +13,8 @@ import { Input, Select } from '@/components/ui/shadcn/field';
 import { Avatar, AvatarFallback } from '@/components/ui/shadcn/avatar';
 import { useProfile } from '@/components/layout/AppShell';
 import { useClients } from '@/hooks/useClients';
-import { buildInviteLink, DEFAULT_ONBOARDING_SCREENS } from '@/config/onboardingScreens';
+import { buildServerInviteUrl } from '@/config/onboardingScreens';
+import { useInviteLink } from '@/hooks/useInviteLink';
 
 const columns = ['Client', 'Email', 'Added', 'Status'];
 const statusOptions = ['Active', 'Trial', 'Archived', 'Deactivated'];
@@ -95,23 +96,22 @@ function StatusFilter() {
 function InviteClientDialog({
   open,
   onOpenChange,
-  coachName,
   coachId,
   coachCode,
 }: {
   open: boolean;
   onOpenChange: (open: boolean) => void;
-  coachName: string;
   coachId: string;
   coachCode: string | null;
 }) {
   const [tab, setTab] = useState<'link' | 'code' | 'find'>('link');
   const [copied, setCopied] = useState(false);
   const [codeCopied, setCodeCopied] = useState(false);
-
-  const inviteLink = buildInviteLink(DEFAULT_ONBOARDING_SCREENS, coachName, coachId);
+  const { invite, isLoading: inviteLoading } = useInviteLink(coachId);
+  const inviteLink = invite ? buildServerInviteUrl(invite.id) : null;
 
   const copyLink = async () => {
+    if (!inviteLink) return;
     try {
       await navigator.clipboard.writeText(inviteLink);
       setCopied(true);
@@ -165,20 +165,31 @@ function InviteClientDialog({
 
         {tab === 'link' && (
           <div className="flex flex-col gap-2">
-            <p className="text-xs text-muted-foreground">
-              Share this link with a new client — it opens the onboarding form configured in Settings → Client onboarding screens.
-              It doesn't create their TRACE account — they still sign up in the app separately.
-            </p>
-            <div className="flex items-center gap-2">
-              <Input readOnly value={inviteLink} className="text-xs" />
-              <button
-                type="button"
-                onClick={() => void copyLink()}
-                className="flex items-center gap-1.5 h-10 px-3 rounded-lg bg-foreground text-background text-sm font-semibold shrink-0"
-              >
-                {copied ? <Check size={14} /> : <Copy size={14} />} {copied ? 'Copied' : 'Copy'}
-              </button>
-            </div>
+            {inviteLoading ? (
+              <p className="text-xs text-muted-foreground">Loading...</p>
+            ) : inviteLink ? (
+              <>
+                <p className="text-xs text-muted-foreground">
+                  Share this link with a new client — it opens the onboarding form configured in Settings → Client
+                  onboarding screens. It doesn't create their TRACE account — they still sign up in the app
+                  separately.
+                </p>
+                <div className="flex items-center gap-2">
+                  <Input readOnly value={inviteLink} className="text-xs" />
+                  <button
+                    type="button"
+                    onClick={() => void copyLink()}
+                    className="flex items-center gap-1.5 h-10 px-3 rounded-lg bg-foreground text-background text-sm font-semibold shrink-0"
+                  >
+                    {copied ? <Check size={14} /> : <Copy size={14} />} {copied ? 'Copied' : 'Copy'}
+                  </button>
+                </div>
+              </>
+            ) : (
+              <p className="text-xs text-muted-foreground">
+                No active invite link yet — generate one in Settings → Client onboarding screens.
+              </p>
+            )}
           </div>
         )}
 
@@ -395,7 +406,6 @@ export default function ClientsPage() {
       <InviteClientDialog
         open={inviteOpen}
         onOpenChange={setInviteOpen}
-        coachName={profile.first_name ?? ''}
         coachId={profile.id}
         coachCode={profile.coach_code}
       />

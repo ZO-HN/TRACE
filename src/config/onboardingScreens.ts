@@ -291,21 +291,40 @@ export function buildInviteLink(screens: OnboardingScreen[], coachName: string, 
   return url.toString();
 }
 
+// Shared by both invite formats: the old base64 `?config=` param decodes to
+// this same {k,e}[] shape, and so does client_invites.screens_config (the
+// server-side snapshot taken by useInviteLink's generateLink).
+export function decodeScreensConfig(decoded: { k: string; e: boolean }[]): OnboardingScreen[] {
+  const byKey = new Map(DEFAULT_ONBOARDING_SCREENS.map((s) => [s.key, s]));
+  const result = decoded
+    .map(({ k, e }) => {
+      const base = byKey.get(k);
+      return base ? { ...base, enabled: e } : null;
+    })
+    .filter((s): s is OnboardingScreen => s !== null);
+  return result.length > 0 ? result : DEFAULT_ONBOARDING_SCREENS;
+}
+
+// Legacy fallback reader — old links generated before the server-issued
+// invite system (buildServerInviteUrl below) still work, they just can't
+// be revoked. Not used by the current generation path anymore.
 export function parseInviteConfig(search: string): OnboardingScreen[] {
   const params = new URLSearchParams(search);
   const raw = params.get('config');
   if (!raw) return DEFAULT_ONBOARDING_SCREENS;
   try {
     const decoded = JSON.parse(base64UrlDecode(raw)) as { k: string; e: boolean }[];
-    const byKey = new Map(DEFAULT_ONBOARDING_SCREENS.map((s) => [s.key, s]));
-    const result = decoded
-      .map(({ k, e }) => {
-        const base = byKey.get(k);
-        return base ? { ...base, enabled: e } : null;
-      })
-      .filter((s): s is OnboardingScreen => s !== null);
-    return result.length > 0 ? result : DEFAULT_ONBOARDING_SCREENS;
+    return decodeScreensConfig(decoded);
   } catch {
     return DEFAULT_ONBOARDING_SCREENS;
   }
+}
+
+// Current invite link format: an opaque server-issued id, resolved via the
+// get_invite_link RPC (revocable, one active per coach) — see
+// src/hooks/useInviteLink.ts.
+export function buildServerInviteUrl(inviteId: string): string {
+  const url = new URL('/onboarding', window.location.origin);
+  url.searchParams.set('invite', inviteId);
+  return url.toString();
 }

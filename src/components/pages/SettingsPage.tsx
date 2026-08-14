@@ -14,6 +14,7 @@ import {
   Smartphone,
   Trash2,
   User,
+  X,
 } from 'lucide-react';
 import { Card, CardHeader, CardTitle, CardContent } from '@/components/ui/shadcn/card';
 import { Label, Input, Select, Textarea } from '@/components/ui/shadcn/field';
@@ -23,7 +24,13 @@ import { useProfile } from '@/components/layout/AppShell';
 import { cn } from '@/lib/utils';
 import { useToast } from '@/components/ui/toast';
 import { useCoachAllowlist } from '@/hooks/useCoachAllowlist';
-import { DEFAULT_ONBOARDING_SCREENS, buildInviteLink, type OnboardingScreen } from '@/config/onboardingScreens';
+import {
+  DEFAULT_ONBOARDING_SCREENS,
+  buildInviteLink,
+  buildServerInviteUrl,
+  type OnboardingScreen,
+} from '@/config/onboardingScreens';
+import { useInviteLink } from '@/hooks/useInviteLink';
 
 const ACCOUNT_TABS = [
   { id: 'profile', label: 'Profile', icon: User },
@@ -530,20 +537,50 @@ function AppTab() {
 function OnboardingScreensTab() {
   const profile = useProfile();
   const { toast } = useToast();
+  const { invite, isLoading: inviteLoading, generateLink, revokeLink } = useInviteLink(profile.id);
   const [screens, setScreens] = useState<OnboardingScreen[]>(DEFAULT_ONBOARDING_SCREENS);
   const [dragKey, setDragKey] = useState<string | null>(null);
   const [previewKey, setPreviewKey] = useState<string | null>(null);
   const [copied, setCopied] = useState(false);
+  const [generating, setGenerating] = useState(false);
+  const [revoking, setRevoking] = useState(false);
+  const [linkError, setLinkError] = useState<string | null>(null);
+
+  const inviteUrl = invite ? buildServerInviteUrl(invite.id) : null;
 
   const copyInviteLink = async () => {
-    const link = buildInviteLink(screens, profile.first_name ?? '', profile.id);
+    if (!inviteUrl) return;
     try {
-      await navigator.clipboard.writeText(link);
+      await navigator.clipboard.writeText(inviteUrl);
       setCopied(true);
       setTimeout(() => setCopied(false), 2000);
     } catch {
-      window.prompt('Copy this invite link:', link);
+      window.prompt('Copy this invite link:', inviteUrl);
     }
+  };
+
+  const handleGenerate = async () => {
+    setGenerating(true);
+    setLinkError(null);
+    const { error } = await generateLink(screens);
+    setGenerating(false);
+    if (error) {
+      setLinkError(error);
+      return;
+    }
+    toast(invite ? 'New invite link generated — the old one no longer works.' : 'Invite link generated.');
+  };
+
+  const handleRevoke = async () => {
+    setRevoking(true);
+    setLinkError(null);
+    const { error } = await revokeLink();
+    setRevoking(false);
+    if (error) {
+      setLinkError(error);
+      return;
+    }
+    toast('Invite link revoked.');
   };
 
   const enabledCount = screens.filter((s) => s.enabled).length;
@@ -575,27 +612,70 @@ function OnboardingScreensTab() {
           <div className="flex items-center gap-2 text-sm font-semibold text-foreground">
             <Link2 size={14} className="text-primary" /> Invite link
           </div>
-          <p className="text-xs text-muted-foreground -mt-1">
-            Share this link with a new client. It opens the onboarding form below, built from whichever screens are
-            enabled here.
-          </p>
-          <div className="flex items-center gap-2">
-            <button
-              type="button"
-              onClick={copyInviteLink}
-              className="flex items-center gap-1.5 h-9 px-3 rounded-lg bg-primary text-primary-foreground text-sm font-semibold hover:opacity-90 transition-opacity"
-            >
-              {copied ? <Check size={13} /> : <Copy size={13} />} {copied ? 'Copied' : 'Copy invite link'}
-            </button>
-            <a
-              href={buildInviteLink(screens, profile.first_name ?? '', profile.id)}
-              target="_blank"
-              rel="noreferrer"
-              className="flex items-center gap-1.5 h-9 px-3 rounded-lg border border-border text-sm font-medium text-foreground hover:bg-surface transition-colors"
-            >
-              <ExternalLink size={13} /> Preview
-            </a>
-          </div>
+
+          {inviteLoading ? (
+            <p className="text-xs text-muted-foreground">Loading...</p>
+          ) : inviteUrl ? (
+            <>
+              <p className="text-xs text-muted-foreground -mt-1">
+                Live since {new Date(invite!.created_at).toLocaleDateString()}. Built from whichever screens were
+                enabled when it was generated — editing screens below won't change this link; generate a new one to
+                pick up changes.
+              </p>
+              <div className="flex items-center gap-2">
+                <Input readOnly value={inviteUrl} className="text-xs" />
+                <button
+                  type="button"
+                  onClick={() => void copyInviteLink()}
+                  className="flex items-center gap-1.5 h-9 px-3 rounded-lg bg-primary text-primary-foreground text-sm font-semibold hover:opacity-90 transition-opacity shrink-0"
+                >
+                  {copied ? <Check size={13} /> : <Copy size={13} />} {copied ? 'Copied' : 'Copy'}
+                </button>
+                <a
+                  href={inviteUrl}
+                  target="_blank"
+                  rel="noreferrer"
+                  className="flex items-center gap-1.5 h-9 px-3 rounded-lg border border-border text-sm font-medium text-foreground hover:bg-surface transition-colors shrink-0"
+                >
+                  <ExternalLink size={13} /> Preview
+                </a>
+              </div>
+              <div className="flex items-center gap-2 -mt-1">
+                <button
+                  type="button"
+                  disabled={generating}
+                  onClick={() => void handleGenerate()}
+                  className="flex items-center gap-1.5 h-8 px-3 rounded-lg border border-border text-xs font-medium text-foreground hover:bg-surface transition-colors disabled:opacity-50"
+                >
+                  <RotateCcw size={12} /> {generating ? 'Generating...' : 'Generate New Link'}
+                </button>
+                <button
+                  type="button"
+                  disabled={revoking}
+                  onClick={() => void handleRevoke()}
+                  className="flex items-center gap-1.5 h-8 px-3 rounded-lg border border-danger/40 text-xs font-medium text-danger hover:bg-danger/10 transition-colors disabled:opacity-50"
+                >
+                  <X size={12} /> {revoking ? 'Revoking...' : 'Revoke'}
+                </button>
+              </div>
+            </>
+          ) : (
+            <>
+              <p className="text-xs text-muted-foreground -mt-1">
+                No active invite link yet. Generate one to share with a new client — it opens the onboarding form
+                below, built from whichever screens are enabled right now.
+              </p>
+              <button
+                type="button"
+                disabled={generating}
+                onClick={() => void handleGenerate()}
+                className="flex items-center gap-1.5 h-9 px-3 rounded-lg bg-primary text-primary-foreground text-sm font-semibold hover:opacity-90 transition-opacity w-fit disabled:opacity-50"
+              >
+                <Link2 size={13} /> {generating ? 'Generating...' : 'Generate Invite Link'}
+              </button>
+            </>
+          )}
+          {linkError && <p className="text-xs text-danger">{linkError}</p>}
         </CardContent>
       </Card>
 

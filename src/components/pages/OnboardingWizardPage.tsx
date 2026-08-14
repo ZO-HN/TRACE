@@ -34,7 +34,14 @@ import { cn } from '@/lib/utils';
 import { supabase } from '@/lib/supabase';
 import { Input } from '@/components/ui/shadcn/field';
 import OAuthButtons from '@/components/auth/OAuthButtons';
-import { DEFAULT_ONBOARDING_SCREENS, parseInviteConfig, STEP_DEFS, type StepDef } from '@/config/onboardingScreens';
+import {
+  DEFAULT_ONBOARDING_SCREENS,
+  decodeScreensConfig,
+  parseInviteConfig,
+  STEP_DEFS,
+  type OnboardingScreen,
+  type StepDef,
+} from '@/config/onboardingScreens';
 
 const STEP_ICONS: Record<string, typeof User> = {
   name: User,
@@ -486,10 +493,50 @@ type Answer = string | string[] | { month: string; day: string; year: string } |
 
 export default function OnboardingWizardPage() {
   const location = useLocation();
-  const screens = useMemo(() => parseInviteConfig(location.search), [location.search]);
   const params = useMemo(() => new URLSearchParams(location.search), [location.search]);
-  const coachName = useMemo(() => params.get('coach') || 'your coach', [params]);
-  const coachId = useMemo(() => params.get('coachId'), [params]);
+  const inviteId = useMemo(() => params.get('invite'), [params]);
+
+  // Two link formats: the current server-issued `?invite=<id>` (resolved via
+  // get_invite_link, revocable) and the legacy client-side `?config=...`
+  // base64 param (still readable for links shared before this system
+  // existed, but no longer generated — see onboardingScreens.ts).
+  const [invite, setInvite] = useState<{ coachId: string; coachName: string; screens: OnboardingScreen[] } | null>(
+    null,
+  );
+  const [inviteResolving, setInviteResolving] = useState(!!inviteId);
+  const [inviteInvalid, setInviteInvalid] = useState(false);
+
+  useEffect(() => {
+    if (!inviteId) return;
+    let cancelled = false;
+    setInviteResolving(true);
+    setInviteInvalid(false);
+    supabase
+      .rpc('get_invite_link', { p_invite_id: inviteId })
+      .maybeSingle()
+      .then(({ data }) => {
+        if (cancelled) return;
+        if (!data) {
+          setInviteInvalid(true);
+        } else {
+          const row = data as { coach_id: string; coach_first_name: string; screens_config: { k: string; e: boolean }[] };
+          setInvite({
+            coachId: row.coach_id,
+            coachName: row.coach_first_name || 'your coach',
+            screens: decodeScreensConfig(row.screens_config),
+          });
+        }
+        setInviteResolving(false);
+      });
+    return () => {
+      cancelled = true;
+    };
+  }, [inviteId]);
+
+  const legacyScreens = useMemo(() => (inviteId ? [] : parseInviteConfig(location.search)), [inviteId, location.search]);
+  const screens = invite ? invite.screens : legacyScreens;
+  const coachName = invite ? invite.coachName : params.get('coach') || 'your coach';
+  const coachId = invite ? invite.coachId : params.get('coachId');
 
   const steps = useMemo(
     () =>
@@ -634,6 +681,28 @@ export default function OnboardingWizardPage() {
   };
 
   const estMinutes = Math.max(2, Math.round(steps.length * 0.4));
+
+  if (inviteResolving) {
+    return (
+      <div className="min-h-screen flex items-center justify-center bg-background text-foreground p-6">
+        <Loader2 size={20} className="animate-spin text-muted-foreground" />
+      </div>
+    );
+  }
+
+  if (inviteInvalid) {
+    return (
+      <div className="min-h-screen flex items-center justify-center bg-background text-foreground p-6">
+        <div className="max-w-sm text-center flex flex-col items-center gap-2">
+          <AlertTriangle size={28} className="text-muted-foreground" />
+          <p className="text-sm font-semibold">This invite link is no longer valid</p>
+          <p className="text-xs text-muted-foreground">
+            It may have been revoked or replaced with a newer one. Ask your coach for a fresh invite link.
+          </p>
+        </div>
+      </div>
+    );
+  }
 
   if (steps.length === 0) {
     return (
