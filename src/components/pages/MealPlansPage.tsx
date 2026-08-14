@@ -1,4 +1,4 @@
-import { useMemo, useState } from 'react';
+import { useMemo, useRef, useState } from 'react';
 import { ChevronDown, ChevronUp, Flame, Plus, Trash2, UtensilsCrossed, X } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { Card, CardContent } from '@/components/ui/shadcn/card';
@@ -18,6 +18,43 @@ interface PlanFoodRow {
 
 function emptyRow(): PlanFoodRow {
   return { rowId: crypto.randomUUID(), foodId: null, query: '', servings: '1' };
+}
+
+interface MealBlock {
+  id: string;
+  name: string;
+  rows: PlanFoodRow[];
+}
+
+interface DayBlock {
+  id: string;
+  label: string;
+  meals: MealBlock[];
+}
+
+function emptyMeal(name: string): MealBlock {
+  return { id: crypto.randomUUID(), name, rows: [emptyRow()] };
+}
+
+function emptyDay(label: string): DayBlock {
+  return { id: crypto.randomUUID(), label, meals: [emptyMeal('Meal 1')] };
+}
+
+function computeTotals(rows: PlanFoodRow[], byId: Map<string, FoodRow>) {
+  return rows.reduce(
+    (acc, r) => {
+      const f = r.foodId ? byId.get(r.foodId) : null;
+      const servings = Number(r.servings) || 0;
+      if (!f) return acc;
+      return {
+        calories: acc.calories + (f.calories ?? 0) * servings,
+        protein_g: acc.protein_g + (f.protein_g ?? 0) * servings,
+        carbs_g: acc.carbs_g + (f.carbs_g ?? 0) * servings,
+        fat_g: acc.fat_g + (f.fat_g ?? 0) * servings,
+      };
+    },
+    { calories: 0, protein_g: 0, carbs_g: 0, fat_g: 0 },
+  );
 }
 
 function FoodRowInput({
@@ -154,7 +191,9 @@ function MealPlanBuilder({
   const [tdeeOpen, setTdeeOpen] = useState(true);
   const [goal, setGoal] = useState<'Maintain' | 'Cut' | 'Surplus' | 'Manual'>('Maintain');
   const [method, setMethod] = useState<'formula' | 'kcal-per-kg'>('formula');
-  const [foodRows, setFoodRows] = useState<PlanFoodRow[]>([emptyRow()]);
+  const firstDay = useRef(emptyDay('Daily')).current;
+  const [days, setDays] = useState<DayBlock[]>([firstDay]);
+  const [activeDayId, setActiveDayId] = useState(firstDay.id);
   const [clientId, setClientId] = useState('');
   const [sex, setSex] = useState('unspecified');
   const [age, setAge] = useState('');
@@ -181,26 +220,56 @@ function MealPlanBuilder({
   const client = clients.find((c) => c.id === clientId);
 
   const byId = useMemo(() => new Map(foods.map((f) => [f.id, f])), [foods]);
-  const mealTotals = useMemo(() => {
-    return foodRows.reduce(
-      (acc, r) => {
-        const f = r.foodId ? byId.get(r.foodId) : null;
-        const servings = Number(r.servings) || 0;
-        if (!f) return acc;
-        return {
-          calories: acc.calories + (f.calories ?? 0) * servings,
-          protein_g: acc.protein_g + (f.protein_g ?? 0) * servings,
-          carbs_g: acc.carbs_g + (f.carbs_g ?? 0) * servings,
-          fat_g: acc.fat_g + (f.fat_g ?? 0) * servings,
-        };
-      },
-      { calories: 0, protein_g: 0, carbs_g: 0, fat_g: 0 },
-    );
-  }, [foodRows, byId]);
+  const activeDay = days.find((d) => d.id === activeDayId) ?? days[0];
+  const dayTotals = useMemo(() => {
+    const rows = activeDay.meals.flatMap((m) => m.rows);
+    return computeTotals(rows, byId);
+  }, [activeDay, byId]);
 
-  const updateRow = (rowId: string, next: PlanFoodRow) =>
-    setFoodRows((rs) => rs.map((r) => (r.rowId === rowId ? next : r)));
-  const removeRow = (rowId: string) => setFoodRows((rs) => rs.filter((r) => r.rowId !== rowId));
+  const updateDay = (dayId: string, fn: (d: DayBlock) => DayBlock) =>
+    setDays((ds) => ds.map((d) => (d.id === dayId ? fn(d) : d)));
+
+  const addDay = () => {
+    const d = emptyDay(`Day ${days.length + 1}`);
+    setDays((ds) => [...ds, d]);
+    setActiveDayId(d.id);
+  };
+
+  const removeDay = (dayId: string) => {
+    if (days.length <= 1) return;
+    const next = days.filter((d) => d.id !== dayId);
+    setDays(next);
+    if (activeDayId === dayId) setActiveDayId(next[0].id);
+  };
+
+  const renameDay = (dayId: string, label: string) => updateDay(dayId, (d) => ({ ...d, label }));
+
+  const addMeal = (dayId: string) =>
+    updateDay(dayId, (d) => ({ ...d, meals: [...d.meals, emptyMeal(`Meal ${d.meals.length + 1}`)] }));
+
+  const removeMeal = (dayId: string, mealId: string) =>
+    updateDay(dayId, (d) => (d.meals.length <= 1 ? d : { ...d, meals: d.meals.filter((m) => m.id !== mealId) }));
+
+  const renameMeal = (dayId: string, mealId: string, name: string) =>
+    updateDay(dayId, (d) => ({ ...d, meals: d.meals.map((m) => (m.id === mealId ? { ...m, name } : m)) }));
+
+  const addMealRow = (dayId: string, mealId: string) =>
+    updateDay(dayId, (d) => ({
+      ...d,
+      meals: d.meals.map((m) => (m.id === mealId ? { ...m, rows: [...m.rows, emptyRow()] } : m)),
+    }));
+
+  const updateMealRow = (dayId: string, mealId: string, rowId: string, next: PlanFoodRow) =>
+    updateDay(dayId, (d) => ({
+      ...d,
+      meals: d.meals.map((m) => (m.id === mealId ? { ...m, rows: m.rows.map((r) => (r.rowId === rowId ? next : r)) } : m)),
+    }));
+
+  const removeMealRow = (dayId: string, mealId: string, rowId: string) =>
+    updateDay(dayId, (d) => ({
+      ...d,
+      meals: d.meals.map((m) => (m.id === mealId ? { ...m, rows: m.rows.filter((r) => r.rowId !== rowId) } : m)),
+    }));
 
   const handleSave = async () => {
     setSaving(true);
@@ -218,14 +287,13 @@ function MealPlanBuilder({
         manualCalories,
         maintenanceEstimate,
         appliedTarget,
-        meals: [
-          {
-            name: 'Meal 1',
-            items: foodRows
-              .filter((r) => r.foodId)
-              .map((r) => ({ foodId: r.foodId, servings: Number(r.servings) || 0 })),
-          },
-        ],
+        days: days.map((d) => ({
+          label: d.label,
+          meals: d.meals.map((m) => ({
+            name: m.name,
+            items: m.rows.filter((r) => r.foodId).map((r) => ({ foodId: r.foodId, servings: Number(r.servings) || 0 })),
+          })),
+        })),
       },
     });
     setSaving(false);
@@ -389,11 +457,39 @@ function MealPlanBuilder({
         ))}
       </div>
 
-      <div className="flex items-center gap-2">
-        <button className="flex items-center gap-1.5 h-8 px-3 rounded-md bg-muted text-sm font-medium text-foreground">
-          <span className="w-2 h-2 rounded-full bg-primary" /> Daily
-        </button>
-        <button className="w-8 h-8 flex items-center justify-center rounded-md border border-border text-muted-foreground hover:text-foreground">
+      <div className="flex items-center gap-2 flex-wrap">
+        {days.map((d) => (
+          <button
+            key={d.id}
+            type="button"
+            onClick={() => setActiveDayId(d.id)}
+            className={cn(
+              'group flex items-center gap-1.5 h-8 pl-3 pr-2 rounded-md text-sm font-medium transition-colors',
+              d.id === activeDay.id ? 'bg-muted text-foreground' : 'text-muted-foreground hover:text-foreground',
+            )}
+          >
+            <span className={cn('w-2 h-2 rounded-full', d.id === activeDay.id ? 'bg-primary' : 'bg-border')} />
+            {d.label}
+            {days.length > 1 && (
+              <span
+                role="button"
+                tabIndex={0}
+                onClick={(e) => {
+                  e.stopPropagation();
+                  removeDay(d.id);
+                }}
+                className="p-0.5 rounded-full text-muted-foreground hover:text-danger hover:bg-danger/10 opacity-0 group-hover:opacity-100 transition-opacity"
+              >
+                <X size={11} />
+              </span>
+            )}
+          </button>
+        ))}
+        <button
+          type="button"
+          onClick={addDay}
+          className="w-8 h-8 flex items-center justify-center rounded-md border border-border text-muted-foreground hover:text-foreground"
+        >
           <Plus size={14} />
         </button>
       </div>
@@ -402,80 +498,107 @@ function MealPlanBuilder({
         <CardContent className="pt-5 flex flex-col gap-4">
           <div className="flex items-center gap-3">
             <span className="w-3 h-3 rounded-full bg-primary shrink-0" />
-            <Input defaultValue="Daily" className="w-40" />
-            <Input defaultValue="custom" className="w-32" />
+            <Input
+              value={activeDay.label}
+              onChange={(e) => renameDay(activeDay.id, e.target.value)}
+              className="w-40"
+            />
           </div>
 
           <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-6 gap-4">
-            {dayTargets.map((t) => (
-              <div key={t.key} className="flex flex-col gap-1.5">
-                <Label className="text-xs uppercase tracking-wide text-muted-foreground">{t.label}</Label>
-                <p className="text-sm text-foreground">
-                  <span className="font-semibold">0</span> / <span className="text-muted-foreground">—</span>
-                </p>
-              </div>
-            ))}
+            {dayTargets.map((t) => {
+              const value =
+                t.key === 'cal'
+                  ? Math.round(dayTotals.calories)
+                  : t.key === 'protein'
+                    ? Math.round(dayTotals.protein_g)
+                    : t.key === 'carbs'
+                      ? Math.round(dayTotals.carbs_g)
+                      : t.key === 'fat'
+                        ? Math.round(dayTotals.fat_g)
+                        : null;
+              const target = t.key === 'cal' && appliedTarget != null ? appliedTarget : null;
+              return (
+                <div key={t.key} className="flex flex-col gap-1.5">
+                  <Label className="text-xs uppercase tracking-wide text-muted-foreground">{t.label}</Label>
+                  <p className="text-sm text-foreground">
+                    <span className="font-semibold">{value ?? '—'}</span> /{' '}
+                    <span className="text-muted-foreground">{target ?? '—'}</span>
+                  </p>
+                </div>
+              );
+            })}
           </div>
 
-          <div className="flex flex-wrap items-center gap-4">
-            <div className="flex items-center gap-2">
-              <Label className="text-xs uppercase tracking-wide text-muted-foreground">Pre-workout meal</Label>
-              <Select className="w-32 h-8" defaultValue="none">
-                <option value="none">None</option>
-              </Select>
-            </div>
-            <label className="flex items-center gap-2 text-sm text-foreground">
-              <input type="checkbox" className="accent-primary" /> Insert intra-workout meal
-            </label>
-          </div>
-
-          <div className="rounded-lg border border-border overflow-hidden">
-            <div className="flex items-center justify-between px-3 py-2 bg-background border-b border-border">
-              <div className="flex items-center gap-2">
-                <span className="text-sm font-semibold text-foreground">Meal 1</span>
-                <Select className="h-7 w-28 text-xs" defaultValue="none">
-                  <option value="none">No timing</option>
-                </Select>
-              </div>
-              <div className="flex items-center gap-3 text-xs text-muted-foreground">
-                <span>{Math.round(mealTotals.calories)} cal</span>
-                <span>{Math.round(mealTotals.protein_g)}gP</span>
-                <span>{Math.round(mealTotals.carbs_g)}gC</span>
-                <span>{Math.round(mealTotals.fat_g)}gF</span>
-              </div>
-            </div>
-            <div className="grid grid-cols-[1fr_60px_repeat(6,60px)_24px] gap-2 px-3 pt-2 text-[10px] uppercase tracking-wide text-muted-foreground">
-              <span />
-              <span className="text-center">Qty</span>
-              {['Cal', 'Protein', 'Carbs', 'Fat', 'Fiber', 'Sodium'].map((m) => (
-                <span key={m} className="text-center">{m}</span>
-              ))}
-              <span />
-            </div>
-            <div className="divide-y divide-border">
-              {foodRows.length === 0 ? (
-                <p className="text-xs text-muted-foreground px-3 py-3">No foods added to this meal yet.</p>
-              ) : (
-                foodRows.map((row) => (
-                  <FoodRowInput
-                    key={row.rowId}
-                    row={row}
-                    foods={foods}
-                    onChange={(next) => updateRow(row.rowId, next)}
-                    onRemove={() => removeRow(row.rowId)}
-                  />
-                ))
-              )}
-            </div>
-            <div className="flex items-center gap-3 px-3 py-2 border-t border-border">
-              <button
-                type="button"
-                onClick={() => setFoodRows((rs) => [...rs, emptyRow()])}
-                className="flex items-center gap-1 text-xs font-medium text-primary hover:underline"
-              >
-                <Plus size={12} /> Add food
-              </button>
-            </div>
+          <div className="flex flex-col gap-3">
+            {activeDay.meals.map((meal) => {
+              const totals = computeTotals(meal.rows, byId);
+              return (
+                <div key={meal.id} className="rounded-lg border border-border overflow-hidden">
+                  <div className="flex items-center justify-between px-3 py-2 bg-background border-b border-border">
+                    <Input
+                      value={meal.name}
+                      onChange={(e) => renameMeal(activeDay.id, meal.id, e.target.value)}
+                      className="h-7 w-32 text-xs font-semibold"
+                    />
+                    <div className="flex items-center gap-3 text-xs text-muted-foreground">
+                      <span>{Math.round(totals.calories)} cal</span>
+                      <span>{Math.round(totals.protein_g)}gP</span>
+                      <span>{Math.round(totals.carbs_g)}gC</span>
+                      <span>{Math.round(totals.fat_g)}gF</span>
+                      {activeDay.meals.length > 1 && (
+                        <button
+                          type="button"
+                          onClick={() => removeMeal(activeDay.id, meal.id)}
+                          className="text-muted-foreground hover:text-danger"
+                        >
+                          <Trash2 size={13} />
+                        </button>
+                      )}
+                    </div>
+                  </div>
+                  <div className="grid grid-cols-[1fr_60px_repeat(6,60px)_24px] gap-2 px-3 pt-2 text-[10px] uppercase tracking-wide text-muted-foreground">
+                    <span />
+                    <span className="text-center">Qty</span>
+                    {['Cal', 'Protein', 'Carbs', 'Fat', 'Fiber', 'Sodium'].map((m) => (
+                      <span key={m} className="text-center">{m}</span>
+                    ))}
+                    <span />
+                  </div>
+                  <div className="divide-y divide-border">
+                    {meal.rows.length === 0 ? (
+                      <p className="text-xs text-muted-foreground px-3 py-3">No foods added to this meal yet.</p>
+                    ) : (
+                      meal.rows.map((row) => (
+                        <FoodRowInput
+                          key={row.rowId}
+                          row={row}
+                          foods={foods}
+                          onChange={(next) => updateMealRow(activeDay.id, meal.id, row.rowId, next)}
+                          onRemove={() => removeMealRow(activeDay.id, meal.id, row.rowId)}
+                        />
+                      ))
+                    )}
+                  </div>
+                  <div className="flex items-center gap-3 px-3 py-2 border-t border-border">
+                    <button
+                      type="button"
+                      onClick={() => addMealRow(activeDay.id, meal.id)}
+                      className="flex items-center gap-1 text-xs font-medium text-primary hover:underline"
+                    >
+                      <Plus size={12} /> Add food
+                    </button>
+                  </div>
+                </div>
+              );
+            })}
+            <button
+              type="button"
+              onClick={() => addMeal(activeDay.id)}
+              className="flex items-center gap-1.5 h-9 px-3 rounded-lg border border-dashed border-border text-xs font-medium text-muted-foreground hover:text-foreground hover:border-primary/40 transition-colors w-fit"
+            >
+              <Plus size={12} /> Add meal
+            </button>
           </div>
         </CardContent>
       </Card>
