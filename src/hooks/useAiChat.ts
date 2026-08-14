@@ -9,6 +9,7 @@ import { appendMessage, type AiMessage } from '../lib/chat/aiTypes';
 export interface UseAiChat {
   messages: AiMessage[];
   send: (content: string) => Promise<void>;
+  startNewConversation: () => Promise<void>;
   isReady: boolean;
   isThinking: boolean;
   error: string | null;
@@ -20,19 +21,24 @@ export function useAiChat(userId: string): UseAiChat {
   const [isThinking, setIsThinking] = useState(false);
   const sessionIdRef = useRef<string | null>(null);
   const [isReady, setIsReady] = useState(false);
+  const mountedRef = useRef(true);
+  useEffect(() => () => {
+    mountedRef.current = false;
+  }, []);
 
   useEffect(() => {
     let cancelled = false;
 
     (async () => {
       // Reuse the most recent session, or create one.
-      const { data: existing } = await supabase
+      const { data: existing, error: existingError } = await supabase
         .from('ai_chat_sessions')
         .select('id')
         .eq('user_id', userId)
         .order('started_at', { ascending: false })
         .limit(1)
         .maybeSingle();
+      if (existingError && !cancelled) setError(existingError.message);
 
       let sessionId = existing?.id as string | undefined;
       if (!sessionId) {
@@ -66,6 +72,21 @@ export function useAiChat(userId: string): UseAiChat {
     };
   }, [userId]);
 
+  const startNewConversation = useCallback(async () => {
+    const { data: created, error: createError } = await supabase
+      .from('ai_chat_sessions')
+      .insert({ user_id: userId })
+      .select('id')
+      .single();
+    if (createError || !created || !mountedRef.current) {
+      if (mountedRef.current) setError(createError?.message ?? 'Could not start a new conversation');
+      return;
+    }
+    sessionIdRef.current = created.id as string;
+    setMessages([]);
+    setError(null);
+  }, [userId]);
+
   const send = useCallback(async (content: string) => {
     const trimmed = content.trim();
     const sessionId = sessionIdRef.current;
@@ -97,5 +118,5 @@ export function useAiChat(userId: string): UseAiChat {
     }
   }, []);
 
-  return { messages, send, isReady, isThinking, error };
+  return { messages, send, startNewConversation, isReady, isThinking, error };
 }
