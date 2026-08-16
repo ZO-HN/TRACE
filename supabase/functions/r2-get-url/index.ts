@@ -1,9 +1,12 @@
 // Supabase Edge Function: r2-get-url
 //
 // Issues a short-lived presigned GET URL so authorized users can view private
-// R2 media (form-check clips, etc.). Authorization delegates to set_logs RLS:
-// the caller may read a key only if a set_logs row referencing it is visible
-// to them (owner or their coach). See docs/adr/0001-media-storage.md.
+// R2 media (form-check clips, profile avatars, etc.). Authorization:
+// - form-video/meal-photo/file keys: delegates to set_logs RLS (the caller
+//   may read a key only if a set_logs row referencing it is visible to them).
+// - coach-image keys: the caller must be the profile that has this exact key
+//   as its avatar_key (you can only resolve your own avatar this way).
+// See docs/adr/0001-media-storage.md.
 //
 // Deploy:  supabase functions deploy r2-get-url
 // Secrets: shares the R2_* secrets already set for r2-presign.
@@ -51,14 +54,26 @@ Deno.serve(async (req: Request) => {
   const key = body.key;
   if (!key || typeof key !== 'string') return json(400, { error: 'Missing key' });
 
-  // Authorization: the caller must be able to SELECT a set_logs row that
-  // references this key. RLS (owner or coach-of-owner) does the enforcement.
-  const { data: row } = await asUser
-    .from('set_logs')
-    .select('id')
-    .eq('form_video_s3_key', key)
-    .maybeSingle();
-  if (!row) return json(403, { error: 'Not authorized for this object' });
+  const isAvatarKey = key.startsWith('coach-image/');
+
+  if (isAvatarKey) {
+    const { data: row } = await asUser
+      .from('profiles')
+      .select('id')
+      .eq('id', user.id)
+      .eq('avatar_key', key)
+      .maybeSingle();
+    if (!row) return json(403, { error: 'Not authorized for this object' });
+  } else {
+    // Authorization: the caller must be able to SELECT a set_logs row that
+    // references this key. RLS (owner or coach-of-owner) does the enforcement.
+    const { data: row } = await asUser
+      .from('set_logs')
+      .select('id')
+      .eq('form_video_s3_key', key)
+      .maybeSingle();
+    if (!row) return json(403, { error: 'Not authorized for this object' });
+  }
 
   const accountId = Deno.env.get('R2_ACCOUNT_ID')!;
   const bucket = Deno.env.get('R2_BUCKET')!;

@@ -1,7 +1,8 @@
 import { Search, MessageCircleQuestion, Bell, LogOut, Activity, Settings, LifeBuoy } from 'lucide-react';
 import { useNavigate } from 'react-router';
 import { supabase } from '@/lib/supabase';
-import { Avatar, AvatarFallback } from '@/components/ui/shadcn/avatar';
+import { Avatar, AvatarImage, AvatarFallback } from '@/components/ui/shadcn/avatar';
+import { useMediaUrl } from '@/hooks/useMediaUrl';
 import {
   DropdownMenu,
   DropdownMenuTrigger,
@@ -99,6 +100,7 @@ function FeedbackLink() {
 export default function Header({ profile, title }: { profile: TraceProfile | null; title: string }) {
   const initials = `${profile?.first_name?.[0] ?? ''}${profile?.last_name?.[0] ?? ''}`.toUpperCase();
   const navigate = useNavigate();
+  const { url: avatarUrl } = useMediaUrl(profile?.avatar_key ?? null);
 
   return (
     <header className="sticky top-0 z-50 bg-surface border-b border-border py-3 px-6 flex items-center justify-between gap-4">
@@ -135,7 +137,7 @@ export default function Header({ profile, title }: { profile: TraceProfile | nul
               className="rounded-full outline-none focus-visible:ring-2 focus-visible:ring-primary"
             >
               <Avatar>
-                <AvatarFallback>{initials || '?'}</AvatarFallback>
+                {avatarUrl ? <AvatarImage src={avatarUrl} /> : <AvatarFallback>{initials || '?'}</AvatarFallback>}
               </Avatar>
             </button>
           </DropdownMenuTrigger>

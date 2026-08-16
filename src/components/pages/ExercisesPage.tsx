@@ -1,16 +1,70 @@
 import { useState } from 'react';
-import { ArrowUpDown, BicepsFlexed, Plus, Settings2 } from 'lucide-react';
+import { ArrowUpDown, BicepsFlexed, Check, Plus, Settings2 } from 'lucide-react';
 import { Badge } from '@/components/ui/shadcn/badge';
+import { Popover, PopoverTrigger, PopoverContent } from '@/components/ui/shadcn/popover';
 import { useProfile } from '@/components/layout/AppShell';
 import { useExercises } from '@/hooks/useExercises';
 import NewExerciseDialog from '@/components/exercises/NewExerciseDialog';
 
-const columns = ['Name', 'Category', 'Primary muscles', 'Equipment'];
+type ColumnKey = 'category' | 'muscles' | 'equipment';
+
+const TOGGLE_COLUMNS: { key: ColumnKey; label: string }[] = [
+  { key: 'category', label: 'Category' },
+  { key: 'muscles', label: 'Primary muscles' },
+  { key: 'equipment', label: 'Equipment' },
+];
+
+function ViewMenu({ visible, onToggle }: { visible: Set<ColumnKey>; onToggle: (key: ColumnKey) => void }) {
+  return (
+    <Popover>
+      <PopoverTrigger asChild>
+        <button
+          type="button"
+          className="flex items-center gap-1.5 h-10 px-3 rounded-lg border border-border text-sm text-foreground hover:bg-surface transition-colors"
+        >
+          <Settings2 size={14} /> View
+        </button>
+      </PopoverTrigger>
+      <PopoverContent align="end" className="w-52 p-1">
+        <p className="text-[11px] font-semibold uppercase tracking-wide text-muted-foreground px-2 py-1.5">
+          Toggle columns
+        </p>
+        {TOGGLE_COLUMNS.map((c) => (
+          <button
+            key={c.key}
+            type="button"
+            onClick={() => onToggle(c.key)}
+            className="flex items-center gap-2 w-full px-2 py-1.5 rounded-md text-sm text-foreground hover:bg-muted transition-colors"
+          >
+            <span className={`w-4 shrink-0 ${visible.has(c.key) ? 'text-primary' : 'text-transparent'}`}>
+              <Check size={14} />
+            </span>
+            {c.label}
+          </button>
+        ))}
+      </PopoverContent>
+    </Popover>
+  );
+}
 
 export default function ExercisesPage() {
   const profile = useProfile();
   const { exercises, isLoading, error, createExercise } = useExercises(profile.id);
   const [open, setOpen] = useState(false);
+  const [visibleColumns, setVisibleColumns] = useState<Set<ColumnKey>>(
+    new Set(TOGGLE_COLUMNS.map((c) => c.key)),
+  );
+
+  const toggleColumn = (key: ColumnKey) =>
+    setVisibleColumns((prev) => {
+      const next = new Set(prev);
+      if (next.has(key)) next.delete(key);
+      else next.add(key);
+      return next;
+    });
+
+  const activeColumns = TOGGLE_COLUMNS.filter((c) => visibleColumns.has(c.key));
+  const gridStyle = { gridTemplateColumns: `repeat(${1 + activeColumns.length}, minmax(0,1fr))` };
 
   return (
     <div className="p-6 flex flex-col gap-4">
@@ -24,19 +78,18 @@ export default function ExercisesPage() {
           >
             <Plus size={14} /> New Exercise
           </button>
-          <button className="flex items-center gap-1.5 h-10 px-3 rounded-lg border border-border text-sm text-foreground hover:bg-surface transition-colors">
-            <Settings2 size={14} /> View
-          </button>
+          <ViewMenu visible={visibleColumns} onToggle={toggleColumn} />
         </div>
       </div>
 
       {error && <p className="text-sm text-danger">Could not load exercises: {error}</p>}
 
       <div className="rounded-xl border border-border bg-card overflow-hidden">
-        <div className="grid grid-cols-4 gap-4 px-4 py-3 border-b border-border text-xs font-semibold text-muted-foreground">
-          {columns.map((c) => (
-            <span key={c} className="flex items-center gap-1">
-              {c} <ArrowUpDown size={12} />
+        <div className="grid gap-4 px-4 py-3 border-b border-border text-xs font-semibold text-muted-foreground" style={gridStyle}>
+          <span className="flex items-center gap-1">Name <ArrowUpDown size={12} /></span>
+          {activeColumns.map((c) => (
+            <span key={c.key} className="flex items-center gap-1">
+              {c.label} <ArrowUpDown size={12} />
             </span>
           ))}
         </div>
@@ -65,25 +118,31 @@ export default function ExercisesPage() {
         ) : (
           <div className="divide-y divide-border">
             {exercises.map((ex) => (
-              <div key={ex.id} className="grid grid-cols-4 gap-4 px-4 py-3 text-sm items-center">
+              <div key={ex.id} className="grid gap-4 px-4 py-3 text-sm items-center" style={gridStyle}>
                 <span className="text-foreground font-medium">{ex.name}</span>
-                <span className="text-muted-foreground">{ex.category ?? '—'}</span>
-                <div className="flex flex-wrap gap-1">
-                  {ex.muscles.filter((m) => m.role === 'primary').length === 0 ? (
-                    <span className="text-muted-foreground">—</span>
-                  ) : (
-                    ex.muscles
-                      .filter((m) => m.role === 'primary')
-                      .map((m) => (
-                        <Badge key={m.id} variant="success" className="text-[10px]">
-                          {m.name}
-                        </Badge>
-                      ))
-                  )}
-                </div>
-                <span className="text-muted-foreground truncate">
-                  {ex.equipment_tags.length > 0 ? ex.equipment_tags.join(', ') : '—'}
-                </span>
+                {visibleColumns.has('category') && (
+                  <span className="text-muted-foreground">{ex.category ?? '—'}</span>
+                )}
+                {visibleColumns.has('muscles') && (
+                  <div className="flex flex-wrap gap-1">
+                    {ex.muscles.filter((m) => m.role === 'primary').length === 0 ? (
+                      <span className="text-muted-foreground">—</span>
+                    ) : (
+                      ex.muscles
+                        .filter((m) => m.role === 'primary')
+                        .map((m) => (
+                          <Badge key={m.id} variant="success" className="text-[10px]">
+                            {m.name}
+                          </Badge>
+                        ))
+                    )}
+                  </div>
+                )}
+                {visibleColumns.has('equipment') && (
+                  <span className="text-muted-foreground truncate">
+                    {ex.equipment_tags.length > 0 ? ex.equipment_tags.join(', ') : '—'}
+                  </span>
+                )}
               </div>
             ))}
           </div>

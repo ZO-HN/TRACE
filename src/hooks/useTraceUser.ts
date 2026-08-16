@@ -29,6 +29,7 @@ export interface TraceProfile {
   biological_sex: string | null;
   phone: string | null;
   username: string | null;
+  avatar_key: string | null;
   experience_level: ExperienceTier;
   primary_goal: string | null;
   injury_notes: string | null;

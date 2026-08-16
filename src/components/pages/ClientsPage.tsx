@@ -20,6 +20,7 @@ import { useCoachRoster } from '@/hooks/useCoachRoster';
 import { buildServerInviteUrl } from '@/config/onboardingScreens';
 import { useInviteLink } from '@/hooks/useInviteLink';
 import { useToast } from '@/components/ui/toast';
+import { downloadCsv } from '@/lib/csv';
 
 const statusOptions = ['Active', 'Trial', 'Archived', 'Deactivated'];
 
@@ -39,19 +40,6 @@ const TOGGLE_COLUMNS: { key: ColumnKey; label: string }[] = [
 // intended design) but always renders "—" rather than a fabricated number;
 // off by default for the same reason.
 const DEFAULT_VISIBLE_COLUMNS: ColumnKey[] = ['status', 'tags', 'attention', 'lastActivity', 'createdAt'];
-
-function downloadCsv(filename: string, rows: string[][]) {
-  const csv = rows.map((r) => r.map((cell) => `"${cell.replace(/"/g, '""')}"`).join(',')).join('\r\n');
-  const blob = new Blob([csv], { type: 'text/csv;charset=utf-8;' });
-  const url = URL.createObjectURL(blob);
-  const a = document.createElement('a');
-  a.href = url;
-  a.download = filename;
-  document.body.appendChild(a);
-  a.click();
-  a.remove();
-  URL.revokeObjectURL(url);
-}
 
 function ViewMenu({ visible, onToggle }: { visible: Set<ColumnKey>; onToggle: (key: ColumnKey) => void }) {
   return (

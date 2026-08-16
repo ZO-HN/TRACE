@@ -1,5 +1,5 @@
 import { useState } from 'react';
-import { Apple, ChefHat, Plus, Trash2 } from 'lucide-react';
+import { Apple, Check, ChefHat, Download, Plus, Settings2, Trash2 } from 'lucide-react';
 import { Badge } from '@/components/ui/shadcn/badge';
 import {
   Dialog,
@@ -8,9 +8,52 @@ import {
   DialogTitle,
 } from '@/components/ui/shadcn/dialog';
 import { Label, Input, Textarea } from '@/components/ui/shadcn/field';
+import { Popover, PopoverTrigger, PopoverContent } from '@/components/ui/shadcn/popover';
 import { useProfile } from '@/components/layout/AppShell';
 import { useFoods } from '@/hooks/useFoods';
 import { useToast } from '@/components/ui/toast';
+import { downloadCsv } from '@/lib/csv';
+
+type ColumnKey = 'serving' | 'macros' | 'recipe';
+
+const TOGGLE_COLUMNS: { key: ColumnKey; label: string }[] = [
+  { key: 'serving', label: 'Serving & calories' },
+  { key: 'macros', label: 'Macros' },
+  { key: 'recipe', label: 'Recipe badge' },
+];
+
+function ViewMenu({ visible, onToggle }: { visible: Set<ColumnKey>; onToggle: (key: ColumnKey) => void }) {
+  return (
+    <Popover>
+      <PopoverTrigger asChild>
+        <button
+          type="button"
+          className="flex items-center gap-1.5 h-10 px-3 rounded-lg border border-border text-sm text-foreground hover:bg-surface transition-colors"
+        >
+          <Settings2 size={14} /> View
+        </button>
+      </PopoverTrigger>
+      <PopoverContent align="end" className="w-56 p-1">
+        <p className="text-[11px] font-semibold uppercase tracking-wide text-muted-foreground px-2 py-1.5">
+          Toggle fields shown
+        </p>
+        {TOGGLE_COLUMNS.map((c) => (
+          <button
+            key={c.key}
+            type="button"
+            onClick={() => onToggle(c.key)}
+            className="flex items-center gap-2 w-full px-2 py-1.5 rounded-md text-sm text-foreground hover:bg-muted transition-colors"
+          >
+            <span className={`w-4 shrink-0 ${visible.has(c.key) ? 'text-primary' : 'text-transparent'}`}>
+              <Check size={14} />
+            </span>
+            {c.label}
+          </button>
+        ))}
+      </PopoverContent>
+    </Popover>
+  );
+}
 
 function NewFoodDialog({
   open,
@@ -142,11 +185,39 @@ export default function FoodsPage() {
   const { foods, isLoading, error, createFood, deleteFood } = useFoods(profile.id);
   const { toast } = useToast();
   const [open, setOpen] = useState(false);
+  const [visibleColumns, setVisibleColumns] = useState<Set<ColumnKey>>(
+    new Set(TOGGLE_COLUMNS.map((c) => c.key)),
+  );
+
+  const toggleColumn = (key: ColumnKey) =>
+    setVisibleColumns((prev) => {
+      const next = new Set(prev);
+      if (next.has(key)) next.delete(key);
+      else next.add(key);
+      return next;
+    });
 
   const handleCreate: typeof createFood = async (input) => {
     const result = await createFood(input);
     if (!result.error) toast('Food added.');
     return result;
+  };
+
+  const handleExport = () => {
+    const rows = [
+      ['Name', 'Serving size', 'Calories', 'Protein (g)', 'Carbs (g)', 'Fat (g)', 'Has recipe'],
+      ...foods.map((f) => [
+        f.name,
+        f.serving_size ?? '',
+        f.calories != null ? String(f.calories) : '',
+        f.protein_g != null ? String(f.protein_g) : '',
+        f.carbs_g != null ? String(f.carbs_g) : '',
+        f.fat_g != null ? String(f.fat_g) : '',
+        f.recipe ? 'Yes' : 'No',
+      ]),
+    ];
+    downloadCsv(`foods-${new Date().toISOString().slice(0, 10)}.csv`, rows);
+    toast(`Exported ${foods.length} food${foods.length === 1 ? '' : 's'}.`);
   };
 
   return (
@@ -158,13 +229,24 @@ export default function FoodsPage() {
             Your food library — any food can optionally include a recipe.
           </p>
         </div>
-        <button
-          type="button"
-          onClick={() => setOpen(true)}
-          className="flex items-center gap-1.5 h-10 px-4 rounded-lg bg-success text-white text-sm font-semibold hover:opacity-90 transition-opacity"
-        >
-          <Plus size={14} /> New Food
-        </button>
+        <div className="flex items-center gap-2">
+          <button
+            type="button"
+            disabled={foods.length === 0}
+            onClick={handleExport}
+            className="flex items-center gap-1.5 h-10 px-3 rounded-lg border border-border text-sm text-foreground hover:bg-surface transition-colors disabled:opacity-40"
+          >
+            <Download size={14} /> Export
+          </button>
+          <ViewMenu visible={visibleColumns} onToggle={toggleColumn} />
+          <button
+            type="button"
+            onClick={() => setOpen(true)}
+            className="flex items-center gap-1.5 h-10 px-4 rounded-lg bg-success text-white text-sm font-semibold hover:opacity-90 transition-opacity"
+          >
+            <Plus size={14} /> New Food
+          </button>
+        </div>
       </div>
 
       {error && <p className="text-sm text-danger">Could not load foods: {error}</p>}
@@ -198,13 +280,17 @@ export default function FoodsPage() {
                   <Trash2 size={13} />
                 </button>
               </div>
-              <p className="text-xs text-muted-foreground">
-                {f.serving_size ?? '—'} {f.calories != null && `· ${f.calories} kcal`}
-              </p>
-              <p className="text-xs text-muted-foreground">
-                {f.protein_g ?? 0}g P · {f.carbs_g ?? 0}g C · {f.fat_g ?? 0}g F
-              </p>
-              {f.recipe && <Badge variant="outline">Has recipe</Badge>}
+              {visibleColumns.has('serving') && (
+                <p className="text-xs text-muted-foreground">
+                  {f.serving_size ?? '—'} {f.calories != null && `· ${f.calories} kcal`}
+                </p>
+              )}
+              {visibleColumns.has('macros') && (
+                <p className="text-xs text-muted-foreground">
+                  {f.protein_g ?? 0}g P · {f.carbs_g ?? 0}g C · {f.fat_g ?? 0}g F
+                </p>
+              )}
+              {visibleColumns.has('recipe') && f.recipe && <Badge variant="outline">Has recipe</Badge>}
             </div>
           ))}
         </div>

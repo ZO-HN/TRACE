@@ -27,6 +27,7 @@ import { cn } from '@/lib/utils';
 import { useToast } from '@/components/ui/toast';
 import { useCoachAllowlist } from '@/hooks/useCoachAllowlist';
 import { useProfileForm, HEIGHT_OPTIONS, BIOLOGICAL_SEX_OPTIONS, type ProfileForm } from '@/hooks/useProfileForm';
+import { useMediaUrl } from '@/hooks/useMediaUrl';
 import {
   DEFAULT_ONBOARDING_SCREENS,
   buildInviteLink,
@@ -144,10 +145,42 @@ function ProfileTab({ form }: { form: ProfileForm }) {
   const { toast } = useToast();
   const initials = `${profile.first_name?.[0] ?? ''}${profile.last_name?.[0] ?? ''}`.toUpperCase();
   const [deleteDialogOpen, setDeleteDialogOpen] = useState(false);
+  const { url: avatarUrl } = useMediaUrl(form.avatarKey);
 
   const handleSaveAll = async () => {
     const { error } = await form.saveAll();
     if (!error) toast('Successfully updated profile settings.');
+  };
+
+  const handleSaveAttributes = async () => {
+    const { error } = await form.saveAttributes();
+    if (!error) toast('Successfully updated profile settings.');
+  };
+
+  const handleSavePersonal = async () => {
+    const { error } = await form.savePersonal();
+    if (!error) toast('Successfully updated profile settings.');
+  };
+
+  const handleSaveSex = async () => {
+    const { error } = await form.saveSex();
+    if (!error) toast('Successfully updated profile settings.');
+  };
+
+  const handleSaveContact = async () => {
+    const { error } = await form.saveContact();
+    if (!error) toast('Successfully updated profile settings.');
+  };
+
+  const handleSaveUsername = async () => {
+    const { error } = await form.saveUsername();
+    if (!error) toast('Successfully updated profile settings.');
+  };
+
+  const handleAvatarPick = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (file) void form.uploadAvatar(file);
+    e.target.value = '';
   };
 
   return (
@@ -176,6 +209,17 @@ function ProfileTab({ form }: { form: ProfileForm }) {
               <p className="text-xs text-muted-foreground">Your date of birth is used to calculate your age.</p>
             </div>
           </div>
+          {form.attributesError && <p className="text-xs text-danger">{form.attributesError}</p>}
+          <div className="flex items-center justify-between">
+            <p className="text-xs text-muted-foreground">May be used within team data by coaches.</p>
+            <button
+              disabled={!form.attributesDirty || form.attributesSaving}
+              onClick={() => void handleSaveAttributes()}
+              className="h-9 px-4 rounded-lg bg-success text-white text-sm font-semibold hover:opacity-90 transition-opacity disabled:opacity-50"
+            >
+              {form.attributesSaving ? 'Saving...' : 'Save'}
+            </button>
+          </div>
         </CardContent>
       </Card>
 
@@ -187,7 +231,7 @@ function ProfileTab({ form }: { form: ProfileForm }) {
           <p className="text-xs text-muted-foreground -mt-2">Update your personal information.</p>
           <div className="flex items-center gap-3">
             <Avatar className="size-12">
-              {form.avatarUrl ? <AvatarImage src={form.avatarUrl} /> : <AvatarFallback className="text-sm">{initials || '?'}</AvatarFallback>}
+              {avatarUrl ? <AvatarImage src={avatarUrl} /> : <AvatarFallback className="text-sm">{initials || '?'}</AvatarFallback>}
             </Avatar>
             <div>
               <p className="text-sm font-semibold text-foreground">
@@ -214,6 +258,17 @@ function ProfileTab({ form }: { form: ProfileForm }) {
               onChange={(e) => form.setBio(e.target.value)}
             />
           </div>
+          {form.personalError && <p className="text-xs text-danger">{form.personalError}</p>}
+          <div className="flex items-center justify-between">
+            <p className="text-xs text-muted-foreground">Personal information.</p>
+            <button
+              disabled={!form.personalDirty || form.personalSaving}
+              onClick={() => void handleSavePersonal()}
+              className="h-9 px-4 rounded-lg bg-success text-white text-sm font-semibold hover:opacity-90 transition-opacity disabled:opacity-50"
+            >
+              {form.personalSaving ? 'Saving...' : 'Save'}
+            </button>
+          </div>
         </CardContent>
       </Card>
 
@@ -227,7 +282,17 @@ function ProfileTab({ form }: { form: ProfileForm }) {
               <option key={g}>{g}</option>
             ))}
           </Select>
-          <p className="text-xs text-muted-foreground">Workout suggestions may be based on this.</p>
+          {form.sexError && <p className="text-xs text-danger">{form.sexError}</p>}
+          <div className="flex items-center justify-between">
+            <p className="text-xs text-muted-foreground">Workout suggestions may be based on this.</p>
+            <button
+              disabled={!form.sexDirty || form.sexSaving}
+              onClick={() => void handleSaveSex()}
+              className="h-9 px-4 rounded-lg bg-success text-white text-sm font-semibold hover:opacity-90 transition-opacity disabled:opacity-50"
+            >
+              {form.sexSaving ? 'Saving...' : 'Save'}
+            </button>
+          </div>
         </CardContent>
       </Card>
 
@@ -247,7 +312,17 @@ function ProfileTab({ form }: { form: ProfileForm }) {
               <Input defaultValue={profile.email} disabled />
             </div>
           </div>
-          <p className="text-xs text-muted-foreground">Your email is used for login and notifications.</p>
+          {form.contactError && <p className="text-xs text-danger">{form.contactError}</p>}
+          <div className="flex items-center justify-between">
+            <p className="text-xs text-muted-foreground">Your email is used for login and notifications.</p>
+            <button
+              disabled={!form.contactDirty || form.contactSaving}
+              onClick={() => void handleSaveContact()}
+              className="h-9 px-4 rounded-lg bg-success text-white text-sm font-semibold hover:opacity-90 transition-opacity disabled:opacity-50"
+            >
+              {form.contactSaving ? 'Saving...' : 'Save'}
+            </button>
+          </div>
         </CardContent>
       </Card>
 
@@ -258,9 +333,19 @@ function ProfileTab({ form }: { form: ProfileForm }) {
         <CardContent className="pt-0 flex flex-col gap-4">
           <p className="text-xs text-muted-foreground -mt-2">This is your username within TRACE. It must be unique.</p>
           <Input value={form.username} onChange={(e) => form.setUsername(e.target.value)} />
-          <p className="text-xs text-muted-foreground">
-            Usernames connect you to other users on <strong className="text-foreground">TRACE</strong>.
-          </p>
+          {form.usernameError && <p className="text-xs text-danger">{form.usernameError}</p>}
+          <div className="flex items-center justify-between">
+            <p className="text-xs text-muted-foreground">
+              Usernames connect you to other users on <strong className="text-foreground">TRACE</strong>.
+            </p>
+            <button
+              disabled={!form.usernameDirty || !form.username.trim() || form.usernameSaving}
+              onClick={() => void handleSaveUsername()}
+              className="h-9 px-4 rounded-lg bg-success text-white text-sm font-semibold hover:opacity-90 transition-opacity disabled:opacity-50"
+            >
+              {form.usernameSaving ? 'Saving...' : 'Save'}
+            </button>
+          </div>
         </CardContent>
       </Card>
 
@@ -274,22 +359,25 @@ function ProfileTab({ form }: { form: ProfileForm }) {
               <p className="text-xs text-muted-foreground">This is your profile's avatar.</p>
               <p className="text-xs text-muted-foreground">Click on the avatar to upload a custom one from your files.</p>
             </div>
-            <label className="cursor-pointer shrink-0">
+            <label className={cn('shrink-0', form.avatarUploading ? 'cursor-wait' : 'cursor-pointer')}>
               <Avatar className="size-16 rounded-xl">
-                {form.avatarUrl ? (
-                  <AvatarImage src={form.avatarUrl} className="rounded-xl" />
+                {avatarUrl ? (
+                  <AvatarImage src={avatarUrl} className="rounded-xl" />
                 ) : (
                   <AvatarFallback className="text-lg rounded-xl">{initials || '?'}</AvatarFallback>
                 )}
               </Avatar>
-              <input type="file" accept="image/*" className="hidden" onChange={form.handleAvatarPick} />
+              <input
+                type="file"
+                accept="image/jpeg,image/png,image/webp"
+                className="hidden"
+                disabled={form.avatarUploading}
+                onChange={handleAvatarPick}
+              />
             </label>
           </div>
-          {form.avatarUrl && (
-            <p className="text-xs text-muted-foreground self-end">
-              Preview only — avatar upload isn't wired to storage yet, so this won't persist after you leave the page.
-            </p>
-          )}
+          {form.avatarUploading && <p className="text-xs text-muted-foreground self-end">Uploading...</p>}
+          {form.avatarError && <p className="text-xs text-danger self-end">{form.avatarError}</p>}
         </CardContent>
       </Card>
 
@@ -331,23 +419,23 @@ function ProfileTab({ form }: { form: ProfileForm }) {
         </DialogContent>
       </Dialog>
 
-      {form.isDirty && (
+      {form.showSaveAll && (
         <div className="fixed bottom-6 left-1/2 -translate-x-1/2 z-40 flex items-center gap-3 rounded-xl border border-border bg-card shadow-lg px-4 py-3">
-          <span className="text-sm text-foreground">You have unsaved changes.</span>
-          {form.error && <span className="text-xs text-danger">{form.error}</span>}
+          <span className="text-sm text-foreground">{form.dirtyCount} fields changed.</span>
+          {form.saveAllError && <span className="text-xs text-danger">{form.saveAllError}</span>}
           <button
             onClick={form.discard}
-            disabled={form.saving}
+            disabled={form.saveAllSaving}
             className="h-9 px-3 rounded-lg border border-border text-sm font-medium text-foreground hover:bg-surface transition-colors disabled:opacity-50"
           >
             Discard
           </button>
           <button
             onClick={() => void handleSaveAll()}
-            disabled={form.saving}
+            disabled={form.saveAllSaving}
             className="h-9 px-4 rounded-lg bg-success text-white text-sm font-semibold hover:opacity-90 transition-opacity disabled:opacity-50"
           >
-            {form.saving ? 'Saving...' : 'Save all changes'}
+            {form.saveAllSaving ? 'Saving...' : 'Save all changes'}
           </button>
         </div>
       )}
@@ -1034,7 +1122,7 @@ export default function SettingsPage() {
       <UnsavedChangesDialog
         open={dialogOpen}
         onOpenChange={(open) => !open && handleDialogClose()}
-        saving={form.saving}
+        saving={form.saveAllSaving}
         onSave={() => void handleDialogSave()}
         onDiscard={handleDialogDiscard}
       />
