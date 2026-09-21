@@ -6,15 +6,15 @@ Central index for all TRACE architecture, product, audit, and specification docu
 
 | Document | Type | Purpose |
 | --- | --- | --- |
-| [architecture](trace_architecture.md) | Reference | Technical architecture — responsive partitioning, the coach page builder, offline sync, and the RAG pipeline. |
+| [architecture](trace_architecture.md) | Reference | Current two-app architecture, ownership, offline sync and shared contracts. |
 | [features](trace_features.md) | Reference | Product-level view of what each role can do and the core UX features. |
 | [audit](audit.md) | Assessment | Current implementation-vs-spec gap analysis and the executive technical recommendations to reach a fully functional build. |
 | [specs/offline-sync-outbox](specs/offline-sync-outbox.md) | Spec | Offline session-logging outbox that flushes to Supabase on reconnect. |
 | [adr/0001-media-storage](adr/0001-media-storage.md) | Decision | Hybrid storage: Supabase for data, Cloudflare R2 for heavy media. |
 | [provisioning](provisioning.md) | Runbook | One-shot backend setup: migrations, seed, edge functions, secrets. |
 | [client-app-contract-check-ins-exercises](client-app-contract-check-ins-exercises.md) | Contract | What `TRACE-client` must do to submit check-ins and read the exercise library this dashboard authors. |
-| [qa-testing-cross-repo](qa-testing-cross-repo.md) | Runbook | End-to-end test flows for exercising both `TRACE` and `TRACE-client` together, plus the full write-direction contract table. |
-| [trace-app-open-items](trace-app-open-items.md) | Handoff | Backend/schema already built here that `TRACE-client` needs to pick up or confirm it uses — periodized programs, coach-claim RPCs, solo analytics, orphaned tables. |
+| [qa-testing-cross-repo](qa-testing-cross-repo.md) | Runbook | End-to-end test flows for exercising both `TRACE` and `TRACE-client` together, including offline recovery and account isolation. |
+| [trace-app-open-items](trace-app-open-items.md) | Handoff | Coordinated migration/app rollout order and remaining operational checks. |
 | [deployment](deployment.md) | Runbook | Frontend build + static hosting + pre/post-deploy checklist. |
 
 ## Reading order

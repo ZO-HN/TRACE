@@ -1,0 +1,39 @@
+name: Cross-app reliability
+on:
+  push:
+  pull_request:
+  workflow_dispatch:
+    inputs:
+      companion_ref:
+        description: Matching companion repository branch or commit
+        default: master
+        required: false
+permissions:
+  contents: read
+jobs:
+  contracts:
+    runs-on: ubuntu-latest
+    env:
+      TRACE_CLIENT_PATH: ${{ github.workspace }}/TRACE-client
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          path: TRACE
+      - uses: actions/checkout@v4
+        with:
+          repository: ZO-HN/TRACE-app
+          ref: ${{ inputs.companion_ref || 'master' }}
+          path: TRACE-client
+          token: ${{ secrets.CROSS_REPO_READ_TOKEN || github.token }}
+          persist-credentials: false
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '24'
+      - run: npm ci
+        working-directory: TRACE
+      - run: npm ci
+        working-directory: TRACE-client
+      - run: npm test && npm run lint && npm run build && npm run test:db && npm run db:types:check && npm run test:contracts
+        working-directory: TRACE
+      - run: npm test && npm run typecheck
+        working-directory: TRACE-client

@@ -179,3 +179,7 @@ Issues and PRs welcome. Run `npm run test && npm run lint && npm run build` befo
 ## License
 
 [MIT](LICENSE).
+
+## Cross-app verification
+
+With the client in `../TRACE-client` (or `TRACE_CLIENT_PATH`), run `npm run test:db`, `npm run test:contracts`, and `npm run db:types:check`. Use `npm run db:types` after schema changes to regenerate both apps’ database types. SQL tests use disposable PostgreSQL/PGlite without production credentials; device/transport QA remains separate. See [rollout](docs/trace-app-open-items.md).

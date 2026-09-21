@@ -1,229 +1,48 @@
-# TRACE — Platform Architecture
+# TRACE architecture
 
-This document defines the screen partitions, state patterns, and custom algorithmic pipelines that govern the single-app, dual-role TRACE ecosystem. For a product-level view of what each role can do, see the [Feature Catalog](trace_features.md).
+TRACE is a coach-first platform with two independently shipped apps and one Supabase backend.
+This document describes the implementation, not a future single-app design.
 
-> **Scope note:** this is a target-architecture spec, not a description of the current build — see [Implementation Audit](audit.md) for what's actually running today. Two corrections from the original draft: the frontend is **Vite + React + react-router**, not Next.js (there's no `next` dependency anywhere in this codebase, and dynamic routing is client-side); and the "single-app, dual-role" framing below predates a repo split — the coach dashboard (`TRACE`) and the trainee mobile app (`TRACE-client`, Expo/React Native) are two independent codebases sharing one Supabase backend, not one app that reshapes itself per role/viewport as described here.
-
----
-
-## 1. Frontend View Division & Responsive Layouts
-
-TRACE uses a single, unified codebase that dynamically transforms based on screen size (device break criteria) and profile metadata retrieved during the authentication lifecycle.
-
-```text
-                      ┌─────────────────────────────────────────┐
-                      │        TRACE App Launch & Auth          │
-                      └────────────────────┬────────────────────┘
-                                           │
-                                           ▼
-                            ┌─────────────────────────────┐
-                            │ Dynamic Platform Partition  │
-                            └──────────────┬──────────────┘
-                                           │
-                ┌──────────────────────────┴──────────────────────────┐
-                ▼                                                     ▼
-    [ Viewport Size Check ]                                 [ Access Level Routing ]
-  ┌───────────────────────────────┐                       ┌──────────────────────────┐
-  │ • Desktop View (lg Break)     │                       │ • Coach Panel: Read/Write│
-  │ • Mobile/PWA View             │                       │ • Coached: Sync Logs     │
-  └───────────────────────────────┘                       │ • Solo: Template Logs    │
-                                                          └──────────────────────────┘
+```mermaid
+flowchart LR
+  Coach[TRACE: React and Vite] --> Backend[Supabase: Auth, Postgres, RLS, Realtime]
+  Mobile[TRACE-client: Expo and React Native] --> Backend
+  Mobile --> Queue[SQLite outbox and Zustand mirror]
+  Queue --> Backend
+  Coach --> Edge[Supabase Edge Functions]
+  Mobile --> Edge
+  Edge --> Media[Cloudflare R2]
 ```
 
-### 1.A. Screen Size Split
+## Ownership and access
 
-The viewport split optimizes the application layout to prevent clutter on mobile screens while utilizing expanded real estate on desktop systems.
+- **TRACE** owns the coach dashboard, public coach pages, onboarding wizard, all canonical SQL migrations and Edge Functions.
+- **TRACE-client** (GitHub: `ZO-HN/TRACE-app`) owns trainee screens, local logging and device integrations. A trainee must select a coach before entering the app; coach accounts are blocked.
+- Both apps use public Supabase configuration and independent auth sessions. PostgreSQL RLS and narrowly scoped RPCs enforce access. Profile role, platform-admin status and coach linkage cannot be edited through normal profile updates.
+- `programs` is the coach-owned catalog. `workout_programs`, `program_days` and `program_enrollments` are trainee-owned personal plans. They are separate models.
 
-**Desktop View** — Deep Work (viewport width ≥ 1024px):
+## Main flows
 
-- **Macrocycle Grid Workspace** — Optimized multi-pane spreadsheets mapped for desktop operations. Allows rapid population of workout schedules and progressions.
-- **Interactive Roster Telemetry Dashboard** — Aggregated data view detailing client workout compliance, baseline biometrics tracking, and visual stress markers.
-- **Flexible Page Layout Editor** — WYSIWYG profile builder interface allowing coaches to update their serverless landing pages with live preview tracking.
+1. A coach authors `workout_templates` / `template_items` and assigns a template to a trainee. Mobile downloads real exercise IDs and caches content by account and selection. Explicitly selected missing templates produce an unavailable state, never another workout or demo exercises.
+2. Mobile persists session snapshots, set logs and nutrition entries in SQLite before showing success. A single sync worker sends only the signed-in trainee's queue, parents before sets. Session snapshots use `sync_workout_session`; sets and nutrition use UUID upserts.
+3. Check-ins include a due date (`scheduled_for`). The server stamps the coach and verifies template ownership; coach-only review fields flow back to the trainee. Form videos upload through R2 presigned URLs and are reviewed through `form_checks`.
+4. Steps are daily `wearable_biometrics.step_count` values. Cardio is recorded only in `cardio_entries`; `get_coach_cardio_summary` aggregates these entries. The dashboard refreshes when focused and every 30 seconds while visible. Cardio session count means entry count; legacy cardio-typed strength-session rows are not added again.
+5. Program sharing uses `join_program_by_token`. Shared rows are not enumerable by other authenticated users. The RPC validates the token and the source owner's access, then transactionally clones templates/items and days into a private recipient-owned copy. Rest days and repeated template references are preserved.
 
-**Mobile & PWA View** — On-The-Go Gym Floor (viewport width < 1024px):
+## Offline behavior
 
-- **Frictionless Lift Logger** — Touch targets, numerical keyboards, and sliding set selectors designed for high-stress training environments.
-- **In-App Messaging & Notifications** — Integrated messaging workspace with immediate audio alerts and push tracking.
-- **Embedded WebRTC Call Container** — Compact call viewport utilizing the open Jitsi core to connect coaches and clients instantly on-device.
+SQLite is the durable source; Zustand is its UI mirror. Startup recovers interrupted deliveries. Online enqueue, authentication, network changes and app resume trigger delivery. Failed requests back off (1, 2, 4, 8 seconds), stopping after five failures until manual retry. A persistent banner displays pending/failed work. Account switches retain each account's queue without sending it under another account's token. Revision checks prevent an older response from acknowledging newer queued data.
 
-### 1.B. Access Level Matrix
+Downloaded profiles and workout content are account-scoped. They support offline reopening for a previously signed-in trainee; database permissions are rechecked on delivery. First use of a workout requires a connection. Cardio, check-ins, steps and media upload remain online operations. This is not a background OS service: delivery runs while the app is active. See [offline delivery](specs/offline-sync-outbox.md).
 
-Dynamic application boundaries lock or expose views to keep users in their context and prevent platform leakage.
+## Schema, types and verification
 
-```text
-                             [ Dynamic Permission Gate ]
-                                          │
-        ┌─────────────────────────────────┼─────────────────────────────────┐
-        ▼                                 ▼                                 ▼
-   [ Role: Coach ]               [ Role: Coached Trainee ]          [ Role: Solo Trainee ]
-```
+`supabase/migrations` in TRACE is the only migration source. Client migration drafts are historical; do not apply them separately. The September 2026 reconciliation retains tables/data previously installed from those drafts.
 
-| Capability | Coach | Coached Trainee | Solo Trainee |
-| --- | --- | --- | --- |
-| Workout plans | Write plans | Read assigned plans | Load public templates |
-| Video calling | Launch video call | Join incoming call | Hidden |
-| Chat | Full roster insights | 1-on-1 chat interface | Hidden |
-| Logging | — | — | Basic weight logs only |
+`npm run db:types` replays the canonical migrations in disposable PostgreSQL (PGlite), introspects tables/enums/functions, and generates matching `src/lib/database.types.ts` files in both sibling checkouts. `TRACE_CLIENT_PATH` overrides the client location. These types drive the outbox insert types and cardio RPC return type.
 
-**Profile modes:**
+`npm run test:db` executes real SQL/RLS tests using a minimal Supabase auth fixture. `npm run test:contracts` verifies literal table/RPC references in both apps. `npm run db:types:check` detects schema/type drift. PGlite does not emulate GoTrue, PostgREST, Realtime transport, Expo or R2; staging/device QA remains required.
 
-- **Coach Profile Mode** — Displays full program builders, client rosters, diagnostic feedback interfaces, active video-calling launchers, and marketplace visibility configs.
-- **Coached Trainee Profile Mode** (active `coach_id`) — Restricts program modification. Replaces template builders with custom schedules published by their coach. Exposes media upload channels and live chat components.
-- **Solo Trainee Profile Mode** (`coach_id` is `NULL`) — Restricts access to coaches. Enables workout builders for logging generic workouts or accessing baseline templates. Completely hides chat systems and WebRTC call features to prevent resource waste.
+## Deliberately separate or deferred
 
----
-
-## 2. Serverless Page Builder Architecture
-
-To enable zero-budget operations, TRACE uses a serverless dynamic page model for coach profiles, bypassing static builds and avoiding redeployment fees.
-
-```text
-                    [ Request: app.com/coach-alpha ]
-                                  │
-                                  ▼
-                [ react-router Dynamic Route: /:slug ]
-                                  │
-                                  ▼
-           [ Fetch Row from Supabase: slug = 'coach-alpha' ]
-                                  │
-                                  ▼
-             [ Parse and Render layout_config JSON ]
-```
-
-(Implemented client-side, not server-rendered — see the scope note at the top of this document. `CoachPage.tsx` in the coach-dashboard repo is the current implementation.)
-
-### 2.A. Static Layout Configuration Schema
-
-A coach's page setup is stored as a single JSONB document inside the `landing_pages` table. The configuration schema is defined as:
-
-```json
-{
-  "$schema": "http://json-schema.org/draft-07/schema#",
-  "title": "LandingPageConfig",
-  "type": "object",
-  "required": ["theme", "hero", "links"],
-  "properties": {
-    "theme": {
-      "type": "object",
-      "required": ["primary", "surface", "font"],
-      "properties": {
-        "primary": { "type": "string", "pattern": "^#[0-9A-Fa-f]{6}$" },
-        "surface": { "type": "string", "pattern": "^#[0-9A-Fa-f]{6}$" },
-        "font": { "type": "string", "enum": ["Inter", "Montserrat", "Geist"] }
-      }
-    },
-    "hero": {
-      "type": "object",
-      "required": ["headline", "subheadline", "avatar"],
-      "properties": {
-        "headline": { "type": "string", "maxLength": 120 },
-        "subheadline": { "type": "string", "maxLength": 300 },
-        "avatar": { "type": "string", "format": "uri" }
-      }
-    },
-    "links": {
-      "type": "array",
-      "items": {
-        "type": "object",
-        "required": ["label", "url", "highlight"],
-        "properties": {
-          "label": { "type": "string", "maxLength": 50 },
-          "url": { "type": "string", "format": "uri" },
-          "highlight": { "type": "boolean" }
-        }
-      }
-    }
-  }
-}
-```
-
-### 2.B. Dynamic Component Rendering
-
-When users visit `trace.com/:slug`, react-router resolves the dynamic route parameter client-side, the page queries `landing_pages` for the matching slug, parses the JSON config, and mounts styled React blocks — no server-side rendering step.
-
----
-
-## 3. Sync & Client State Architecture
-
-TRACE utilizes a decoupled state sync mechanism to ensure reliable operation in offline environments like gym basements, while maintaining fast, high-throughput interfaces on desktop views.
-
-```text
-                      [ Log Session Offline ]
-                                 │
-                                 ▼
-                     ┌───────────────────────┐
-                     │  Zustand Local Store  │
-                     └───────────┬───────────┘
-                                 │
-                                 ▼
-                     ┌───────────────────────┐
-                     │ SQLite Local Cache DB │
-                     └───────────┬───────────┘
-                                 │
-                                 ▼
-                     ┌───────────────────────┐
-                     │ Outbox Sync Priority  │
-                     └───────────┬───────────┘
-                                 │
-                        [ Online Signal ]
-                                 │
-                                 ▼
-                     ┌───────────────────────┐
-                     │ Supabase Remote Sync  │
-                     └───────────────────────┘
-```
-
-- **Local Outbox Synchronization Queue** — Mobile apps store workout sessions locally within device memory caches (SQLite / Room / CoreData) when offline. Background queue services continuously check connectivity parameters; once active internet is confirmed, the queue initiates a sync operation with Supabase.
-- **Desktop Grid Optimization** — To prevent layout delay, sheet variables are isolated using lightweight memoization wrappers. Changes to single reps or weights resolve within isolated component nodes without refreshing the global program tree.
-- **SSE Wearable Monitoring** — Coach portals utilize Server-Sent Events (SSE) to display client wearable data updates in real-time, flashing alert status lines without page refreshes.
-
----
-
-## 4. RAG AI Fact-Checking & Token Compression Flow
-
-The TRACE Brain uses a localized prompt refiner alongside its RAG pipeline to ensure highly detailed, scientifically grounded responses with sub-second delivery times.
-
-```text
-                 [ User Prompt / Injury Flare ]
-                               │
-                               ▼
-            [ Calculate Vector via Embedding Model ]
-                               │
-                               ▼
-           [ Pinecone Semantic Document Fetch (Top 3) ]
-                               │
-                               ▼
-          ┌─────────────────────────────────────────┐
-          │      Asynchronous Token Refiner         │
-          │  • Run conditional perplexity logic     │
-          │  • Compress research text by ≥ 50%      │
-          │  • Budget allocations to < 800 tokens   │
-          └────────────────────┬────────────────────┘
-                               │
-                               ▼
-             [ Context-Packed Factual Response ]
-```
-
-### 4.A. Semantic Information Density Preservation
-
-Before passing research excerpts to the core LLM, the raw text is parsed using a local LLMLingua compression layer. The engine evaluates conditional perplexity across context strings: segments with low informational density are removed, while core numbers, variables, and clinical findings are retained.
-
-### 4.B. Context Sizing Algorithms
-
-To manage API latency and operational costs, the compression engine targets a minimum **50% Compression Ratio (CR)**:
-
-```text
-CR = (N_raw − N_compressed) / N_raw  ≥  0.50
-```
-
-The overall prompt composition budget ensures that citation tokens are strictly managed to optimize speed and efficiency:
-
-```text
-T_citations ≤ T_limit        (T_limit = 800 tokens)
-```
-
-Keeping citations within this budget yields significant resource savings and sub-second response times. The total dynamic token budget is calculated on the fly as follows:
-
-```text
-T_total = T_system + T_user + T_citations + T_response
-```
+The coach `trace-brain` Edge Function still returns a placeholder. Mobile AI uses a user-configured provider client; no shared RAG pipeline has been implemented. Native wearable ingestion, video calling, solo-mode expansion and new AI features are outside this reliability milestone.

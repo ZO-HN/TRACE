@@ -1,64 +1,29 @@
-# QA testing guide: TRACE coach dashboard + TRACE-client together
+# Cross-app reliability QA
 
-For when both repos are open in the same chat/session so the full trainee ↔ coach loop can be exercised end-to-end.
+Use two coaches (A/B) and one trainee for each, against the same staging backend. Allowlist coaches, sign in, and explicitly claim each coach through the mobile flow. There is no default-coach auto-enrollment. An already-linked web invite account should enter mobile without claiming again.
 
-Both apps hit the same Supabase project (`lfaxkrorjljdeefnafjb`) with independent sessions per device/app — RLS is what scopes visibility, not which app is open.
+## Automated checks
 
-## Form check exercise-name join — verified fine, no longer a risk
+From TRACE: `npm test`, `npm run lint`, `npm run build`, `npm run test:db`, `npm run db:types:check`, `npm run test:contracts`.
+From TRACE-client: `npm test`, `npm run typecheck`.
+The database suite replays canonical migrations, repeats reconciliation to verify preservation, and exercises actual PostgreSQL RLS. It covers assignments, repeated sessions, cardio, steps/nutrition, reviews and token-based copies. Client tests cover queue recovery/concurrency/ownership/cache failures. These tests are not device/transport validation.
 
-`src/hooks/useFormChecks.ts` (coach dashboard) queries `form_checks` with an embedded join:
-```ts
-.select('id, client_id, exercise_id, video_key, status, coach_notes, submitted_at, reviewed_at, client:profiles!form_checks_client_id_fkey(first_name,last_name), exercise:exercises(name)')
-```
-The `exercise:exercises(name)` embed relies on PostgREST auto-detecting the single FK from `form_checks.exercise_id` to `public.exercises(id)`. Confirmed correct — there's exactly one FK path between those two tables (checked directly against the live schema), so this resolves fine. Still worth a quick visual check the first time a real form check with a real `exercise_id` comes through, just to be sure.
+## Staging/device acceptance
 
-## Full write-direction contract reference
+| Flow | Actions and expected result |
+| --- | --- |
+| Assignment | Coach A assigns real exercises. Trainee A opens the exact template and targets. Trainee B cannot read it. An invalid selected template shows unavailable; an unassigned account sees an honest empty state. |
+| Offline cold start | Download the workout online. Enable airplane mode, reopen with an existing session, log sets, force quit, then reconnect/reopen. Saved queue entries survive and eventually appear once on the coach side. Never display demo exercises as an assignment. |
+| Continuous connectivity | Keep the phone online and log a set/nutrition entry. The pending banner drains without toggling the network or restarting. |
+| Delivery recovery | Interrupt a request after the server commits, before its response arrives. Restart; a retry preserves one session and one copy of each set. Simulate failure of the parent session: child sets remain saved without exhausting retries. |
+| Retry limit | Fail five attempts. The failed entry remains saved and visible. Restore connectivity and press Retry sync; it delivers once. |
+| Account switch | Queue A's records offline, sign into B and reconnect. B never sends A's payload or sees its pending count. Sign back into A to recover its queue. |
+| Storage failure | Simulate a failed SQLite write. The set stays incomplete and an error is visible; retry only after storage recovers. |
+| Cardio | Add 30 minutes for today, check coach A's summary after focus or the 30-second refresh; delete it and verify the total drops. Coach B cannot request A's summary. Verify week boundaries. |
+| Check-in | Submit with a due date and the coach's template. Coach A reviews; trainee sees status and notes. Cross-coach templates are rejected. Trainee cannot forge review fields. |
+| Form video | Upload a real clip through R2, submit a form check, play it on the coach dashboard, review and reload the client list. Verify an unrelated account cannot request the media URL. |
+| Steps/nutrition | Log known values, then verify the connected coach's summary and unrelated-coach isolation. Check local calendar dates near midnight. |
+| Program sharing | Share a program with private templates, repeated template days and rest days. Recipient joins by token and can read/log the copied exercises. Delete the source; the copy still works. Missing/revoked tokens fail. Shared sources are not listable by other accounts. |
+| Permissions | Direct trainee updates to role, platform-admin flag or coach linkage fail, while name/profile editing and the coach-claim RPC still work. |
 
-| Table | Client app (TRACE-client) | Coach dashboard (this repo) |
-|---|---|---|
-| `check_ins` | INSERT as trainee (`client_id = auth.uid()`) | SELECT + UPDATE (review/notes) |
-| `check_in_templates` | SELECT own coach's templates | Full CRUD (author) |
-| `form_checks` | INSERT as trainee (`client_id = auth.uid()`) | SELECT + UPDATE (review/notes) |
-| `exercises` / `muscle_groups` / `exercise_muscles` | SELECT (any authenticated user) | Full CRUD (author) |
-| `direct_messages` | INSERT/SELECT own conversations | INSERT/SELECT own conversations (symmetric 1:1) |
-| `programs`, `roadmaps`, `vault_folders`, `training_groups`, `equipment`, `foods`, `meals`, `meal_plans` | **No access** — coach-only RLS | Full CRUD (author) |
-| `notifications` | **No access** — coach-only RLS | Full CRUD (own) |
-| `onboarding_responses` | — (trainee reads/inserts own rows once signed in via the onboarding wizard) | SELECT own trainees' rows |
-| `client_invites` | — | SELECT own; writes only via `rotate_invite_link`/`revoke_invite_link` RPCs |
-
-If a cross-repo test expects a trainee to read `roadmaps` or `meal_plans` (e.g. "client views their assigned meal plan in the app"), that's a **missing feature**, not a bug — RLS currently blocks it entirely. Flag it rather than assuming it should already work.
-
-## End-to-end flows to test together
-
-For each, one side does the write, the other confirms the read — that's the actual integration point, not just "does each app work standalone."
-
-1. **Check-in loop**
-   - Coach dashboard: create a check-in template (Check-ins → Templates → Create Recurring Check-in), any starter or blank.
-   - TRACE-client: sign in as a trainee under that coach, confirm the template's questions render correctly (all `CheckInQuestion.type` values — `text`, `number`, `scale-5`, `scale-10`, `single-choice`, `multiple-choice`, `photo`, `time`, `bodyweight`, `progress-photo`, `measurement` — the client may not handle all of these yet, worth confirming which are actually implemented client-side vs. which fall back ungracefully).
-   - TRACE-client: submit a check-in.
-   - Coach dashboard: confirm it appears under Check-ins → Needs review with the right responses, mark it reviewed, confirm `coach_notes` persists.
-
-2. **Form check loop**
-   - TRACE-client: submit a form check with a video and an `exercise_id`.
-   - Coach dashboard: confirm it appears in Form Checks, video plays via the R2 signed URL, exercise name resolves, mark reviewed with notes.
-   - TRACE-client: confirm the trainee can read back `status` and `coach_notes` on their own submission (RLS allows SELECT, not UPDATE, on their own rows).
-
-3. **Messaging loop**
-   - Coach dashboard: Messages page, select a client, send a message.
-   - TRACE-client: confirm the trainee receives it in real time (`direct_messages` + realtime).
-   - Reverse direction: trainee sends, coach dashboard updates live.
-
-4. **Exercise library consistency**
-   - Coach dashboard: create an exercise with muscle groups tagged.
-   - TRACE-client: confirm it shows up in the client's exercise browser with the same primary/secondary muscle data (read-only on that side).
-
-5. **Roster / invite / onboarding loop**
-   - Coach dashboard: Settings → Client onboarding screens → Generate Invite Link (or Clients → Invite Client → Share Link, which reads the same active link).
-   - Open that link fresh (unauthenticated) — confirm the intro screen renders, sign in (email or Google), then confirm the wizard shows only the screens enabled in Settings, in the right order.
-   - Complete the wizard. Confirm it writes a real `onboarding_responses` row and, if the trainee had no coach yet, actually attaches them to the inviting coach (`profiles.coach_id`) via `claim_coach_by_id` — this now creates a real account/link, it no longer dead-ends at a fake "thanks for reaching out" screen.
-   - In Settings, click **Generate New Link** — confirm the previously-copied link now shows "this invite link is no longer valid" when opened. Click **Revoke** on a link with no replacement — confirm the same.
-   - Separately: sign up a trainee directly in TRACE-client (however that flow currently works there — likely the "choose your coach" screen backed by `list_available_coaches`/`claim_coach_by_code`), and confirm the new client shows up in the coach dashboard's Clients page and Messages sidebar.
-
-## General regression checklist (coach dashboard side)
-
-Run `npm run test`, `npm run lint`, `npm run build` in the coach dashboard repo before and after any cross-repo QA session. If a cross-repo test reveals a bug, fix it there, then re-run all three before considering it resolved.
+Record device/OS, app revisions, backend migration version, expected/observed result and errors for each case. Never mark device QA passed solely from unit or SQL tests. AI/RAG, wearable ingestion, solo mode and new features are outside this milestone.

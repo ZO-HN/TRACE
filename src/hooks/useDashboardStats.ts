@@ -5,6 +5,7 @@
 // that) OR the coach manually marked the client churned via useClients.
 
 import { useEffect, useState } from 'react';
+import type { Database } from '../lib/database.types';
 import { supabase } from '../lib/supabase';
 
 export interface DashboardStats {
@@ -37,12 +38,7 @@ export interface StepsSummaryRow {
   days_logged: number;
 }
 
-export interface CardioSummaryRow {
-  client_id: string;
-  client_name: string;
-  cardio_sessions: number;
-  cardio_minutes: number;
-}
+export type CardioSummaryRow = Database['public']['Functions']['get_coach_cardio_summary']['Returns'][number];
 
 export interface UseDashboardStats {
   stats: DashboardStats | null;
@@ -65,46 +61,61 @@ export function useDashboardStats(coachId: string): UseDashboardStats {
 
   useEffect(() => {
     let cancelled = false;
-    (async () => {
-      setIsLoading(true);
-      const [statsRes, winsRes, nutritionRes, stepsRes, cardioRes] = await Promise.all([
-        supabase.rpc('get_coach_dashboard_stats', { p_coach_id: coachId }).maybeSingle(),
-        supabase.rpc('get_coach_weekly_wins', { p_coach_id: coachId }),
-        supabase.rpc('get_coach_nutrition_summary', { p_coach_id: coachId, p_days: 7 }),
-        supabase.rpc('get_coach_steps_summary', { p_coach_id: coachId, p_days: 7 }),
-        supabase.rpc('get_coach_cardio_summary', { p_coach_id: coachId, p_days: 7 }),
-      ]);
-      const statsRow = statsRes.data as {
-        new_signups_7d: number;
-        workouts_7d: number;
-        churned_count: number;
-      } | null;
+    let running = false;
+    const refresh = async () => {
+      if (running || cancelled) return;
+      running = true;
+      try {
+        const [statsRes, winsRes, nutritionRes, stepsRes, cardioRes] = await Promise.all([
+          supabase.rpc('get_coach_dashboard_stats', { p_coach_id: coachId }).maybeSingle(),
+          supabase.rpc('get_coach_weekly_wins', { p_coach_id: coachId }),
+          supabase.rpc('get_coach_nutrition_summary', { p_coach_id: coachId, p_days: 7 }),
+          supabase.rpc('get_coach_steps_summary', { p_coach_id: coachId, p_days: 7 }),
+          supabase.rpc('get_coach_cardio_summary', { p_coach_id: coachId, p_days: 7 }),
+        ]);
+        const statsRow = statsRes.data as {
+          new_signups_7d: number;
+          workouts_7d: number;
+          churned_count: number;
+        } | null;
 
-      if (cancelled) return;
+        if (cancelled) return;
 
-      const firstError = statsRes.error ?? winsRes.error ?? nutritionRes.error ?? stepsRes.error ?? cardioRes.error;
-      if (firstError) {
-        setError(firstError.message);
-      } else {
-        setError(null);
-        setStats(
-          statsRow
-            ? {
-                newSignups7d: Number(statsRow.new_signups_7d ?? 0),
-                workouts7d: Number(statsRow.workouts_7d ?? 0),
-                churnedCount: Number(statsRow.churned_count ?? 0),
-              }
-            : { newSignups7d: 0, workouts7d: 0, churnedCount: 0 },
-        );
-        setWins((winsRes.data as WeeklyWin[]) ?? []);
-        setNutrition((nutritionRes.data as NutritionSummaryRow[]) ?? []);
-        setSteps((stepsRes.data as StepsSummaryRow[]) ?? []);
-        setCardio((cardioRes.data as CardioSummaryRow[]) ?? []);
+        const firstError = statsRes.error ?? winsRes.error ?? nutritionRes.error ?? stepsRes.error ?? cardioRes.error;
+        if (firstError) {
+          setError(firstError.message);
+        } else {
+          setError(null);
+          setStats(
+            statsRow
+              ? {
+                  newSignups7d: Number(statsRow.new_signups_7d ?? 0),
+                  workouts7d: Number(statsRow.workouts_7d ?? 0),
+                  churnedCount: Number(statsRow.churned_count ?? 0),
+                }
+              : { newSignups7d: 0, workouts7d: 0, churnedCount: 0 },
+          );
+          setWins((winsRes.data as WeeklyWin[]) ?? []);
+          setNutrition((nutritionRes.data as NutritionSummaryRow[]) ?? []);
+          setSteps((stepsRes.data as StepsSummaryRow[]) ?? []);
+          setCardio((cardioRes.data as CardioSummaryRow[]) ?? []);
+        }
+      } catch (cause) {
+        if (!cancelled) setError(cause instanceof Error ? cause.message : 'Could not refresh dashboard');
+      } finally {
+        running = false;
+        if (!cancelled) setIsLoading(false);
       }
-      setIsLoading(false);
-    })();
+    };
+    setIsLoading(true);
+    void refresh();
+    const onFocus = () => { void refresh(); };
+    const timer = window.setInterval(() => { if (document.visibilityState === 'visible') void refresh(); }, 30000);
+    window.addEventListener('focus', onFocus);
     return () => {
       cancelled = true;
+      window.clearInterval(timer);
+      window.removeEventListener('focus', onFocus);
     };
   }, [coachId]);
 

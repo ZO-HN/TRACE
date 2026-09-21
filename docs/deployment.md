@@ -4,8 +4,8 @@ TRACE is a static Vite SPA (frontend) plus Supabase (Postgres, Auth, Edge Functi
 
 ## Pre-deploy checklist
 
-- [ ] Backend provisioned end-to-end ([provisioning.md](provisioning.md)) — all 5 migrations applied, both edge functions deployed, R2 bucket + CORS configured.
-- [ ] `npm run test` · `npm run build` · `npm run lint` all green.
+- [ ] Backend provisioned end-to-end ([provisioning.md](provisioning.md)) — all canonical migrations applied, required Edge Functions deployed, R2 bucket + CORS configured.
+- [ ] `npm run test` Â· `npm run build` Â· `npm run lint` all green.
 - [ ] Production Supabase **anon** key + URL ready (never ship the service-role key to the client).
 - [ ] R2 bucket CORS `AllowedOrigins` includes the production domain (not just `localhost`).
 - [ ] Auth redirect / Site URL in the Supabase dashboard set to the production domain.
@@ -46,7 +46,7 @@ Server-side secrets (R2 keys, service-role key) live **only** as Supabase functi
 ## Post-deploy smoke test
 
 1. Load the site → sign up → confirm the profile row is created (auth trigger).
-2. As a trainee: log a set offline (DevTools → offline), reload, go online → the "queued" badge drains and rows appear in `set_logs`.
+2. In TRACE-client on a device: download a real workout, log a set offline, reopen, go online → the "queued" badge drains and rows appear in `set_logs`.
 3. Visit `/<coach-slug>` → the published landing page renders.
 4. As a coach: create a template, see a connected trainee in the roster, exchange a chat message.
 5. Attach a form clip → confirm the object lands in the R2 bucket and the key is on the set row.
@@ -54,5 +54,5 @@ Server-side secrets (R2 keys, service-role key) live **only** as Supabase functi
 ## Known limitations at launch
 
 - **TRACE Brain** returns a placeholder until the RAG pipeline (embedding → Pinecone → LLM) is wired into `trace-brain`.
-- **Jitsi** rooms are open-by-name (v1); add a lobby/password or self-hosted JWT Jitsi before untrusted use.
+- **Device QA** remains required for native SQLite, auth refresh and media upload; local SQL tests do not exercise those transports.
 - **Media read-back** is wired end-to-end (`r2-get-url` presigned GET, authorized by set_logs RLS). A dedicated coach set-history/review screen for browsing past clips is still a future UI.

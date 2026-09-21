@@ -1,65 +1,28 @@
-# Provisioning — one-shot remote setup
+# Backend provisioning
 
-Run these once from the repo root. Everything below is idempotent. As of 2026-07-19 the project (`lfaxkrorjljdeefnafjb`) is live but has **no schema applied** and **no edge function deployed**.
+TRACE is the sole owner of `supabase/migrations` and `supabase/functions`. TRACE-client must never apply its historical draft SQL independently.
 
-```powershell
-# 1. Authenticate the CLI (opens browser)
-npx supabase login
+## Local reproducibility
 
-# 2. Link this repo to the project
-npx supabase link --project-ref lfaxkrorjljdeefnafjb
+From TRACE, install with `npm ci`, then run `npm run test:db`. This replays all canonical SQL in a disposable PostgreSQL/PGlite database with minimal Supabase auth fixtures and runs ownership/flow tests. It does not require Docker, secrets or a live backend.
 
-# 3. Apply ALL migrations (init, schema-gaps patch, direct_messages, template_items)
-npx supabase db push
+For the complete local Supabase stack, start Docker, run `npx supabase start`, and use `npx supabase db reset --local`. Reset is for a disposable local database only. The optional seed contains example exercises and a sample coach page. Replaying migrations without fixtures can use `--no-seed`. Native auth, PostgREST, Realtime and R2 require their own smoke tests.
 
-# 4. Seed exercises + the /john coach landing page
-#    (db push does not run seed.sql; use the SQL editor or:)
-npx supabase db push --include-seed
+## Staging and production
 
-# 5. Set the R2 secrets for the edge functions (reads supabase/functions/.env)
-npx supabase secrets set --env-file supabase/functions/.env
+1. Compare existing schema/migration history with the canonical files. Some deployments installed mobile drafts manually. `20260921000000_mobile_schema_baseline.sql` preserves matching existing tables and named policies; differing definitions must be reconciled deliberately.
+2. Back up the target database and link the CLI to the intended project. Inspect `npx supabase db push --dry-run`, then apply reviewed pending migrations with `npx supabase db push`.
+3. Apply `20260921010000_coaching_reliability.sql` before shipping the new client. It supplies `sync_workout_session`, changes cardio aggregation, fixes private program sharing and restricts profile/review writes. Existing pending session inserts remain valid, but the updated client requires the RPC.
+4. Configure Auth URLs/providers and bootstrap the first coach/admin using the README. New trainees initially have no coach and use the coach-selection flow or web invite onboarding.
+5. Deploy the required Edge Functions (`r2-presign`, `r2-get-url`, `send-push-on-message`, `trace-brain`) from TRACE. Follow each function's secret/header documentation. Configure R2 CORS for the actual dashboard/mobile-web origins and permitted upload requests. The Brain function remains a placeholder.
+6. Build each app with the same project URL/public anon key. Never ship service-role or R2 credentials in app bundles.
 
-# 6. Deploy the edge functions
-npx supabase functions deploy r2-presign
-npx supabase functions deploy r2-get-url
-npx supabase functions deploy trace-brain
-```
+## Compatibility and release checks
 
-`r2-get-url` signs short-lived GET URLs for viewing private media; it shares the
-same `R2_*` secrets as `r2-presign` and authorizes via set_logs RLS.
+- Regenerate/check both database type files using `npm run db:types` / `npm run db:types:check`.
+- Run `npm run test:contracts` with `TRACE_CLIENT_PATH` pointing at the matching client checkout.
+- Run the [cross-app QA checklist](qa-testing-cross-repo.md) using two coaches and two trainees.
+- Cardio summaries now count `cardio_entries` only. Do not dual-write or automatically backfill legacy cardio-typed workout sessions without establishing that they are not duplicates.
+- After rollout, inspect pending/failed sync counts, RPC errors and known cardio totals. Retain failed local entries for retry. Revert app releases if needed; do not roll back the access restrictions or delete saved logs to hide a failure.
 
-`trace-brain` uses `SUPABASE_SERVICE_ROLE_KEY` (auto-injected) to write ASSISTANT
-turns; no extra secret is needed until the RAG/LLM pipeline is wired.
-
-### Migrations applied by `db push`
-
-1. `20260717000000_init_trace.sql` — core schema, trigger, base RLS
-2. `20260717000001_patch_schema_gaps.sql` — relations, template scope, set_logs RLS, RPCs
-3. `20260719000000_direct_messages.sql` — 1-on-1 chat + realtime
-4. `20260719000001_template_items.sql` — template → exercise items
-5. `20260719000002_ai_biometrics_rls.sql` — **security**: RLS for ai_* + biometrics
-
-Then configure the **R2 bucket CORS** (dashboard → R2 → bucket → Settings → CORS):
-
-```json
-[
-  {
-    "AllowedOrigins": ["http://localhost:5173"],
-    "AllowedMethods": ["PUT"],
-    "AllowedHeaders": ["content-type"],
-    "MaxAgeSeconds": 3600
-  }
-]
-```
-
-## Verify
-
-Ask the agent to re-run its readiness probe, or check manually:
-
-- `npm run dev` → log in → trainee sees the logger; `/john` renders the seeded coach page.
-- The probe expects: exercises rows, `landing_pages` `/john` published, `direct_messages` table present, `r2-presign` returning HTTP 200 on OPTIONS.
-
-## Notes
-
-- `supabase/functions/.env` and `.env.local` are secret-bearing and must stay untracked (gitignored via `*.local`; add `supabase/functions/.env` to `.gitignore` if git ever lists it).
-- Migrations `20260719000000_direct_messages.sql` and `20260719000001_template_items.sql` were drafted by the agent — review them before step 3 if you haven't.
+Local checks do not deploy or confirm production migration state.

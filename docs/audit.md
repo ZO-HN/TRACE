@@ -2,7 +2,7 @@
 
 A grounded assessment of what is actually built in this repository, scoped to what this repository actually is.
 
-> **Scope note:** this repo (`TRACE`) is the **coach web dashboard only**. It's one of two apps — the trainee-facing mobile client (`GymLogger`, offline outbox, WebRTC calling, on-device set logging) lives in the separate `TRACE-client` repo (Expo/React Native), not here. Earlier drafts of this document described a single combined app; that architecture was split. Anything below that reads as "not built" refers to this repo's own scope — check `TRACE-client` separately for the mobile-side items.
+> **Scope note:** this repo (`TRACE`) is the **coach web dashboard only**. It's one of two apps — the trainee-facing mobile client (`GymLogger`, offline outbox and on-device set logging) lives in the separate `TRACE-client` repo (Expo/React Native), not here. Earlier drafts of this document described a single combined app; that architecture was split. Anything below that reads as "not built" refers to this repo's own scope — check `TRACE-client` separately for the mobile-side items.
 
 ---
 
@@ -43,10 +43,10 @@ A grounded assessment of what is actually built in this repository, scoped to wh
 **Resolved since last pass:**
 - Meal plan builder now has real multi-day/multi-meal structure (day tabs, per-day meal lists, live macro rollups) — was a single hardcoded "Meal 1" with a dead add-day button.
 - Every CRUD hook in `src/hooks` now guards against setState-after-unmount (a mounted-ref check before any post-mutation `fetch*()` refresh). No longer a known gap — closed out entirely, not just the worst offenders.
-- Client steps / cardio dashboard panels — schema gap closed (`wearable_biometrics.step_count`, `workout_sessions.session_type` added), panels wired to real RPCs. Will show real zeros until TRACE App starts writing those columns — see `docs/trace-app-open-items.md` item 4, now the cross-repo ask instead of a coach-dashboard gap.
-- `docs/trace_architecture.md`'s Next.js references fixed (corrected to react-router, scope note added clarifying it's a target-architecture spec).
+- September 2026: canonical mobile-schema reconciliation, session retry RPC, token-scoped program cloning, immutable privilege fields, generated database types and SQL contract tests are implemented. See the current [architecture](trace_architecture.md) and [rollout checklist](trace-app-open-items.md).
+
 - Clients page: Tags, Export, and View toolbar buttons were all dead (no `onClick`/handler). All three now real — Tags persists for real (see gap 1 above for what's still missing), Export downloads a real CSV of the filtered client list, View is a real column-visibility toggle (see gap 2 above for the one column with no data behind it).
 
 ## For the mobile trainee app
 
-Everything about `GymLogger`, the offline IndexedDB outbox, WebRTC/Jitsi calling, sweat-resistant logging UI, and on-device set persistence lives in the **`TRACE-client`** repo, not here. See [specs/offline-sync-outbox](specs/offline-sync-outbox.md) for that design (written before the repo split; still the reference for that work, just executed in the other repo now) and `docs/client-app-contract-check-ins-exercises.md` for the write-direction contract between the two apps.
+Everything about `GymLogger`, the SQLite outbox and logging UI, and on-device set persistence lives in the **`TRACE-client`** repo, not here. See [specs/offline-sync-outbox](specs/offline-sync-outbox.md) for that design (updated for the Expo/SQLite implementation) and `docs/client-app-contract-check-ins-exercises.md` for the write-direction contract between the two apps.
