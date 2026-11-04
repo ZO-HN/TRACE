@@ -2,7 +2,7 @@
 // Google OAuth). Enforced server-side in handle_new_user() — this hook is
 // just the admin UI over the coach_allowlist table; RLS is the real gate.
 
-import { useEffect, useRef, useState } from 'react';
+import { useCallback, useEffect, useRef, useState } from 'react';
 import { supabase } from '../lib/supabase';
 
 export interface CoachAllowlistEntry {
@@ -15,50 +15,75 @@ export interface UseCoachAllowlist {
   entries: CoachAllowlistEntry[];
   isLoading: boolean;
   error: string | null;
+  refresh: () => Promise<void>;
   addEmail: (email: string, note: string, invitedBy: string) => Promise<{ error: string | null }>;
   removeEmail: (email: string) => Promise<{ error: string | null }>;
 }
 
-export function useCoachAllowlist(): UseCoachAllowlist {
-  const [entries, setEntries] = useState<CoachAllowlistEntry[]>([]);
-  const [isLoading, setIsLoading] = useState(true);
-  const [error, setError] = useState<string | null>(null);
-  const mountedRef = useRef(true);
-  useEffect(() => () => {
-    mountedRef.current = false;
-  }, []);
+type LoadedData = { entries: CoachAllowlistEntry[] };
+type LoadScope = { request: number };
+const emptyData = (): LoadedData => ({ entries: [] });
 
-  const fetchEntries = async () => {
-    const { data, error: queryError } = await supabase
-      .from('coach_allowlist')
-      .select('email, note, created_at')
-      .order('created_at', { ascending: false });
-    if (!mountedRef.current) return;
-    if (queryError) setError(queryError.message);
-    else {
-      setError(null);
-      setEntries(data ?? []);
+export function useCoachAllowlist(): UseCoachAllowlist {
+  const [state, setState] = useState<LoadedData & { isLoading: boolean; error: string | null }>(
+    () => ({ ...emptyData(), isLoading: true, error: null }),
+  );
+  const active = useRef<LoadScope | null>(null);
+  const fetchEntries = useCallback(async (scope: LoadScope) => {
+    const current = () => active.current === scope;
+    if (!current()) return;
+    const request = ++scope.request;
+    setState((previous) => ({ ...previous, isLoading: true, error: null }));
+    try {
+      const { data, error: queryError } = await supabase
+        .from('coach_allowlist')
+        .select('email, note, created_at')
+        .order('created_at', { ascending: false });
+      if (queryError) throw new Error(queryError.message);
+      const next: LoadedData = { entries: data ?? [] };
+      if (current() && scope.request === request) setState({ ...next, isLoading: false, error: null });
+    } catch (cause) {
+      if (current() && scope.request === request) setState((previous) => ({ ...previous, isLoading: false,
+        error: cause instanceof Error ? cause.message : 'Could not load data. Please retry.' }));
     }
-    setIsLoading(false);
-  };
+  }, []);
 
   useEffect(() => {
-    void fetchEntries();
-  }, []);
+    const scope: LoadScope = { request: 0 };
+    active.current = scope;
+    void fetchEntries(scope);
+    return () => { if (active.current === scope) active.current = null; };
+  }, [fetchEntries]);
 
-  const addEmail: UseCoachAllowlist['addEmail'] = async (email, note, invitedBy) => {
+  const refresh = useCallback(async () => {
+    const scope = active.current;
+    if (scope) await fetchEntries(scope);
+  }, [fetchEntries]);
+
+  const runMutation = async (operation: (scope: LoadScope) => Promise<{ error: string | null }>) => {
+    const scope = active.current;
+    if (!scope) return { error: 'The active account changed. Please retry from the current view.' };
+    try {
+      const result = await operation(scope);
+      if (!result.error && active.current === scope) await fetchEntries(scope);
+      return result;
+    } catch (cause) {
+      return { error: cause instanceof Error ? cause.message : 'Could not complete the operation. Please retry.' };
+    }
+  };
+
+  const addEmail: UseCoachAllowlist['addEmail'] = async (email, note, invitedBy) => runMutation(async () => {
     const { error: insertError } = await supabase
       .from('coach_allowlist')
       .insert({ email: email.trim().toLowerCase(), note: note || null, invited_by: invitedBy });
-    if (!insertError) await fetchEntries();
     return { error: insertError?.message ?? null };
-  };
+  });
 
-  const removeEmail: UseCoachAllowlist['removeEmail'] = async (email) => {
+  const removeEmail: UseCoachAllowlist['removeEmail'] = async (email) => runMutation(async () => {
     const { error: deleteError } = await supabase.from('coach_allowlist').delete().eq('email', email);
-    if (!deleteError) await fetchEntries();
     return { error: deleteError?.message ?? null };
-  };
+  });
 
-  return { entries, isLoading, error, addEmail, removeEmail };
+  const visible = state;
+  return { entries: visible.entries, isLoading: visible.isLoading, error: visible.error, refresh, addEmail, removeEmail };
 }

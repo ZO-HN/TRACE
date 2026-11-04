@@ -1,6 +1,8 @@
 import { describe, expect, it } from 'vitest';
 import {
   emptyDraft,
+  moveDraftItem,
+  privateSavePayload,
   toItemInserts,
   toTemplateInsert,
   validateDraft,
@@ -95,5 +97,35 @@ describe('emptyDraft', () => {
     const d = emptyDraft();
     expect(d.scope).toBe('PRIVATE');
     expect(d.items).toHaveLength(1);
+  });
+});
+
+describe('private authoring', () => {
+  it('moves the complete prescription and derives contiguous positions without mutating input', () => {
+    const draft = validDraft();
+    const reordered = moveDraftItem(draft, 1, -1);
+    expect(reordered.items[0]).toEqual(draft.items[1]);
+    expect(draft.items[0].exerciseId).toBe('ex-1');
+    expect(toItemInserts(reordered, 'template').map((item) => [item.exercise_id, item.position])).toEqual([['ex-2', 1], ['ex-1', 2]]);
+    expect(moveDraftItem(draft, 0, -1)).toBe(draft);
+  });
+  it('sends private existing fields, stable IDs, repeated exercises and zero rest', () => {
+    const draft = { ...validDraft(), scope: 'PRIVATE' as const };
+    draft.items[1].exerciseId = draft.items[0].exerciseId;
+    draft.items[1].restSeconds = '0';
+    const payload = privateSavePayload(draft, 'coach', 'operation', 'template');
+    expect(payload).toMatchObject({ p_creator_id: 'coach', p_operation_id: 'operation', p_template_id: 'template', p_description: null });
+    expect(payload.p_items[1]).toEqual({ exercise_id: 'ex-1', position: 2, target_sets: 3, target_reps: 10, target_rpe: null, rest_seconds: 0 });
+    expect(payload.p_items[0]).not.toHaveProperty('template_id');
+  });
+  it('rejects publication, assignment and invalid numeric values before saving', () => {
+    expect(() => privateSavePayload(validDraft(), 'c', 'o', 't')).toThrow('Only private');
+    const draft = { ...validDraft(), scope: 'PRIVATE' as const, assignedTraineeId: 'someone' };
+    expect(() => privateSavePayload(draft, 'c', 'o', 't')).toThrow('Only private');
+    for (const reps of ['NaN', 'Infinity', '2.5', '-1', '']) {
+      const bad = { ...validDraft(), scope: 'PRIVATE' as const };
+      bad.items[0].reps = reps;
+      expect(() => privateSavePayload(bad, 'c', 'o', 't')).toThrow();
+    }
   });
 });

@@ -1,5 +1,7 @@
 import { useEffect, useMemo, useState, type FormEvent } from 'react';
 import { useLocation, Link } from 'react-router';
+import { hasOnboardingAnswer } from '@/lib/onboardingValidation';
+import { onboardingAccountError } from '@/lib/onboardingAccount';
 import {
   AlertTriangle,
   ArrowLeft,
@@ -491,10 +493,11 @@ function NoteBox({ text }: { text: string }) {
 type Macros = { protein: string; carbs: string; fat: string };
 type Answer = string | string[] | { month: string; day: string; year: string } | Macros;
 
-export default function OnboardingWizardPage() {
+export default function OnboardingWizardPage({ previewScreen, previewInviteId }: { previewScreen?: OnboardingScreen; previewInviteId?: string } = {}) {
+  const isPreview = Boolean(previewScreen || previewInviteId);
   const location = useLocation();
   const params = useMemo(() => new URLSearchParams(location.search), [location.search]);
-  const inviteId = useMemo(() => params.get('invite'), [params]);
+  const inviteId = useMemo(() => previewScreen ? null : previewInviteId ?? params.get('invite'), [params, previewScreen, previewInviteId]);
 
   // Two link formats: the current server-issued `?invite=<id>` (resolved via
   // get_invite_link, revocable) and the legacy client-side `?config=...`
@@ -534,7 +537,7 @@ export default function OnboardingWizardPage() {
   }, [inviteId]);
 
   const legacyScreens = useMemo(() => (inviteId ? [] : parseInviteConfig(location.search)), [inviteId, location.search]);
-  const screens = invite ? invite.screens : legacyScreens;
+  const screens = useMemo(() => previewScreen ? [{ ...previewScreen, enabled: true }] : invite ? invite.screens : legacyScreens, [previewScreen, invite, legacyScreens]);
   const coachName = invite ? invite.coachName : params.get('coach') || 'your coach';
   const coachId = invite ? invite.coachId : params.get('coachId');
 
@@ -547,7 +550,7 @@ export default function OnboardingWizardPage() {
     [screens],
   );
 
-  const [phase, setPhase] = useState<'intro' | 'auth' | 'form' | 'review' | 'done'>('intro');
+  const [phase, setPhase] = useState<'intro' | 'auth' | 'form' | 'review' | 'done'>(previewScreen ? 'form' : 'intro');
   const [stepIndex, setStepIndex] = useState(0);
   const [answers, setAnswers] = useState<Record<string, Answer>>({});
   const [linkCopied, setLinkCopied] = useState(false);
@@ -561,6 +564,7 @@ export default function OnboardingWizardPage() {
   const [submitError, setSubmitError] = useState<string | null>(null);
 
   useEffect(() => {
+    if (isPreview) return;
     supabase.auth.getSession().then(({ data }) => {
       setUserId(data.session?.user.id ?? null);
       setAuthChecked(true);
@@ -569,7 +573,7 @@ export default function OnboardingWizardPage() {
       setUserId(session?.user.id ?? null);
     });
     return () => sub.subscription.unsubscribe();
-  }, []);
+  }, [isPreview]);
 
   useEffect(() => {
     if (phase === 'auth' && userId) setPhase('form');
@@ -578,11 +582,13 @@ export default function OnboardingWizardPage() {
   const clientId = userId ?? '—';
 
   const current = steps[stepIndex];
+  const canContinue = Boolean(current && hasOnboardingAnswer(current.key, current.def, answers[current.key]));
   const percent = steps.length > 0 ? Math.round(((stepIndex + 1) / steps.length) * 100) : 0;
 
   const setAnswer = (key: string, value: Answer) => setAnswers((a) => ({ ...a, [key]: value }));
 
   const goNext = () => {
+    if (!canContinue) return;
     if (stepIndex + 1 >= steps.length) {
       setPhase('review');
     } else {
@@ -607,6 +613,16 @@ export default function OnboardingWizardPage() {
   };
 
   const handleComplete = async () => {
+    const unanswered = steps.findIndex(s => !hasOnboardingAnswer(s.key, s.def, answers[s.key]));
+    if (unanswered !== -1) {
+      setStepIndex(unanswered);
+      setPhase('form');
+      return;
+    }
+    if (isPreview) {
+      setPhase('done');
+      return;
+    }
     if (!userId || !coachId) {
       setSubmitError('Missing coach or account info — try reopening this link.');
       return;
@@ -614,16 +630,18 @@ export default function OnboardingWizardPage() {
     setSubmitting(true);
     setSubmitError(null);
 
-    const { data: profileRow } = await supabase.from('profiles').select('coach_id').eq('id', userId).maybeSingle();
+    const { data: profileRow, error: profileError } = await supabase.from('profiles').select('role, coach_id').eq('id', userId).maybeSingle();
+    const accountError = profileError?.message ?? onboardingAccountError(profileRow, coachId);
+    if (accountError) {
+      setSubmitting(false);
+      setSubmitError(accountError);
+      return;
+    }
     if (profileRow && profileRow.coach_id !== coachId) {
       const { error: claimError } = await supabase.rpc('claim_coach_by_id', { p_coach_id: coachId });
       if (claimError) {
         setSubmitting(false);
-        setSubmitError(
-          claimError.message.includes('already have a coach')
-            ? "You're already linked to a different coach — contact them to switch."
-            : claimError.message,
-        );
+        setSubmitError(claimError.message);
         return;
       }
     }
@@ -759,7 +777,7 @@ export default function OnboardingWizardPage() {
           <button
             type="button"
             disabled={!authChecked}
-            onClick={() => setPhase(userId ? 'form' : 'auth')}
+            onClick={() => setPhase(isPreview || userId ? 'form' : 'auth')}
             className="w-full max-w-2xl flex items-center justify-center gap-2 h-12 rounded-xl bg-primary text-primary-foreground text-base font-semibold hover:opacity-90 transition-opacity disabled:opacity-60"
           >
             Get Started <ArrowRight size={16} />
@@ -825,7 +843,7 @@ export default function OnboardingWizardPage() {
               <span className="text-[11px] font-medium text-muted-foreground tracking-wide">OR CONTINUE WITH</span>
               <div className="flex-1 h-px bg-border" />
             </div>
-            <OAuthButtons />
+            <OAuthButtons disabled={authSubmitting} redirectTo={window.location.origin + window.location.pathname + window.location.search} />
           </form>
           <p className="text-xs text-muted-foreground text-center">
             Already have a TRACE account?{' '}
@@ -925,6 +943,13 @@ export default function OnboardingWizardPage() {
   }
 
   if (phase === 'done') {
+    if (isPreview) return (
+      <div className="p-8 text-center">
+        <h2 className="text-xl font-bold">Preview complete</h2>
+        <p className="mt-2 text-muted-foreground">No client was enrolled and no answers were saved.</p>
+        <button type="button" className="mt-4 text-primary" onClick={() => { setAnswers({}); setStepIndex(0); setPhase('intro'); }}>Restart preview</button>
+      </div>
+    );
     const displayCoach = coachName === 'your coach' ? 'Your coach' : coachName;
     const shareUrl = window.location.href;
     const copyLink = async () => {
@@ -1082,7 +1107,22 @@ export default function OnboardingWizardPage() {
           />
         )}
 
-        {current.def.kind === 'single-choice' && (
+        {current.key === 'current-goal' && (
+          <div className="flex flex-col gap-2">
+            <p className="text-sm text-muted-foreground">Choose up to 3 goals.</p>
+            {current.def.options?.map((option) => {
+              const selected = Array.isArray(answers[current.key]) ? answers[current.key] as string[] : [];
+              const checked = selected.includes(option);
+              return <button type="button" key={option} aria-pressed={checked}
+                disabled={!checked && selected.length >= 3}
+                onClick={() => setAnswer(current.key, checked ? selected.filter((v) => v !== option) : [...selected, option].slice(0, 3))}
+                className={cn('rounded-xl border-2 px-4 py-3 text-left disabled:opacity-50', checked ? 'border-primary bg-primary/10 text-primary' : 'border-border')}>
+                {option}{checked && <Check size={16} className="inline ml-2" />}
+              </button>;
+            })}
+          </div>
+        )}
+        {current.def.kind === 'single-choice' && current.key !== 'current-goal' && (
           <SingleChoice
             def={current.def}
             value={typeof answers[current.key] === 'string' ? (answers[current.key] as string) : ''}
@@ -1114,7 +1154,7 @@ export default function OnboardingWizardPage() {
         {current.def.note && <NoteBox text={current.def.note} />}
       </div>
 
-      <div className="border-t border-border bg-surface px-6 py-4 flex flex-col gap-3 max-w-2xl mx-auto w-full">
+      {!previewScreen && <div className="border-t border-border bg-surface px-6 py-4 flex flex-col gap-3 max-w-2xl mx-auto w-full">
         <div className="flex items-start gap-3 rounded-xl border border-border p-3">
           <div className="w-8 h-8 rounded-lg bg-primary/10 flex items-center justify-center shrink-0">
             <Icon size={14} className="text-primary" />
@@ -1132,12 +1172,13 @@ export default function OnboardingWizardPage() {
           <button
             type="button"
             onClick={goNext}
-            className="flex items-center gap-1.5 h-11 px-5 rounded-lg bg-primary text-primary-foreground text-sm font-semibold hover:opacity-90 transition-opacity"
+            disabled={!canContinue}
+            className="flex items-center gap-1.5 h-11 px-5 rounded-lg bg-primary text-primary-foreground text-sm font-semibold hover:opacity-90 transition-opacity disabled:opacity-40 disabled:cursor-not-allowed"
           >
             {stepIndex + 1 >= steps.length ? 'Finish' : 'Next'} <ArrowRight size={14} />
           </button>
         </div>
-      </div>
+      </div>}
     </div>
   );
 }

@@ -4,7 +4,8 @@
 // Churn = no workout_sessions in 21 days (and had at least one before
 // that) OR the coach manually marked the client churned via useClients.
 
-import { useEffect, useState } from 'react';
+import { useCallback, useEffect, useSyncExternalStore } from 'react';
+import { dashboardEligible, getDashboardState, getDashboardRevision, getEmptyDashboardState, readDashboard, subscribeDashboard } from '../lib/dashboardAnalyticsCache';
 import type { Database } from '../lib/database.types';
 import { supabase } from '../lib/supabase';
 
@@ -40,6 +41,13 @@ export interface StepsSummaryRow {
 
 export type CardioSummaryRow = Database['public']['Functions']['get_coach_cardio_summary']['Returns'][number];
 
+export interface DashboardSnapshot {
+  stats: DashboardStats;
+  wins: WeeklyWin[];
+  nutrition: NutritionSummaryRow[];
+  steps: StepsSummaryRow[];
+  cardio: CardioSummaryRow[];
+}
 export interface UseDashboardStats {
   stats: DashboardStats | null;
   wins: WeeklyWin[];
@@ -47,77 +55,53 @@ export interface UseDashboardStats {
   steps: StepsSummaryRow[];
   cardio: CardioSummaryRow[];
   isLoading: boolean;
+  isUpdating: boolean;
+  updatedAt: number | null;
   error: string | null;
+  refresh: () => Promise<void>;
+}
+
+async function loadDashboard(coachId: string): Promise<DashboardSnapshot> {
+  const [statsRes, winsRes, nutritionRes, stepsRes, cardioRes] = await Promise.all([
+    supabase.rpc('get_coach_dashboard_stats', { p_coach_id: coachId }).maybeSingle(),
+    supabase.rpc('get_coach_weekly_wins', { p_coach_id: coachId }),
+    supabase.rpc('get_coach_nutrition_summary', { p_coach_id: coachId, p_days: 7 }),
+    supabase.rpc('get_coach_steps_summary', { p_coach_id: coachId, p_days: 7 }),
+    supabase.rpc('get_coach_cardio_summary', { p_coach_id: coachId, p_days: 7 }),
+  ]);
+  const firstError = statsRes.error ?? winsRes.error ?? nutritionRes.error ?? stepsRes.error ?? cardioRes.error;
+  if (firstError) throw new Error(firstError.message);
+  const row = statsRes.data as { new_signups_7d: number; workouts_7d: number; churned_count: number } | null;
+  // A missing stats row is not a successfully authorized empty dashboard.
+  if (!row) throw new Error('Dashboard statistics are unavailable.');
+  return {
+    stats: { newSignups7d: Number(row.new_signups_7d ?? 0), workouts7d: Number(row.workouts_7d ?? 0), churnedCount: Number(row.churned_count ?? 0) },
+    wins: (winsRes.data as WeeklyWin[]) ?? [],
+    nutrition: (nutritionRes.data as NutritionSummaryRow[]) ?? [],
+    steps: (stepsRes.data as StepsSummaryRow[]) ?? [],
+    cardio: (cardioRes.data as CardioSummaryRow[]) ?? [],
+  };
 }
 
 export function useDashboardStats(coachId: string): UseDashboardStats {
-  const [stats, setStats] = useState<DashboardStats | null>(null);
-  const [wins, setWins] = useState<WeeklyWin[]>([]);
-  const [nutrition, setNutrition] = useState<NutritionSummaryRow[]>([]);
-  const [steps, setSteps] = useState<StepsSummaryRow[]>([]);
-  const [cardio, setCardio] = useState<CardioSummaryRow[]>([]);
-  const [isLoading, setIsLoading] = useState(true);
-  const [error, setError] = useState<string | null>(null);
-
+  const state = useSyncExternalStore(subscribeDashboard, getDashboardState, getEmptyDashboardState);
+  const eligible = dashboardEligible(coachId);
+  const revision = getDashboardRevision();
+  const refresh = useCallback(() => readDashboard(coachId, () => loadDashboard(coachId), true), [coachId]);
   useEffect(() => {
-    let cancelled = false;
-    let running = false;
-    const refresh = async () => {
-      if (running || cancelled) return;
-      running = true;
-      try {
-        const [statsRes, winsRes, nutritionRes, stepsRes, cardioRes] = await Promise.all([
-          supabase.rpc('get_coach_dashboard_stats', { p_coach_id: coachId }).maybeSingle(),
-          supabase.rpc('get_coach_weekly_wins', { p_coach_id: coachId }),
-          supabase.rpc('get_coach_nutrition_summary', { p_coach_id: coachId, p_days: 7 }),
-          supabase.rpc('get_coach_steps_summary', { p_coach_id: coachId, p_days: 7 }),
-          supabase.rpc('get_coach_cardio_summary', { p_coach_id: coachId, p_days: 7 }),
-        ]);
-        const statsRow = statsRes.data as {
-          new_signups_7d: number;
-          workouts_7d: number;
-          churned_count: number;
-        } | null;
-
-        if (cancelled) return;
-
-        const firstError = statsRes.error ?? winsRes.error ?? nutritionRes.error ?? stepsRes.error ?? cardioRes.error;
-        if (firstError) {
-          setError(firstError.message);
-        } else {
-          setError(null);
-          setStats(
-            statsRow
-              ? {
-                  newSignups7d: Number(statsRow.new_signups_7d ?? 0),
-                  workouts7d: Number(statsRow.workouts_7d ?? 0),
-                  churnedCount: Number(statsRow.churned_count ?? 0),
-                }
-              : { newSignups7d: 0, workouts7d: 0, churnedCount: 0 },
-          );
-          setWins((winsRes.data as WeeklyWin[]) ?? []);
-          setNutrition((nutritionRes.data as NutritionSummaryRow[]) ?? []);
-          setSteps((stepsRes.data as StepsSummaryRow[]) ?? []);
-          setCardio((cardioRes.data as CardioSummaryRow[]) ?? []);
-        }
-      } catch (cause) {
-        if (!cancelled) setError(cause instanceof Error ? cause.message : 'Could not refresh dashboard');
-      } finally {
-        running = false;
-        if (!cancelled) setIsLoading(false);
-      }
-    };
-    setIsLoading(true);
-    void refresh();
-    const onFocus = () => { void refresh(); };
-    const timer = window.setInterval(() => { if (document.visibilityState === 'visible') void refresh(); }, 30000);
-    window.addEventListener('focus', onFocus);
-    return () => {
-      cancelled = true;
-      window.clearInterval(timer);
-      window.removeEventListener('focus', onFocus);
-    };
-  }, [coachId]);
-
-  return { stats, wins, nutrition, steps, cardio, isLoading, error };
+    if (!eligible) return;
+    const read = () => { void readDashboard(coachId, () => loadDashboard(coachId)); };
+    read();
+    const timer = window.setInterval(() => { if (document.visibilityState === 'visible') read(); }, 30_000);
+    window.addEventListener('focus', read);
+    return () => { window.clearInterval(timer); window.removeEventListener('focus', read); };
+  }, [coachId, eligible, revision]);
+  // Gate during render too, before effects can run on an account transition.
+  const visible = eligible ? state : getEmptyDashboardState();
+  return {
+    stats: visible.data?.stats ?? null, wins: visible.data?.wins ?? [], nutrition: visible.data?.nutrition ?? [],
+    steps: visible.data?.steps ?? [], cardio: visible.data?.cardio ?? [],
+    isLoading: eligible && !visible.data && !visible.error,
+    isUpdating: visible.isUpdating, updatedAt: visible.updatedAt, error: visible.error, refresh,
+  };
 }

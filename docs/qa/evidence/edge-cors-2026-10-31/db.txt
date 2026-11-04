@@ -1,0 +1,69 @@
+
+> trace-app@0.0.0 test:db
+> node tests/database/contracts.test.mjs
+
+✖ canonical mobile baseline is safe on a database where drafts were already applied (46420.1615ms)
+✖ profile editing cannot promote an account or change its coach (0.6233ms)
+✖ assigned workout -> repeated session delivery -> sets -> isolated coach read (0.4391ms)
+✖ cardio add/delete drives only the owning coach summary; days are inclusive (1.5667ms)
+✖ check-in and form review round trips are isolated between coaches (0.2726ms)
+✖ token join clones private workouts once, preserves rest days, and hides shared sources (0.2309ms)
+✖ malicious source cannot use the sharing definer to copy another private workout (0.1777ms)
+✖ nutrition and steps are visible to the connected coach only (0.2374ms)
+✖ past weigh-ins update one owned day and remain isolated from unrelated accounts (0.4937ms)
+✖ folder rename/delete is owner-only and deleting a folder preserves workouts (0.2152ms)
+✖ optional local seed executes against the complete canonical schema (0.3024ms)
+ℹ tests 11
+ℹ suites 0
+ℹ pass 0
+ℹ fail 11
+ℹ cancelled 0
+ℹ skipped 0
+ℹ todo 0
+ℹ duration_ms 69729.5914
+
+✖ failing tests:
+
+test at tests\database\contracts.test.mjs:29:1
+✖ canonical mobile baseline is safe on a database where drafts were already applied (46420.1615ms)
+  'test timed out after 30000ms'
+
+test at tests\database\contracts.test.mjs:35:1
+✖ profile editing cannot promote an account or change its coach (0.6233ms)
+  'test timed out after 30000ms'
+
+test at tests\database\contracts.test.mjs:44:1
+✖ assigned workout -> repeated session delivery -> sets -> isolated coach read (0.4391ms)
+  'test timed out after 30000ms'
+
+test at tests\database\contracts.test.mjs:69:1
+✖ cardio add/delete drives only the owning coach summary; days are inclusive (1.5667ms)
+  'test timed out after 30000ms'
+
+test at tests\database\contracts.test.mjs:84:1
+✖ check-in and form review round trips are isolated between coaches (0.2726ms)
+  'test timed out after 30000ms'
+
+test at tests\database\contracts.test.mjs:111:1
+✖ token join clones private workouts once, preserves rest days, and hides shared sources (0.2309ms)
+  'test timed out after 30000ms'
+
+test at tests\database\contracts.test.mjs:135:1
+✖ malicious source cannot use the sharing definer to copy another private workout (0.1777ms)
+  'test timed out after 30000ms'
+
+test at tests\database\contracts.test.mjs:146:1
+✖ nutrition and steps are visible to the connected coach only (0.2374ms)
+  'test timed out after 30000ms'
+
+test at tests\database\contracts.test.mjs:158:1
+✖ past weigh-ins update one owned day and remain isolated from unrelated accounts (0.4937ms)
+  'test timed out after 30000ms'
+
+test at tests\database\contracts.test.mjs:177:1
+✖ folder rename/delete is owner-only and deleting a folder preserves workouts (0.2152ms)
+  'test timed out after 30000ms'
+
+test at tests\database\contracts.test.mjs:199:1
+✖ optional local seed executes against the complete canonical schema (0.3024ms)
+  'test timed out after 30000ms'

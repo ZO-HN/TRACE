@@ -107,3 +107,28 @@ export function toItemInserts(draft: TemplateDraft, templateId: string): Templat
     rest_seconds: Number(item.restSeconds),
   }));
 }
+
+/** Array order is the prescription order; repeated exercises remain separate items. */
+export function moveDraftItem(draft: TemplateDraft, index: number, offset: -1 | 1): TemplateDraft {
+  const target = index + offset;
+  if (index < 0 || index >= draft.items.length || target < 0 || target >= draft.items.length) return draft;
+  const items = [...draft.items];
+  [items[index], items[target]] = [items[target], items[index]];
+  return { ...draft, items };
+}
+
+export function privateSavePayload(draft: TemplateDraft, creatorId: string, operationId: string, templateId: string) {
+  const check = validateDraft(draft);
+  if (!check.ok) throw new Error(check.reason);
+  if (draft.scope !== 'PRIVATE' || draft.assignedTraineeId !== null) {
+    throw new Error('Only private workouts can be saved here. Assignment is not available yet.');
+  }
+  return {
+    p_operation_id: operationId,
+    p_template_id: templateId,
+    p_creator_id: creatorId,
+    p_name: draft.name.trim(),
+    p_description: draft.description.trim() || null,
+    p_items: toItemInserts(draft, templateId).map(({ template_id: _templateId, ...item }) => item),
+  };
+}

@@ -1,0 +1,13 @@
+
+> trace-app@0.0.0 test
+> vitest run
+
+
+ RUN  v4.1.10 C:/Users/imint/TRACE
+
+
+ Test Files  21 passed (21)
+      Tests  324 passed (324)
+   Start at  11:28:55
+   Duration  5.80s (transform 2.90s, setup 0ms, import 6.77s, tests 8.34s, environment 6ms)
+

@@ -1,4 +1,5 @@
 import { useEffect, useState } from 'react';
+import OnboardingWizardPage from './OnboardingWizardPage';
 import { useBlocker } from 'react-router';
 import {
   AlertTriangle,
@@ -30,7 +31,6 @@ import { useProfileForm, HEIGHT_OPTIONS, BIOLOGICAL_SEX_OPTIONS, type ProfileFor
 import { useMediaUrl } from '@/hooks/useMediaUrl';
 import {
   DEFAULT_ONBOARDING_SCREENS,
-  buildInviteLink,
   buildServerInviteUrl,
   type OnboardingScreen,
 } from '@/config/onboardingScreens';
@@ -659,6 +659,7 @@ function OnboardingScreensTab() {
   const [screens, setScreens] = useState<OnboardingScreen[]>(DEFAULT_ONBOARDING_SCREENS);
   const [dragKey, setDragKey] = useState<string | null>(null);
   const [previewKey, setPreviewKey] = useState<string | null>(null);
+  const [previewInvite, setPreviewInvite] = useState(false);
   const [copied, setCopied] = useState(false);
   const [generating, setGenerating] = useState(false);
   const [revoking, setRevoking] = useState(false);
@@ -749,14 +750,20 @@ function OnboardingScreensTab() {
                 >
                   {copied ? <Check size={13} /> : <Copy size={13} />} {copied ? 'Copied' : 'Copy'}
                 </button>
-                <a
-                  href={inviteUrl}
-                  target="_blank"
-                  rel="noreferrer"
+                <button
+                  type="button"
+                  onClick={() => setPreviewInvite(true)}
                   className="flex items-center gap-1.5 h-9 px-3 rounded-lg border border-border text-sm font-medium text-foreground hover:bg-surface transition-colors shrink-0"
                 >
                   <ExternalLink size={13} /> Preview
-                </a>
+                </button>
+                <Dialog open={previewInvite} onOpenChange={setPreviewInvite}>
+                  <DialogContent className="max-w-3xl max-h-[90vh] overflow-y-auto">
+                    <DialogHeader><DialogTitle>Client onboarding preview</DialogTitle></DialogHeader>
+                    <p className="text-sm text-muted-foreground">Preview of the generated link. Answers entered here are not saved.</p>
+                    {previewInvite && invite && <OnboardingWizardPage key={invite.id} previewInviteId={invite.id} />}
+                  </DialogContent>
+                </Dialog>
               </div>
               <div className="flex items-center gap-2 -mt-1">
                 <button
@@ -851,8 +858,6 @@ function OnboardingScreensTab() {
               type="button"
               onClick={() => {
                 setPreviewKey((k) => (k === screen.key ? null : screen.key));
-                const single: OnboardingScreen[] = [{ ...screen, enabled: true }];
-                window.open(buildInviteLink(single, profile.first_name ?? '', profile.id), '_blank', 'noreferrer');
               }}
               aria-label={`Preview ${screen.label}`}
               className={cn(
@@ -862,6 +867,14 @@ function OnboardingScreensTab() {
             >
               <Eye size={14} />
             </button>
+            {previewKey === screen.key && (
+              <Dialog open onOpenChange={(open) => { if (!open) setPreviewKey(null); }}>
+                <DialogContent className="max-w-2xl max-h-[85vh] overflow-y-auto">
+                  <DialogHeader><DialogTitle>Preview: {screen.label}</DialogTitle></DialogHeader>
+                  <OnboardingWizardPage key={screen.key} previewScreen={screen} />
+                </DialogContent>
+              </Dialog>
+            )}
             <Toggle
               checked={screen.enabled}
               onChange={() => toggleScreen(screen.key)}

@@ -1,0 +1,16 @@
+[
+  {
+    "name": "final-mobile-test",
+    "exitCode": 0,
+    "command": "npm run test",
+    "startedAt": "2026-10-31T23:21:26.5958603+08:00",
+    "finishedAt": "2026-10-31T23:22:17.5711116+08:00"
+  },
+  {
+    "name": "final-mobile-typecheck",
+    "exitCode": 0,
+    "command": "npm run typecheck",
+    "startedAt": "2026-10-31T23:22:17.8964865+08:00",
+    "finishedAt": "2026-10-31T23:23:57.9976573+08:00"
+  }
+]

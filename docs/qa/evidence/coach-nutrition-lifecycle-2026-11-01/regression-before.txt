@@ -1,0 +1,709 @@
+
+> trace-app@0.0.0 test
+> vitest run tests/hooks/coachNutritionLifecycle.test.ts
+
+
+ RUN  v4.1.10 C:/Users/imint/TRACE
+
+ ❯ tests/hooks/coachNutritionLifecycle.test.ts (70 tests | 54 failed) 67ms
+     × settles the current StrictMode setup and ignores the first setup response 7ms
+     × immediately hides loaded A rows and errors on a switch to B 3ms
+     × ignores A after out-of-order B success 2ms
+     × rejects old A lifecycle results after A to B to A 1ms
+     × settles returned read failure and recovers on retry 1ms
+     × settles rejected read failure and recovers on retry 1ms
+     × settles thrown read failure and recovers on retry 2ms
+     × keeps same-account data after refresh failure and accepts only the newest request 1ms
+     × does not refresh A when a create completes while B is active 2ms
+     × rejects an old create callback while another owner is active 1ms
+     × does not refresh a later same-ID lifecycle after a create completes across A to B to A 1ms
+     × does not refresh or write state when creation completes after unmount 1ms
+     × returns rejected create failures and can recover 1ms
+     × returns thrown create failures and can recover 1ms
+     × keeps a committed create successful while exposing a failed reload separately 2ms
+     × does not request or mutate with an empty owner and treats an empty read as success 4ms
+     × settles the current StrictMode setup and ignores the first setup response 2ms
+     × immediately hides loaded A rows and errors on a switch to B 1ms
+     × ignores A after out-of-order B success 1ms
+     × rejects old A lifecycle results after A to B to A 0ms
+     × settles returned read failure and recovers on retry 1ms
+     × settles rejected read failure and recovers on retry 0ms
+     × settles thrown read failure and recovers on retry 0ms
+     × keeps same-account data after refresh failure and accepts only the newest request 0ms
+     × does not refresh A when a create completes while B is active 0ms
+     × rejects an old create callback while another owner is active 0ms
+     × does not refresh a later same-ID lifecycle after a create completes across A to B to A 0ms
+     × does not refresh or write state when creation completes after unmount 0ms
+     × returns rejected create failures and can recover 1ms
+     × returns thrown create failures and can recover 0ms
+     × keeps a committed create successful while exposing a failed reload separately 0ms
+     × does not request or mutate with an empty owner and treats an empty read as success 0ms
+     × settles the current StrictMode setup and ignores the first setup response 0ms
+     × immediately hides loaded A rows and errors on a switch to B 1ms
+     × ignores A after out-of-order B success 1ms
+     × rejects old A lifecycle results after A to B to A 1ms
+     × settles returned read failure and recovers on retry 0ms
+     × settles rejected read failure and recovers on retry 0ms
+     × settles thrown read failure and recovers on retry 0ms
+     × keeps same-account data after refresh failure and accepts only the newest request 0ms
+     × does not refresh A when a create completes while B is active 1ms
+     × rejects an old create callback while another owner is active 1ms
+     × does not refresh a later same-ID lifecycle after a create completes across A to B to A 3ms
+     × does not refresh or write state when creation completes after unmount 0ms
+     × returns rejected create failures and can recover 1ms
+     × returns thrown create failures and can recover 1ms
+     × keeps a committed create successful while exposing a failed reload separately 1ms
+     × does not request or mutate with an empty owner and treats an empty read as success 1ms
+     × ignores late delete completion after account change and rejects stale delete callbacks 0ms
+     × returns rejected delete failures without reloading 0ms
+     × returns thrown delete failures without reloading 0ms
+     × ignores late delete completion after account change and rejects stale delete callbacks 0ms
+     × returns rejected delete failures without reloading 0ms
+     × returns thrown delete failures without reloading 0ms
+
+⎯⎯⎯⎯⎯⎯ Failed Tests 54 ⎯⎯⎯⎯⎯⎯⎯
+
+ FAIL  tests/hooks/coachNutritionLifecycle.test.ts > 'foods' actual-hook lifecycle > settles the current StrictMode setup and ignores the first setup response
+ FAIL  tests/hooks/coachNutritionLifecycle.test.ts > 'meals' actual-hook lifecycle > settles the current StrictMode setup and ignores the first setup response
+ FAIL  tests/hooks/coachNutritionLifecycle.test.ts > 'meal_plans' actual-hook lifecycle > settles the current StrictMode setup and ignores the first setup response
+AssertionError: expected [] to deeply equal [ { id: 'current' } ]
+
+- Expected
++ Received
+
+- [
+-   {
+-     "id": "current",
+-   },
+- ]
++ []
+
+ ❯ tests/hooks/coachNutritionLifecycle.test.ts:63:31
+     61|     const hook = new HookHarness(() => scenario.hook('a')); hook.repla…
+     62|     current.resolve(success('current')); await settle();
+     63|     expect(hook.current.rows).toEqual([{ id: 'current' }]); expect(hoo…
+       |                               ^
+     64|     old.resolve(success('old')); await settle(); expect(hook.current.r…
+     65|   });
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[1/54]⎯
+
+ FAIL  tests/hooks/coachNutritionLifecycle.test.ts > 'foods' actual-hook lifecycle > immediately hides loaded A rows and errors on a switch to B
+ FAIL  tests/hooks/coachNutritionLifecycle.test.ts > 'meals' actual-hook lifecycle > immediately hides loaded A rows and errors on a switch to B
+ FAIL  tests/hooks/coachNutritionLifecycle.test.ts > 'meal_plans' actual-hook lifecycle > immediately hides loaded A rows and errors on a switch to B
+AssertionError: expected [ { id: 'a' } ] to deeply equal []
+
+- Expected
++ Received
+
+- []
++ [
++   {
++     "id": "a",
++   },
++ ]
+
+ ❯ tests/hooks/coachNutritionLifecycle.test.ts:71:31
+     69|     const pending = deferred<ReadResult>(); api.read.mockImplementatio…
+     70|     owner = 'b'; hook.render();
+     71|     expect(hook.current.rows).toEqual([]); expect(hook.current.error).…
+       |                               ^
+     72|     pending.resolve({ data: null, error: { message: 'B failed' } }); a…
+     73|     expect(hook.current.rows).toEqual([]); expect(hook.current.error).…
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[2/54]⎯
+
+ FAIL  tests/hooks/coachNutritionLifecycle.test.ts > 'foods' actual-hook lifecycle > ignores A after out-of-order B success
+ FAIL  tests/hooks/coachNutritionLifecycle.test.ts > 'meals' actual-hook lifecycle > ignores A after out-of-order B success
+ FAIL  tests/hooks/coachNutritionLifecycle.test.ts > 'meal_plans' actual-hook lifecycle > ignores A after out-of-order B success
+AssertionError: expected [ { id: 'a' } ] to deeply equal [ { id: 'b' } ]
+
+- Expected
++ Received
+
+  [
+    {
+-     "id": "b",
++     "id": "a",
+    },
+  ]
+
+ ❯ tests/hooks/coachNutritionLifecycle.test.ts:81:31
+     79|     const hook = new HookHarness(() => scenario.hook(owner)); owner = …
+     80|     b.resolve(success('b')); await settle(); a.resolve(success('a')); …
+     81|     expect(hook.current.rows).toEqual([{ id: 'b' }]); expect(hook.curr…
+       |                               ^
+     82|   });
+     83|
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[3/54]⎯
+
+ FAIL  tests/hooks/coachNutritionLifecycle.test.ts > 'foods' actual-hook lifecycle > rejects old A lifecycle results after A to B to A
+ FAIL  tests/hooks/coachNutritionLifecycle.test.ts > 'meals' actual-hook lifecycle > rejects old A lifecycle results after A to B to A
+ FAIL  tests/hooks/coachNutritionLifecycle.test.ts > 'meal_plans' actual-hook lifecycle > rejects old A lifecycle results after A to B to A
+AssertionError: expected [ { id: 'old-a' } ] to deeply equal [ { id: 'a' } ]
+
+- Expected
++ Received
+
+  [
+    {
+-     "id": "a",
++     "id": "old-a",
+    },
+  ]
+
+ ❯ tests/hooks/coachNutritionLifecycle.test.ts:88:31
+     86|     const hook = new HookHarness(() => scenario.hook(owner)); owner = …
+     87|     owner = 'a'; hook.render(); await settle(); old.resolve(success('o…
+     88|     expect(hook.current.rows).toEqual([{ id: 'a' }]);
+       |                               ^
+     89|   });
+     90|
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[4/54]⎯
+
+ FAIL  tests/hooks/coachNutritionLifecycle.test.ts > 'foods' actual-hook lifecycle > settles returned read failure and recovers on retry
+ FAIL  tests/hooks/coachNutritionLifecycle.test.ts > 'meals' actual-hook lifecycle > settles returned read failure and recovers on retry
+ FAIL  tests/hooks/coachNutritionLifecycle.test.ts > 'meal_plans' actual-hook lifecycle > settles returned read failure and recovers on retry
+TypeError: hook.current.refresh is not a function
+ ❯ tests/hooks/coachNutritionLifecycle.test.ts:113:24
+    111|     const hook = new HookHarness(() => scenario.hook('a')); await sett…
+    112|     expect(hook.current.isLoading).toBe(false); expect(hook.current.er…
+    113|     await hook.current.refresh(); await settle();
+       |                        ^
+    114|     expect(hook.current.rows).toEqual([{ id: 'a' }]); expect(hook.curr…
+    115|   });
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[5/54]⎯
+
+ FAIL  tests/hooks/coachNutritionLifecycle.test.ts > 'foods' actual-hook lifecycle > settles rejected read failure and recovers on retry
+ FAIL  tests/hooks/coachNutritionLifecycle.test.ts > 'foods' actual-hook lifecycle > settles thrown read failure and recovers on retry
+ FAIL  tests/hooks/coachNutritionLifecycle.test.ts > 'meals' actual-hook lifecycle > settles rejected read failure and recovers on retry
+ FAIL  tests/hooks/coachNutritionLifecycle.test.ts > 'meals' actual-hook lifecycle > settles thrown read failure and recovers on retry
+ FAIL  tests/hooks/coachNutritionLifecycle.test.ts > 'meal_plans' actual-hook lifecycle > settles rejected read failure and recovers on retry
+ FAIL  tests/hooks/coachNutritionLifecycle.test.ts > 'meal_plans' actual-hook lifecycle > settles thrown read failure and recovers on retry
+AssertionError: expected true to be false // Object.is equality
+
+- Expected
++ Received
+
+- false
++ true
+
+ ❯ tests/hooks/coachNutritionLifecycle.test.ts:112:36
+    110|     });
+    111|     const hook = new HookHarness(() => scenario.hook('a')); await sett…
+    112|     expect(hook.current.isLoading).toBe(false); expect(hook.current.er…
+       |                                    ^
+    113|     await hook.current.refresh(); await settle();
+    114|     expect(hook.current.rows).toEqual([{ id: 'a' }]); expect(hook.curr…
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[6/54]⎯
+
+ FAIL  tests/hooks/coachNutritionLifecycle.test.ts > 'foods' actual-hook lifecycle > keeps same-account data after refresh failure and accepts only the newest request
+ FAIL  tests/hooks/coachNutritionLifecycle.test.ts > 'meals' actual-hook lifecycle > keeps same-account data after refresh failure and accepts only the newest request
+ FAIL  tests/hooks/coachNutritionLifecycle.test.ts > 'meal_plans' actual-hook lifecycle > keeps same-account data after refresh failure and accepts only the newest request
+TypeError: hook.current.refresh is not a function
+ ❯ tests/hooks/coachNutritionLifecycle.test.ts:119:78
+    117|   it('keeps same-account data after refresh failure and accepts only t…
+    118|     const hook = new HookHarness(() => scenario.hook('a')); await sett…
+    119|     api.read.mockRejectedValueOnce(new Error('Offline')); await hook.c…
+       |                                                                              ^
+    120|     expect(hook.current.rows).toEqual([{ id: 'a' }]); expect(hook.curr…
+    121|     const old = deferred<ReadResult>(), latest = deferred<ReadResult>(…
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[7/54]⎯
+
+ FAIL  tests/hooks/coachNutritionLifecycle.test.ts > 'foods' actual-hook lifecycle > does not refresh A when a create completes while B is active
+ FAIL  tests/hooks/coachNutritionLifecycle.test.ts > 'meals' actual-hook lifecycle > does not refresh A when a create completes while B is active
+ FAIL  tests/hooks/coachNutritionLifecycle.test.ts > 'meal_plans' actual-hook lifecycle > does not refresh A when a create completes while B is active
+AssertionError: expected [ 'a', 'b', 'a' ] to deeply equal [ 'a', 'b' ]
+
+- Expected
++ Received
+
+  [
+    "a",
+    "b",
++   "a",
+  ]
+
+ ❯ tests/hooks/coachNutritionLifecycle.test.ts:133:56
+    131|     const hook = new HookHarness(() => scenario.hook(owner)); await se…
+    132|     owner = 'b'; hook.render(); await settle(); write.resolve({ error:…
+    133|     expect(api.read.mock.calls.map((args) => args[1])).toEqual(['a', '…
+       |                                                        ^
+    134|   });
+    135|
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[8/54]⎯
+
+ FAIL  tests/hooks/coachNutritionLifecycle.test.ts > 'foods' actual-hook lifecycle > rejects an old create callback while another owner is active
+ FAIL  tests/hooks/coachNutritionLifecycle.test.ts > 'meals' actual-hook lifecycle > rejects an old create callback while another owner is active
+ FAIL  tests/hooks/coachNutritionLifecycle.test.ts > 'meal_plans' actual-hook lifecycle > rejects an old create callback while another owner is active
+AssertionError: expected null to be truthy
+
+- Expected:
+true
+
++ Received:
+null
+
+ ❯ tests/hooks/coachNutritionLifecycle.test.ts:139:35
+    137|     let owner = 'a'; const hook = new HookHarness(() => scenario.hook(…
+    138|     owner = 'b'; hook.render(); await settle();
+    139|     expect((await stale()).error).toBeTruthy(); expect(api.write).not.…
+       |                                   ^
+    140|     expect(api.read).toHaveBeenCalledTimes(2);
+    141|   });
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[9/54]⎯
+
+ FAIL  tests/hooks/coachNutritionLifecycle.test.ts > 'foods' actual-hook lifecycle > does not refresh a later same-ID lifecycle after a create completes across A to B to A
+ FAIL  tests/hooks/coachNutritionLifecycle.test.ts > 'meals' actual-hook lifecycle > does not refresh a later same-ID lifecycle after a create completes across A to B to A
+ FAIL  tests/hooks/coachNutritionLifecycle.test.ts > 'meal_plans' actual-hook lifecycle > does not refresh a later same-ID lifecycle after a create completes across A to B to A
+AssertionError: expected [ 'a', 'b', 'a', 'a' ] to deeply equal [ 'a', 'b', 'a' ]
+
+- Expected
++ Received
+
+  [
+    "a",
+    "b",
+    "a",
++   "a",
+  ]
+
+ ❯ tests/hooks/coachNutritionLifecycle.test.ts:148:56
+    146|     owner = 'b'; hook.render(); await settle(); owner = 'a'; hook.rend…
+    147|     write.resolve({ error: null }); await action; await settle();
+    148|     expect(api.read.mock.calls.map((args) => args[1])).toEqual(['a', '…
+       |                                                        ^
+    149|   });
+    150|
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[10/54]⎯
+
+ FAIL  tests/hooks/coachNutritionLifecycle.test.ts > 'foods' actual-hook lifecycle > does not refresh or write state when creation completes after unmount
+ FAIL  tests/hooks/coachNutritionLifecycle.test.ts > 'meals' actual-hook lifecycle > does not refresh or write state when creation completes after unmount
+ FAIL  tests/hooks/coachNutritionLifecycle.test.ts > 'meal_plans' actual-hook lifecycle > does not refresh or write state when creation completes after unmount
+AssertionError: expected "vi.fn()" to be called 1 times, but got 2 times
+ ❯ tests/hooks/coachNutritionLifecycle.test.ts:155:22
+    153|     const hook = new HookHarness(() => scenario.hook('a')); await sett…
+    154|     hook.unmount(); const before = JSON.stringify(hook.slots); write.r…
+    155|     expect(api.read).toHaveBeenCalledTimes(1); expect(JSON.stringify(h…
+       |                      ^
+    156|     expect((await hook.current.create()).error).toBeTruthy(); expect(a…
+    157|   });
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[11/54]⎯
+
+ FAIL  tests/hooks/coachNutritionLifecycle.test.ts > 'foods' actual-hook lifecycle > returns rejected create failures and can recover
+Error: Write failed
+ ❯ Object.<anonymous> tests/hooks/coachNutritionLifecycle.test.ts:163:109
+    161|     api.write.mockImplementationOnce(() => {
+    162|       if (mode === 'thrown') throw new Error('Write failed');
+    163|       return mode === 'returned' ? Promise.resolve({ error: { message:…
+       |                                                                                                             ^
+    164|     });
+    165|     expect(await hook.current.create()).toEqual({ error: 'Write failed…
+ ❯ Object.insert tests/hooks/coachNutritionLifecycle.test.ts:16:41
+ ❯ Object.createFood src/hooks/useFoods.ts:75:65
+ ❯ Object.create tests/hooks/coachNutritionLifecycle.test.ts:32:113
+ ❯ tests/hooks/coachNutritionLifecycle.test.ts:165:31
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[12/54]⎯
+
+ FAIL  tests/hooks/coachNutritionLifecycle.test.ts > 'foods' actual-hook lifecycle > returns thrown create failures and can recover
+Error: Write failed
+ ❯ Object.<anonymous> tests/hooks/coachNutritionLifecycle.test.ts:162:36
+    160|     const hook = new HookHarness(() => scenario.hook('a')); await sett…
+    161|     api.write.mockImplementationOnce(() => {
+    162|       if (mode === 'thrown') throw new Error('Write failed');
+       |                                    ^
+    163|       return mode === 'returned' ? Promise.resolve({ error: { message:…
+    164|     });
+ ❯ Object.insert tests/hooks/coachNutritionLifecycle.test.ts:16:41
+ ❯ Object.createFood src/hooks/useFoods.ts:75:65
+ ❯ Object.create tests/hooks/coachNutritionLifecycle.test.ts:32:113
+ ❯ tests/hooks/coachNutritionLifecycle.test.ts:165:31
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[13/54]⎯
+
+ FAIL  tests/hooks/coachNutritionLifecycle.test.ts > 'foods' actual-hook lifecycle > keeps a committed create successful while exposing a failed reload separately
+ FAIL  tests/hooks/coachNutritionLifecycle.test.ts > 'meals' actual-hook lifecycle > keeps a committed create successful while exposing a failed reload separately
+ FAIL  tests/hooks/coachNutritionLifecycle.test.ts > 'meal_plans' actual-hook lifecycle > keeps a committed create successful while exposing a failed reload separately
+Error: Reload failed
+ ❯ tests/hooks/coachNutritionLifecycle.test.ts:170:108
+    168|
+    169|   it('keeps a committed create successful while exposing a failed relo…
+    170|     const hook = new HookHarness(() => scenario.hook('a')); await sett…
+       |                                                                                                            ^
+    171|     expect(await hook.current.create()).toEqual({ error: null }); awai…
+    172|     expect(hook.current.rows).toEqual([{ id: 'a' }]); expect(hook.curr…
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[14/54]⎯
+
+ FAIL  tests/hooks/coachNutritionLifecycle.test.ts > 'foods' actual-hook lifecycle > does not request or mutate with an empty owner and treats an empty read as success
+ FAIL  tests/hooks/coachNutritionLifecycle.test.ts > 'meals' actual-hook lifecycle > does not request or mutate with an empty owner and treats an empty read as success
+ FAIL  tests/hooks/coachNutritionLifecycle.test.ts > 'meal_plans' actual-hook lifecycle > does not request or mutate with an empty owner and treats an empty read as success
+AssertionError: expected [ { id: '' } ] to deeply equal []
+
+- Expected
++ Received
+
+- []
++ [
++   {
++     "id": "",
++   },
++ ]
+
+ ❯ tests/hooks/coachNutritionLifecycle.test.ts:177:31
+    175|   it('does not request or mutate with an empty owner and treats an emp…
+    176|     let owner = ''; const hook = new HookHarness(() => scenario.hook(o…
+    177|     expect(hook.current.rows).toEqual([]); expect(hook.current.isLoadi…
+       |                               ^
+    178|     expect((await hook.current.create()).error).toBeTruthy(); expect(a…
+    179|     api.read.mockResolvedValueOnce({ data: null, error: null }); owner…
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[15/54]⎯
+
+ FAIL  tests/hooks/coachNutritionLifecycle.test.ts > 'meals' actual-hook lifecycle > returns rejected create failures and can recover
+Error: Write failed
+ ❯ Object.<anonymous> tests/hooks/coachNutritionLifecycle.test.ts:163:109
+    161|     api.write.mockImplementationOnce(() => {
+    162|       if (mode === 'thrown') throw new Error('Write failed');
+    163|       return mode === 'returned' ? Promise.resolve({ error: { message:…
+       |                                                                                                             ^
+    164|     });
+    165|     expect(await hook.current.create()).toEqual({ error: 'Write failed…
+ ❯ Object.insert tests/hooks/coachNutritionLifecycle.test.ts:16:41
+ ❯ Object.createMeal src/hooks/useMeals.ts:65:65
+ ❯ Object.create tests/hooks/coachNutritionLifecycle.test.ts:35:113
+ ❯ tests/hooks/coachNutritionLifecycle.test.ts:165:31
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[16/54]⎯
+
+ FAIL  tests/hooks/coachNutritionLifecycle.test.ts > 'meals' actual-hook lifecycle > returns thrown create failures and can recover
+Error: Write failed
+ ❯ Object.<anonymous> tests/hooks/coachNutritionLifecycle.test.ts:162:36
+    160|     const hook = new HookHarness(() => scenario.hook('a')); await sett…
+    161|     api.write.mockImplementationOnce(() => {
+    162|       if (mode === 'thrown') throw new Error('Write failed');
+       |                                    ^
+    163|       return mode === 'returned' ? Promise.resolve({ error: { message:…
+    164|     });
+ ❯ Object.insert tests/hooks/coachNutritionLifecycle.test.ts:16:41
+ ❯ Object.createMeal src/hooks/useMeals.ts:65:65
+ ❯ Object.create tests/hooks/coachNutritionLifecycle.test.ts:35:113
+ ❯ tests/hooks/coachNutritionLifecycle.test.ts:165:31
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[17/54]⎯
+
+ FAIL  tests/hooks/coachNutritionLifecycle.test.ts > 'meal_plans' actual-hook lifecycle > returns rejected create failures and can recover
+Error: Write failed
+ ❯ Object.<anonymous> tests/hooks/coachNutritionLifecycle.test.ts:163:109
+    161|     api.write.mockImplementationOnce(() => {
+    162|       if (mode === 'thrown') throw new Error('Write failed');
+    163|       return mode === 'returned' ? Promise.resolve({ error: { message:…
+       |                                                                                                             ^
+    164|     });
+    165|     expect(await hook.current.create()).toEqual({ error: 'Write failed…
+ ❯ Object.insert tests/hooks/coachNutritionLifecycle.test.ts:16:41
+ ❯ Object.createMealPlan src/hooks/useMealPlans.ts:58:8
+ ❯ Object.create tests/hooks/coachNutritionLifecycle.test.ts:38:121
+ ❯ tests/hooks/coachNutritionLifecycle.test.ts:165:31
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[18/54]⎯
+
+ FAIL  tests/hooks/coachNutritionLifecycle.test.ts > 'meal_plans' actual-hook lifecycle > returns thrown create failures and can recover
+Error: Write failed
+ ❯ Object.<anonymous> tests/hooks/coachNutritionLifecycle.test.ts:162:36
+    160|     const hook = new HookHarness(() => scenario.hook('a')); await sett…
+    161|     api.write.mockImplementationOnce(() => {
+    162|       if (mode === 'thrown') throw new Error('Write failed');
+       |                                    ^
+    163|       return mode === 'returned' ? Promise.resolve({ error: { message:…
+    164|     });
+ ❯ Object.insert tests/hooks/coachNutritionLifecycle.test.ts:16:41
+ ❯ Object.createMealPlan src/hooks/useMealPlans.ts:58:8
+ ❯ Object.create tests/hooks/coachNutritionLifecycle.test.ts:38:121
+ ❯ tests/hooks/coachNutritionLifecycle.test.ts:165:31
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[19/54]⎯
+
+ FAIL  tests/hooks/coachNutritionLifecycle.test.ts > 'foods' deletion lifecycle > ignores late delete completion after account change and rejects stale delete callbacks
+ FAIL  tests/hooks/coachNutritionLifecycle.test.ts > 'meal_plans' deletion lifecycle > ignores late delete completion after account change and rejects stale delete callbacks
+AssertionError: expected "vi.fn()" to be called 1 times, but got 2 times
+ ❯ tests/hooks/coachNutritionLifecycle.test.ts:196:23
+    194|     // Do not await an unintended second pending write when testing ol…
+    195|     const attempts = api.write.mock.calls.length; const rejected = sta…
+    196|     expect(api.write).toHaveBeenCalledTimes(attempts); expect((await r…
+       |                       ^
+    197|     write.resolve({ error: null }); await action; await settle();
+    198|     expect(api.read).toHaveBeenCalledTimes(2); expect(hook.current.row…
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[20/54]⎯
+
+ FAIL  tests/hooks/coachNutritionLifecycle.test.ts > 'foods' deletion lifecycle > returns rejected delete failures without reloading
+Error: Delete failed
+ ❯ Object.<anonymous> tests/hooks/coachNutritionLifecycle.test.ts:204:110
+    202|     api.write.mockImplementation(() => {
+    203|       if (mode === 'thrown') throw new Error('Delete failed');
+    204|       return mode === 'returned' ? Promise.resolve({ error: { message:…
+       |                                                                                                              ^
+    205|     });
+    206|     expect(await hook.current.remove!()).toEqual({ error: 'Delete fail…
+ ❯ Object.eq tests/hooks/coachNutritionLifecycle.test.ts:17:67
+ ❯ Object.deleteFood src/hooks/useFoods.ts:90:74
+ ❯ Object.remove tests/hooks/coachNutritionLifecycle.test.ts:32:151
+ ❯ tests/hooks/coachNutritionLifecycle.test.ts:206:31
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[21/54]⎯
+
+ FAIL  tests/hooks/coachNutritionLifecycle.test.ts > 'foods' deletion lifecycle > returns thrown delete failures without reloading
+Error: Delete failed
+ ❯ Object.<anonymous> tests/hooks/coachNutritionLifecycle.test.ts:203:36
+    201|     const hook = new HookHarness(() => scenario.hook('a')); await sett…
+    202|     api.write.mockImplementation(() => {
+    203|       if (mode === 'thrown') throw new Error('Delete failed');
+       |                                    ^
+    204|       return mode === 'returned' ? Promise.resolve({ error: { message:…
+    205|     });
+ ❯ Object.eq tests/hooks/coachNutritionLifecycle.test.ts:17:67
+ ❯ Object.deleteFood src/hooks/useFoods.ts:90:74
+ ❯ Object.remove tests/hooks/coachNutritionLifecycle.test.ts:32:151
+ ❯ tests/hooks/coachNutritionLifecycle.test.ts:206:31
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[22/54]⎯
+
+ FAIL  tests/hooks/coachNutritionLifecycle.test.ts > 'meal_plans' deletion lifecycle > returns rejected delete failures without reloading
+Error: Delete failed
+ ❯ Object.<anonymous> tests/hooks/coachNutritionLifecycle.test.ts:204:110
+    202|     api.write.mockImplementation(() => {
+    203|       if (mode === 'thrown') throw new Error('Delete failed');
+    204|       return mode === 'returned' ? Promise.resolve({ error: { message:…
+       |                                                                                                              ^
+    205|     });
+    206|     expect(await hook.current.remove!()).toEqual({ error: 'Delete fail…
+ ❯ Object.eq tests/hooks/coachNutritionLifecycle.test.ts:17:67
+ ❯ Object.deleteMealPlan src/hooks/useMealPlans.ts:64:79
+ ❯ Object.remove tests/hooks/coachNutritionLifecycle.test.ts:38:163
+ ❯ tests/hooks/coachNutritionLifecycle.test.ts:206:31
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[23/54]⎯
+
+ FAIL  tests/hooks/coachNutritionLifecycle.test.ts > 'meal_plans' deletion lifecycle > returns thrown delete failures without reloading
+Error: Delete failed
+ ❯ Object.<anonymous> tests/hooks/coachNutritionLifecycle.test.ts:203:36
+    201|     const hook = new HookHarness(() => scenario.hook('a')); await sett…
+    202|     api.write.mockImplementation(() => {
+    203|       if (mode === 'thrown') throw new Error('Delete failed');
+       |                                    ^
+    204|       return mode === 'returned' ? Promise.resolve({ error: { message:…
+    205|     });
+ ❯ Object.eq tests/hooks/coachNutritionLifecycle.test.ts:17:67
+ ❯ Object.deleteMealPlan src/hooks/useMealPlans.ts:64:79
+ ❯ Object.remove tests/hooks/coachNutritionLifecycle.test.ts:38:163
+ ❯ tests/hooks/coachNutritionLifecycle.test.ts:206:31
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[24/54]⎯
+
+⎯⎯⎯⎯⎯⎯ Unhandled Errors ⎯⎯⎯⎯⎯⎯
+
+Vitest caught 9 unhandled errors during the test run.
+This might cause false positive tests. Resolve unhandled errors to make sure your tests are not affected.
+
+⎯⎯⎯⎯ Unhandled Rejection ⎯⎯⎯⎯⎯
+Error: Old account failed
+ ❯ tests/hooks/coachNutritionLifecycle.test.ts:95:14
+     93|     api.read.mockImplementation((_table: string, id: string) => id ===…
+     94|     const hook = new HookHarness(() => scenario.hook(owner)); owner = …
+     95|     a.reject(new Error('Old account failed')); await settle();
+       |              ^
+     96|     expect(hook.current.error).toBeNull(); expect(hook.current.isLoadi…
+     97|     b.resolve(success('b')); await settle(); expect(hook.current.rows)…
+ ❯ node_modules/@vitest/runner/dist/chunk-artifact.js:302:11
+ ❯ node_modules/@vitest/runner/dist/chunk-artifact.js:1903:26
+ ❯ node_modules/@vitest/runner/dist/chunk-artifact.js:2326:20
+ ❯ runWithCancel node_modules/@vitest/runner/dist/chunk-artifact.js:2323:10
+ ❯ node_modules/@vitest/runner/dist/chunk-artifact.js:2305:20
+ ❯ runWithTimeout node_modules/@vitest/runner/dist/chunk-artifact.js:2272:10
+ ❯ node_modules/@vitest/runner/dist/chunk-artifact.js:2955:64
+
+This error originated in "tests/hooks/coachNutritionLifecycle.test.ts" test file. It doesn't mean the error was thrown inside the file itself, but while it was running.
+
+⎯⎯⎯⎯ Unhandled Rejection ⎯⎯⎯⎯⎯
+Error: Read failed
+ ❯ Object.<anonymous> tests/hooks/coachNutritionLifecycle.test.ts:109:120
+    107|     api.read.mockImplementationOnce(() => {
+    108|       if (mode === 'thrown') throw new Error('Read failed');
+    109|       return mode === 'returned' ? Promise.resolve({ data: null, error…
+       |                                                                                                                        ^
+    110|     });
+    111|     const hook = new HookHarness(() => scenario.hook('a')); await sett…
+ ❯ Object.Mock node_modules/@vitest/spy/dist/index.js:332:34
+ ❯ Object.order tests/hooks/coachNutritionLifecycle.test.ts:15:56
+ ❯ fetchFoods src/hooks/useFoods.ts:53:8
+ ❯ src/hooks/useFoods.ts:66:29
+ ❯ src/hooks/useFoods.ts:67:6
+ ❯ tests/hooks/hookHarness.ts:43:44
+ ❯ HookHarness.render tests/hooks/hookHarness.ts:20:48
+ ❯ new HookHarness tests/hooks/hookHarness.ts:14:85
+ ❯ tests/hooks/coachNutritionLifecycle.test.ts:111:18
+
+This error originated in "tests/hooks/coachNutritionLifecycle.test.ts" test file. It doesn't mean the error was thrown inside the file itself, but while it was running.
+
+⎯⎯⎯⎯ Unhandled Rejection ⎯⎯⎯⎯⎯
+Error: Read failed
+ ❯ Object.<anonymous> tests/hooks/coachNutritionLifecycle.test.ts:108:36
+    106|   it.each(['returned', 'rejected', 'thrown'])('settles %s read failure…
+    107|     api.read.mockImplementationOnce(() => {
+    108|       if (mode === 'thrown') throw new Error('Read failed');
+       |                                    ^
+    109|       return mode === 'returned' ? Promise.resolve({ data: null, error…
+    110|     });
+ ❯ Object.Mock node_modules/@vitest/spy/dist/index.js:332:34
+ ❯ Object.order tests/hooks/coachNutritionLifecycle.test.ts:15:56
+ ❯ fetchFoods src/hooks/useFoods.ts:53:8
+ ❯ src/hooks/useFoods.ts:66:29
+ ❯ src/hooks/useFoods.ts:67:6
+ ❯ tests/hooks/hookHarness.ts:43:44
+ ❯ HookHarness.render tests/hooks/hookHarness.ts:20:48
+ ❯ new HookHarness tests/hooks/hookHarness.ts:14:85
+ ❯ tests/hooks/coachNutritionLifecycle.test.ts:111:18
+
+This error originated in "tests/hooks/coachNutritionLifecycle.test.ts" test file. It doesn't mean the error was thrown inside the file itself, but while it was running.
+
+⎯⎯⎯⎯ Unhandled Rejection ⎯⎯⎯⎯⎯
+Error: Old account failed
+ ❯ tests/hooks/coachNutritionLifecycle.test.ts:95:14
+     93|     api.read.mockImplementation((_table: string, id: string) => id ===…
+     94|     const hook = new HookHarness(() => scenario.hook(owner)); owner = …
+     95|     a.reject(new Error('Old account failed')); await settle();
+       |              ^
+     96|     expect(hook.current.error).toBeNull(); expect(hook.current.isLoadi…
+     97|     b.resolve(success('b')); await settle(); expect(hook.current.rows)…
+ ❯ node_modules/@vitest/runner/dist/chunk-artifact.js:302:11
+ ❯ node_modules/@vitest/runner/dist/chunk-artifact.js:1903:26
+ ❯ node_modules/@vitest/runner/dist/chunk-artifact.js:2326:20
+ ❯ runWithCancel node_modules/@vitest/runner/dist/chunk-artifact.js:2323:10
+ ❯ node_modules/@vitest/runner/dist/chunk-artifact.js:2305:20
+ ❯ runWithTimeout node_modules/@vitest/runner/dist/chunk-artifact.js:2272:10
+ ❯ node_modules/@vitest/runner/dist/chunk-artifact.js:2955:64
+
+This error originated in "tests/hooks/coachNutritionLifecycle.test.ts" test file. It doesn't mean the error was thrown inside the file itself, but while it was running.
+
+⎯⎯⎯⎯ Unhandled Rejection ⎯⎯⎯⎯⎯
+Error: Read failed
+ ❯ Object.<anonymous> tests/hooks/coachNutritionLifecycle.test.ts:109:120
+    107|     api.read.mockImplementationOnce(() => {
+    108|       if (mode === 'thrown') throw new Error('Read failed');
+    109|       return mode === 'returned' ? Promise.resolve({ data: null, error…
+       |                                                                                                                        ^
+    110|     });
+    111|     const hook = new HookHarness(() => scenario.hook('a')); await sett…
+ ❯ Object.Mock node_modules/@vitest/spy/dist/index.js:332:34
+ ❯ Object.order tests/hooks/coachNutritionLifecycle.test.ts:15:56
+ ❯ fetchMeals src/hooks/useMeals.ts:43:8
+ ❯ src/hooks/useMeals.ts:56:29
+ ❯ src/hooks/useMeals.ts:57:6
+ ❯ tests/hooks/hookHarness.ts:43:44
+ ❯ HookHarness.render tests/hooks/hookHarness.ts:20:48
+ ❯ new HookHarness tests/hooks/hookHarness.ts:14:85
+ ❯ tests/hooks/coachNutritionLifecycle.test.ts:111:18
+
+This error originated in "tests/hooks/coachNutritionLifecycle.test.ts" test file. It doesn't mean the error was thrown inside the file itself, but while it was running.
+
+⎯⎯⎯⎯ Unhandled Rejection ⎯⎯⎯⎯⎯
+Error: Read failed
+ ❯ Object.<anonymous> tests/hooks/coachNutritionLifecycle.test.ts:108:36
+    106|   it.each(['returned', 'rejected', 'thrown'])('settles %s read failure…
+    107|     api.read.mockImplementationOnce(() => {
+    108|       if (mode === 'thrown') throw new Error('Read failed');
+       |                                    ^
+    109|       return mode === 'returned' ? Promise.resolve({ data: null, error…
+    110|     });
+ ❯ Object.Mock node_modules/@vitest/spy/dist/index.js:332:34
+ ❯ Object.order tests/hooks/coachNutritionLifecycle.test.ts:15:56
+ ❯ fetchMeals src/hooks/useMeals.ts:43:8
+ ❯ src/hooks/useMeals.ts:56:29
+ ❯ src/hooks/useMeals.ts:57:6
+ ❯ tests/hooks/hookHarness.ts:43:44
+ ❯ HookHarness.render tests/hooks/hookHarness.ts:20:48
+ ❯ new HookHarness tests/hooks/hookHarness.ts:14:85
+ ❯ tests/hooks/coachNutritionLifecycle.test.ts:111:18
+
+This error originated in "tests/hooks/coachNutritionLifecycle.test.ts" test file. It doesn't mean the error was thrown inside the file itself, but while it was running.
+
+⎯⎯⎯⎯ Unhandled Rejection ⎯⎯⎯⎯⎯
+Error: Old account failed
+ ❯ tests/hooks/coachNutritionLifecycle.test.ts:95:14
+     93|     api.read.mockImplementation((_table: string, id: string) => id ===…
+     94|     const hook = new HookHarness(() => scenario.hook(owner)); owner = …
+     95|     a.reject(new Error('Old account failed')); await settle();
+       |              ^
+     96|     expect(hook.current.error).toBeNull(); expect(hook.current.isLoadi…
+     97|     b.resolve(success('b')); await settle(); expect(hook.current.rows)…
+ ❯ node_modules/@vitest/runner/dist/chunk-artifact.js:302:11
+ ❯ node_modules/@vitest/runner/dist/chunk-artifact.js:1903:26
+ ❯ node_modules/@vitest/runner/dist/chunk-artifact.js:2326:20
+ ❯ runWithCancel node_modules/@vitest/runner/dist/chunk-artifact.js:2323:10
+ ❯ node_modules/@vitest/runner/dist/chunk-artifact.js:2305:20
+ ❯ runWithTimeout node_modules/@vitest/runner/dist/chunk-artifact.js:2272:10
+ ❯ node_modules/@vitest/runner/dist/chunk-artifact.js:2955:64
+
+This error originated in "tests/hooks/coachNutritionLifecycle.test.ts" test file. It doesn't mean the error was thrown inside the file itself, but while it was running.
+
+⎯⎯⎯⎯ Unhandled Rejection ⎯⎯⎯⎯⎯
+Error: Read failed
+ ❯ Object.<anonymous> tests/hooks/coachNutritionLifecycle.test.ts:109:120
+    107|     api.read.mockImplementationOnce(() => {
+    108|       if (mode === 'thrown') throw new Error('Read failed');
+    109|       return mode === 'returned' ? Promise.resolve({ data: null, error…
+       |                                                                                                                        ^
+    110|     });
+    111|     const hook = new HookHarness(() => scenario.hook('a')); await sett…
+ ❯ Object.Mock node_modules/@vitest/spy/dist/index.js:332:34
+ ❯ Object.order tests/hooks/coachNutritionLifecycle.test.ts:15:56
+ ❯ fetchMealPlans src/hooks/useMealPlans.ts:34:8
+ ❯ src/hooks/useMealPlans.ts:47:29
+ ❯ src/hooks/useMealPlans.ts:48:6
+ ❯ tests/hooks/hookHarness.ts:43:44
+ ❯ HookHarness.render tests/hooks/hookHarness.ts:20:48
+ ❯ new HookHarness tests/hooks/hookHarness.ts:14:85
+ ❯ tests/hooks/coachNutritionLifecycle.test.ts:111:18
+
+This error originated in "tests/hooks/coachNutritionLifecycle.test.ts" test file. It doesn't mean the error was thrown inside the file itself, but while it was running.
+
+⎯⎯⎯⎯ Unhandled Rejection ⎯⎯⎯⎯⎯
+Error: Read failed
+ ❯ Object.<anonymous> tests/hooks/coachNutritionLifecycle.test.ts:108:36
+    106|   it.each(['returned', 'rejected', 'thrown'])('settles %s read failure…
+    107|     api.read.mockImplementationOnce(() => {
+    108|       if (mode === 'thrown') throw new Error('Read failed');
+       |                                    ^
+    109|       return mode === 'returned' ? Promise.resolve({ data: null, error…
+    110|     });
+ ❯ Object.Mock node_modules/@vitest/spy/dist/index.js:332:34
+ ❯ Object.order tests/hooks/coachNutritionLifecycle.test.ts:15:56
+ ❯ fetchMealPlans src/hooks/useMealPlans.ts:34:8
+ ❯ src/hooks/useMealPlans.ts:47:29
+ ❯ src/hooks/useMealPlans.ts:48:6
+ ❯ tests/hooks/hookHarness.ts:43:44
+ ❯ HookHarness.render tests/hooks/hookHarness.ts:20:48
+ ❯ new HookHarness tests/hooks/hookHarness.ts:14:85
+ ❯ tests/hooks/coachNutritionLifecycle.test.ts:111:18
+
+This error originated in "tests/hooks/coachNutritionLifecycle.test.ts" test file. It doesn't mean the error was thrown inside the file itself, but while it was running.
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯
+
+
+ Test Files  1 failed (1)
+      Tests  54 failed | 16 passed (70)
+     Errors  9 errors
+   Start at  11:26:44
+   Duration  1.11s (transform 180ms, setup 0ms, import 222ms, tests 67ms, environment 0ms)
+

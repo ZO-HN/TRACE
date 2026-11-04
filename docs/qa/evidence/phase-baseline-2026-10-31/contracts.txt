@@ -1,0 +1,5 @@
+
+> trace-app@0.0.0 test:contracts
+> node scripts/check-client-contract.mjs
+
+Both apps reference tables and RPCs present in the canonical migrations.

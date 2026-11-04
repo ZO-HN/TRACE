@@ -1,287 +1,44 @@
 import { useState } from 'react';
-import {
-  ArrowUpDown,
-  Check,
-  Dumbbell,
-  Grid2x2,
-  List,
-  Plus,
-  Save,
-  Search,
-  Settings2,
-  Sparkles,
-  X,
-} from 'lucide-react';
-import { useExerciseCatalog } from '@/hooks/useExerciseCatalog';
-import { addWorkout, useWorkoutLibrary, WORKOUT_CATEGORIES, type WorkoutCategory } from '@/hooks/useWorkoutLibrary';
-import { Input, Select } from '@/components/ui/shadcn/field';
-import { Popover, PopoverTrigger, PopoverContent } from '@/components/ui/shadcn/popover';
+import { Dumbbell } from 'lucide-react';
+import { useProfile } from '../layout/AppShell';
+import { useCoachPrivateWorkouts } from '../../hooks/useCoachPrivateWorkouts';
+import TemplateBuilder from '../coach/TemplateBuilder';
 
-type ColumnKey = 'creator' | 'createdAt' | 'usedIn';
-
-const TOGGLE_COLUMNS: { key: ColumnKey; label: string }[] = [
-  { key: 'creator', label: 'Creator' },
-  { key: 'createdAt', label: 'Created At' },
-  { key: 'usedIn', label: 'Used In' },
-];
-
-function ViewMenu({ visible, onToggle }: { visible: Set<ColumnKey>; onToggle: (key: ColumnKey) => void }) {
-  return (
-    <Popover>
-      <PopoverTrigger asChild>
-        <button
-          type="button"
-          className="flex items-center gap-1.5 h-10 px-3 rounded-lg border border-border text-sm text-foreground hover:bg-surface transition-colors"
-        >
-          <Settings2 size={14} /> View
-        </button>
-      </PopoverTrigger>
-      <PopoverContent align="end" className="w-52 p-1">
-        <p className="text-[11px] font-semibold uppercase tracking-wide text-muted-foreground px-2 py-1.5">
-          Toggle columns
-        </p>
-        {TOGGLE_COLUMNS.map((c) => (
-          <button
-            key={c.key}
-            type="button"
-            onClick={() => onToggle(c.key)}
-            className="flex items-center gap-2 w-full px-2 py-1.5 rounded-md text-sm text-foreground hover:bg-muted transition-colors"
-          >
-            <span className={`w-4 shrink-0 ${visible.has(c.key) ? 'text-primary' : 'text-transparent'}`}>
-              <Check size={14} />
-            </span>
-            {c.label}
-          </button>
-        ))}
-      </PopoverContent>
-    </Popover>
-  );
-}
-
-function WorkoutBuilder({ onClose }: { onClose: () => void }) {
-  const { rows } = useExerciseCatalog();
-  const [view, setView] = useState<'list' | 'grid'>('list');
-  const [query, setQuery] = useState('');
-  const [name, setName] = useState('');
-  const [category, setCategory] = useState<WorkoutCategory | ''>('');
-
-  const filtered = rows.filter((r) => r.name.toLowerCase().includes(query.toLowerCase()));
-
-  const handleSave = () => {
-    const trimmed = name.trim();
-    if (!trimmed) return;
-    addWorkout({ name: trimmed, category: category || 'Full Body' });
-    onClose();
-  };
-
-  return (
-    <div className="fixed inset-0 z-40 bg-background flex flex-col">
-      <div className="flex items-center justify-between px-5 py-3 border-b border-border">
-        <div className="flex items-center gap-3">
-          <button onClick={onClose} className="text-muted-foreground hover:text-foreground p-1 rounded-md hover:bg-surface">
-            <X size={18} />
-          </button>
-          <h2 className="text-base font-semibold text-foreground">New Workout</h2>
-        </div>
-        <div className="flex items-center gap-2">
-          <button className="flex items-center gap-1.5 h-9 px-3 rounded-lg text-sm font-medium text-primary hover:bg-primary/10 transition-colors">
-            <Sparkles size={14} /> AI Generate
-          </button>
-          <button onClick={onClose} className="h-9 px-4 rounded-lg border border-border text-sm font-medium text-foreground hover:bg-surface transition-colors">
-            Cancel
-          </button>
-          <button
-            onClick={handleSave}
-            disabled={!name.trim()}
-            className="flex items-center gap-1.5 h-9 px-4 rounded-lg bg-success text-white text-sm font-semibold hover:opacity-90 transition-opacity disabled:opacity-50 disabled:pointer-events-none"
-          >
-            <Save size={14} /> Save &amp; Close
-          </button>
-        </div>
-      </div>
-
-      <div className="flex flex-1 min-h-0">
-        <div className="w-80 shrink-0 border-r border-border flex flex-col p-3 gap-2 min-h-0">
-          <div className="relative">
-            <Search size={14} className="absolute left-3 top-1/2 -translate-y-1/2 text-muted-foreground" />
-            <Input
-              placeholder="Search exercises..."
-              value={query}
-              onChange={(e) => setQuery(e.target.value)}
-              className="pl-8"
-            />
-          </div>
-          <div className="flex items-center justify-between">
-            <span className="text-xs font-semibold text-muted-foreground">RECENT ({filtered.length})</span>
-            <div className="flex items-center gap-1">
-              <button className="flex items-center gap-1 h-7 px-2 rounded-md bg-success text-white text-xs font-semibold">
-                <Plus size={12} /> New
-              </button>
-              <button onClick={() => setView('list')} className={`p-1 rounded-md ${view === 'list' ? 'bg-muted text-foreground' : 'text-muted-foreground'}`}>
-                <List size={14} />
-              </button>
-              <button onClick={() => setView('grid')} className={`p-1 rounded-md ${view === 'grid' ? 'bg-muted text-foreground' : 'text-muted-foreground'}`}>
-                <Grid2x2 size={14} />
-              </button>
-            </div>
-          </div>
-          <div className="flex-1 overflow-y-auto flex flex-col gap-1 min-h-0">
-            {filtered.length === 0 ? (
-              <p className="text-xs text-muted-foreground text-center py-8">No exercises found.</p>
-            ) : (
-              filtered.slice(0, 50).map((ex) => (
-                <div
-                  key={ex.id}
-                  className="flex items-center gap-2 px-2 py-1.5 rounded-lg hover:bg-surface cursor-grab text-sm text-foreground"
-                >
-                  <div className="w-8 h-8 rounded-md bg-muted flex items-center justify-center shrink-0">
-                    <Dumbbell size={14} className="text-muted-foreground" />
-                  </div>
-                  {ex.name}
-                </div>
-              ))
-            )}
-          </div>
-        </div>
-
-        <div className="flex-1 flex flex-col p-4 gap-3 min-h-0">
-          <div className="flex gap-3">
-            <Input
-              placeholder="Workout name"
-              className="flex-1"
-              value={name}
-              onChange={(e) => setName(e.target.value)}
-            />
-            <Select
-              className="w-40"
-              value={category}
-              onChange={(e) => setCategory(e.target.value as WorkoutCategory)}
-            >
-              <option value="" disabled>
-                Category
-              </option>
-              {WORKOUT_CATEGORIES.map((c) => (
-                <option key={c} value={c}>
-                  {c}
-                </option>
-              ))}
-            </Select>
-          </div>
-          <Input placeholder="Add a description (optional)" />
-
-          <div className="flex-1 min-h-0 rounded-xl border border-dashed border-border-soft flex flex-col items-center justify-center text-center gap-3 p-8">
-            <div className="text-muted-foreground">☰</div>
-            <p className="text-base font-semibold text-foreground">Drag exercises from the left to add</p>
-            <p className="text-sm text-muted-foreground">Build your workout by dragging exercises from the library panel</p>
-            <div className="flex gap-2 w-full max-w-md">
-              <div className="relative flex-1">
-                <Search size={14} className="absolute left-3 top-1/2 -translate-y-1/2 text-muted-foreground" />
-                <Input placeholder="Search exercises..." className="pl-8" />
-              </div>
-              <button className="flex items-center gap-1.5 h-10 px-3 rounded-lg bg-success text-white text-sm font-semibold">
-                <Plus size={14} /> New
-              </button>
-            </div>
-          </div>
-        </div>
-
-        <div className="w-72 shrink-0 border-l border-border p-4">
-          <div className="flex items-center gap-2 mb-3 text-sm font-semibold text-foreground">
-            <List size={14} /> Arrangement
-          </div>
-          <p className="text-sm font-medium text-foreground">No exercises</p>
-          <p className="text-xs text-muted-foreground">Add exercises to see arrangement</p>
-        </div>
+function PrivateWorkoutLibrary({ coachId }: { coachId: string }) {
+  const { rows, loading, error, refresh } = useCoachPrivateWorkouts(coachId);
+  const [saved, setSaved] = useState<string | null>(null);
+  return <div className="p-6 flex flex-col gap-4">
+    <div className="flex items-center justify-between gap-3">
+      <h1 className="text-lg font-bold text-foreground">Workouts</h1>
+      <div className="flex items-center gap-2">
+        <button type="button" disabled={loading} onClick={() => void refresh()} className="h-10 px-3 rounded-lg border border-border">Reload workouts</button>
+        <TemplateBuilder coachId={coachId} onSaved={(id) => { setSaved(id); void refresh(); }} />
       </div>
     </div>
-  );
+    <p className="text-sm text-muted-foreground">Your private workout library. Assignment, programs and calendar delivery are not available here yet.</p>
+    {saved && <p role="status" className="text-sm text-success">Workout saved. Reload the library to read its stored prescription.</p>}
+    {loading && <p role="status">Loading workouts…</p>}
+    {error && <div role="alert" className="text-sm text-red-400">Could not load workouts: {error} <button type="button" onClick={() => void refresh()}>Retry</button></div>}
+    {!loading && !error && rows.length === 0 && <div className="rounded-xl border border-border bg-card p-12 text-center space-y-3">
+      <Dumbbell size={32} className="mx-auto text-muted-foreground" />
+      <p>No private workouts yet. Create one to start your library.</p>
+    </div>}
+    {!loading && !error && rows.map((workout) => <details key={workout.id} open={workout.id === saved} className="rounded-xl border border-border bg-card p-4">
+      <summary className="cursor-pointer font-semibold">{workout.name} <span className="text-sm text-muted-foreground">· {workout.template_items.length} exercises · {new Date(workout.created_at).toLocaleDateString()}</span></summary>
+      {workout.description && <p className="mt-3 text-sm text-muted-foreground whitespace-pre-wrap">{workout.description}</p>}
+      {workout.template_items.length === 0 && <p className="mt-3 text-sm text-muted-foreground">This existing workout has no saved exercises.</p>}
+      <ol className="mt-3 space-y-2">
+        {workout.template_items.map((item) => <li key={item.id} className="text-sm">
+          {item.position}. {item.exercise?.name ?? 'Exercise unavailable'} — {item.target_sets} sets × {item.target_reps} reps{item.target_rpe == null ? '' : ` · RPE ${item.target_rpe}`} · Rest {item.rest_seconds}s
+        </li>)}
+      </ol>
+      <p className="mt-3 text-sm text-muted-foreground">Assignment unavailable: delivery behavior is pending.</p>
+    </details>)}
+  </div>;
 }
 
 export default function WorkoutsPage() {
-  const [builderOpen, setBuilderOpen] = useState(false);
-  const workouts = useWorkoutLibrary();
-  const [visibleColumns, setVisibleColumns] = useState<Set<ColumnKey>>(
-    new Set(TOGGLE_COLUMNS.map((c) => c.key)),
-  );
-
-  const toggleColumn = (key: ColumnKey) =>
-    setVisibleColumns((prev) => {
-      const next = new Set(prev);
-      if (next.has(key)) next.delete(key);
-      else next.add(key);
-      return next;
-    });
-
-  const activeColumns = TOGGLE_COLUMNS.filter((c) => visibleColumns.has(c.key));
-  const gridStyle = { gridTemplateColumns: `repeat(${1 + activeColumns.length}, minmax(0,1fr))` };
-
-  return (
-    <div className="p-6 flex flex-col gap-4">
-      <div className="flex items-center justify-between">
-        <h1 className="text-lg font-bold text-foreground">Workouts</h1>
-        <div className="flex items-center gap-2">
-          <button
-            type="button"
-            onClick={() => setBuilderOpen(true)}
-            className="flex items-center gap-1.5 h-10 px-4 rounded-lg bg-success text-white text-sm font-semibold hover:opacity-90 transition-opacity"
-          >
-            <Plus size={14} /> Create workout
-          </button>
-          <ViewMenu visible={visibleColumns} onToggle={toggleColumn} />
-        </div>
-      </div>
-
-      <div className="rounded-xl border border-border bg-card overflow-hidden">
-        <div className="grid gap-4 px-4 py-3 border-b border-border text-xs font-semibold text-muted-foreground" style={gridStyle}>
-          <span className="flex items-center gap-1">Title <ArrowUpDown size={12} /></span>
-          {activeColumns.map((c) => (
-            <span key={c.key} className="flex items-center gap-1">
-              {c.label} <ArrowUpDown size={12} />
-            </span>
-          ))}
-        </div>
-
-        {workouts.length === 0 ? (
-          <div className="flex flex-col items-center justify-center gap-3 py-16 text-center px-6">
-            <Dumbbell size={32} className="text-muted-foreground" />
-            <p className="text-sm font-semibold text-foreground">No workouts yet</p>
-            <p className="text-xs text-muted-foreground max-w-sm">
-              Workouts are the building blocks of your programs, built from your exercise library — create one to start assembling a plan.
-            </p>
-            <button
-              type="button"
-              onClick={() => setBuilderOpen(true)}
-              className="flex items-center gap-2 h-10 px-4 rounded-lg bg-success text-white text-sm font-semibold hover:opacity-90 transition-opacity mt-1"
-            >
-              Create workout
-            </button>
-          </div>
-        ) : (
-          <div>
-            {workouts.map((w) => (
-              <div
-                key={w.id}
-                className="grid gap-4 px-4 py-3 border-b border-border last:border-b-0 text-sm items-center"
-                style={gridStyle}
-              >
-                <div className="flex items-center gap-2 font-medium text-foreground">
-                  <Dumbbell size={14} className="text-muted-foreground shrink-0" />
-                  {w.name}
-                </div>
-                {visibleColumns.has('creator') && <span className="text-muted-foreground">{w.author}</span>}
-                {visibleColumns.has('createdAt') && (
-                  <span className="text-muted-foreground">
-                    {new Date(w.createdAt).toLocaleDateString(undefined, { month: 'short', day: 'numeric' })}
-                  </span>
-                )}
-                {visibleColumns.has('usedIn') && <span className="text-muted-foreground">—</span>}
-              </div>
-            ))}
-          </div>
-        )}
-      </div>
-
-      {builderOpen && <WorkoutBuilder onClose={() => setBuilderOpen(false)} />}
-    </div>
-  );
+  const profile = useProfile();
+  if (!profile || profile.role !== 'coach') return <p role="alert" className="p-6">A signed-in coach account is required to author workouts.</p>;
+  return <PrivateWorkoutLibrary key={profile.id} coachId={profile.id} />;
 }

@@ -1,0 +1,11 @@
+{
+  "files": [
+    "src/hooks/useClientTags.ts",
+    "src/hooks/useCoachAllowlist.ts",
+    "src/hooks/useCheckInTemplates.ts",
+    "src/hooks/useExercises.ts",
+    "src/hooks/useInviteLink.ts",
+    "docs/planning/implementation-board.md"
+  ],
+  "method": "Exact recognized dash/arrow sequences replaced with explicit UTF-8 reads/writes; valid Unicode preserved"
+}

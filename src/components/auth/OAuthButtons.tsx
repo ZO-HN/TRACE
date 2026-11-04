@@ -1,5 +1,5 @@
 import { useState } from 'react';
-import { supabase } from '@/lib/supabase';
+import { startGoogleSignIn } from '@/lib/googleOAuth';
 
 function GoogleIcon() {
   return (
@@ -29,20 +29,26 @@ function AppleIcon() {
   );
 }
 
-export default function OAuthButtons({ disabled }: { disabled?: boolean }) {
+export default function OAuthButtons({ disabled, redirectTo }: { disabled?: boolean; redirectTo?: string }) {
   const [loading, setLoading] = useState(false);
+  const [error, setError] = useState<string | null>(null);
 
   const handleGoogle = async () => {
     setLoading(true);
-    await supabase.auth.signInWithOAuth({
-      provider: 'google',
-      options: { redirectTo: window.location.origin },
-    });
-    // Browser navigates away to Google; no further local state update needed.
+    setError(null);
+    try {
+      const result = await startGoogleSignIn(redirectTo);
+      if (result.error) throw result.error;
+    } catch (err) {
+      setError(err instanceof Error ? err.message : 'Google sign-in failed. Please try again.');
+    } finally {
+      setLoading(false);
+    }
   };
 
   return (
     <div className="grid grid-cols-2 gap-3">
+      {error && <p role="alert" className="col-span-2 text-sm text-danger">{error}</p>}
       <button
         type="button"
         onClick={handleGoogle}

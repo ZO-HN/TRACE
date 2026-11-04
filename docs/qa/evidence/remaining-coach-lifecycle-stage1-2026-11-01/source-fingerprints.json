@@ -1,0 +1,22 @@
+{
+  "capturedAt": "2026-11-01 12:05 SGT (UTC+08:00)",
+  "boundary": "Stage 1 targeted tests/scoped lint only; no aggregate compilation or candidate certification",
+  "files": {
+    "src/hooks/useClientTags.ts": "4f9a79dfd75c79d442286703f2f769a262e0d5f91bafd199138831f968889a0f",
+    "src/hooks/useCoachAllowlist.ts": "674de23cd8b04c711807ebb7e486bdc9038b3043c7b804cf100841f8cb8a3ce0",
+    "src/hooks/useCheckInTemplates.ts": "41c3bbfe825c9ab312572cebfbdd234f6d75c750e965012bccc552ef8e997bef",
+    "src/hooks/useExercises.ts": "9fcb4388726561445b01a9a9e2db83f15ba7e60a1c5d26412390f3fae1c7ed68",
+    "src/hooks/useEquipment.ts": "0cfcb70a01f5dd2ecb4c6d754eb7592d92c9ca436360cf96a93e570b8ef7032b",
+    "src/hooks/useInviteLink.ts": "60d261539605f0730f943a425b32142bf880575eb5401dca861c864062911777",
+    "src/hooks/usePrograms.ts": "ca221afca5704d7ddf14c8bc05961a53dbb38fc43e3cdf1245c13526f0fa3aad",
+    "src/hooks/useRoadmaps.ts": "afaa76e547bf77add458d08d5ea1b4721d5814255da8a3c3dbe3c428977f2ef9",
+    "src/hooks/useVaultFolders.ts": "35c8141bd66c35b68ebb910ffe5b4493c84c2f06679741e189efd9d83396a666",
+    "src/hooks/useTrainingGroups.ts": "f165618f12356d545b16ea50c1e7e2b79fcb0cec60e06a8ddbd531e9da63c5a8",
+    "tests/hooks/remainingCoachLifecycle.test.ts": "6b5576a69979dd4f2755d1f8d2acdbac1d5054a0287b08e2ffcc30118ec5fabb",
+    "tests/hooks/allowlistLifecycle.test.ts": "f5cb72c9a01c539ed28f437948b3c47e923270f8dac3d049f2695c49976a57a7",
+    "tests/hooks/hookHarness.ts": "8e8ec8c43eb436f1849f045dbb165c9bcfde1c66d86b396f42ddfc6063e29a23",
+    "src/components/layout/AppShell.tsx": "cfcb7d75b74a6d1facaf16f50584c414250e5f21ad3c575e161f67c38434703d",
+    "src/components/pages/SettingsPage.tsx": "b549665d982bf85d3c0b645d44568265bd0e4ff3e4efa31359597abd9554832e",
+    "src/components/pages/TrainingGroupsPage.tsx": "0fd145201c1e554bb90aa0859f0ac7d92bf06411cfa68718684a274d6ce990fc"
+  }
+}

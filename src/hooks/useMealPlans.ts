@@ -1,4 +1,4 @@
-import { useEffect, useRef, useState } from 'react';
+import { useCallback, useEffect, useRef, useState } from 'react';
 import { supabase } from '../lib/supabase';
 
 export interface MealPlanRow {
@@ -13,58 +13,81 @@ export interface UseMealPlans {
   mealPlans: MealPlanRow[];
   isLoading: boolean;
   error: string | null;
+  refresh: () => Promise<void>;
   createMealPlan: (input: { name: string; clientId: string; data: Record<string, unknown> }) => Promise<{ error: string | null }>;
   deleteMealPlan: (id: string) => Promise<{ error: string | null }>;
 }
 
+type LoadScope = { coachId: string; request: number };
+
 export function useMealPlans(coachId: string): UseMealPlans {
-  const [mealPlans, setMealPlans] = useState<MealPlanRow[]>([]);
-  const [isLoading, setIsLoading] = useState(true);
-  const [error, setError] = useState<string | null>(null);
-  const mountedRef = useRef(true);
-  useEffect(() => () => {
-    mountedRef.current = false;
+  const [state, setState] = useState<{ coachId: string; mealPlans: MealPlanRow[]; isLoading: boolean; error: string | null }>(
+    () => ({ coachId, mealPlans: [], isLoading: Boolean(coachId), error: null }),
+  );
+  const owner = useRef(coachId);
+  owner.current = coachId;
+  const active = useRef<LoadScope | null>(null);
+
+  const fetchMealPlans = useCallback(async (scope: LoadScope) => {
+    const current = () => active.current === scope && owner.current === scope.coachId;
+    if (!current()) return;
+    const request = ++scope.request;
+    setState((previous) => ({ coachId: scope.coachId,
+      mealPlans: previous.coachId === scope.coachId ? previous.mealPlans : [], isLoading: true, error: null }));
+    try {
+      const { data, error: queryError } = await supabase
+        .from('meal_plans')
+        .select('id, client_id, name, data, created_at')
+        .eq('coach_id', scope.coachId)
+        .order('created_at', { ascending: false });
+      if (queryError) throw new Error(queryError.message);
+      if (current() && scope.request === request) {
+        setState({ coachId: scope.coachId, mealPlans: (data as MealPlanRow[]) ?? [], isLoading: false, error: null });
+      }
+    } catch (cause) {
+      if (current() && scope.request === request) {
+        setState((previous) => ({ ...previous, isLoading: false,
+          error: cause instanceof Error ? cause.message : 'Could not load meal plans. Please retry.' }));
+      }
+    }
   }, []);
 
-  const fetchMealPlans = async () => {
-    const { data, error: queryError } = await supabase
-      .from('meal_plans')
-      .select('id, client_id, name, data, created_at')
-      .eq('coach_id', coachId)
-      .order('created_at', { ascending: false });
-    if (!mountedRef.current) return;
-    if (queryError) setError(queryError.message);
-    else {
-      setError(null);
-      setMealPlans((data as MealPlanRow[]) ?? []);
-    }
-    setIsLoading(false);
-  };
-
   useEffect(() => {
-    let cancelled = false;
-    (async () => {
-      if (!cancelled) await fetchMealPlans();
-    })();
-    return () => {
-      cancelled = true;
-    };
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [coachId]);
+    if (!coachId) {
+      active.current = null;
+      setState({ coachId, mealPlans: [], isLoading: false, error: null });
+      return;
+    }
+    // A fresh setup identity also separates StrictMode replay and A -> B -> A.
+    const scope: LoadScope = { coachId, request: 0 };
+    active.current = scope;
+    void fetchMealPlans(scope);
+    return () => { if (active.current === scope) active.current = null; };
+  }, [coachId, fetchMealPlans]);
 
-  const createMealPlan: UseMealPlans['createMealPlan'] = async ({ name, clientId, data }) => {
-    const { error: insertError } = await supabase
-      .from('meal_plans')
-      .insert({ coach_id: coachId, client_id: clientId || null, name: name || 'Untitled plan', data });
-    if (!insertError) await fetchMealPlans();
-    return { error: insertError?.message ?? null };
+  const refresh = useCallback(async () => {
+    const scope = active.current;
+    if (scope?.coachId === coachId && owner.current === coachId) await fetchMealPlans(scope);
+  }, [coachId, fetchMealPlans]);
+
+  const runMutation = async (operation: () => PromiseLike<{ error: { message: string } | null }>) => {
+    const scope = active.current;
+    if (!scope || scope.coachId !== coachId || owner.current !== coachId) return { error: 'The active coach changed. Please retry from the current account.' };
+    try {
+      const { error: mutationError } = await operation();
+      if (!mutationError) await fetchMealPlans(scope);
+      return { error: mutationError?.message ?? null };
+    } catch (cause) {
+      return { error: cause instanceof Error ? cause.message : 'Could not update meal plans. Please retry.' };
+    }
   };
 
-  const deleteMealPlan = async (id: string) => {
-    const { error: deleteError } = await supabase.from('meal_plans').delete().eq('id', id);
-    if (!deleteError) await fetchMealPlans();
-    return { error: deleteError?.message ?? null };
-  };
+  const createMealPlan: UseMealPlans['createMealPlan'] = async ({ name, clientId, data }) => runMutation(() => supabase
+    .from('meal_plans')
+    .insert({ coach_id: coachId, client_id: clientId || null, name: name || 'Untitled plan', data }));
 
-  return { mealPlans, isLoading, error, createMealPlan, deleteMealPlan };
+  const deleteMealPlan = async (id: string) => runMutation(() => supabase.from('meal_plans').delete().eq('id', id));
+
+  const visible = state.coachId === coachId ? state : { mealPlans: [], isLoading: Boolean(coachId), error: null };
+  return { mealPlans: visible.mealPlans, isLoading: visible.isLoading, error: visible.error, refresh, createMealPlan, deleteMealPlan };
 }

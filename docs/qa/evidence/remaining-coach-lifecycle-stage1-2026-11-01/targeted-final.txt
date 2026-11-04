@@ -1,0 +1,13 @@
+
+> trace-app@0.0.0 test
+> vitest run tests/hooks/remainingCoachLifecycle.test.ts tests/hooks/allowlistLifecycle.test.ts
+
+
+ RUN  v4.1.10 C:/Users/imint/TRACE
+
+
+ Test Files  2 passed (2)
+      Tests  246 passed (246)
+   Start at  12:03:44
+   Duration  1.47s (transform 477ms, setup 0ms, import 905ms, tests 384ms, environment 0ms)
+

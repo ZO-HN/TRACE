@@ -32,11 +32,10 @@ supabase/.temp
 *.sln
 *.sw?
 
-# AI agents, tools, skills & configs
+# Local AI tools, skills & configs (AGENTS.md is versioned)
 .agents/
 .claude/
 CLAUDE.md
-AGENTS.md
 skills-lock.json
 sync.py
 

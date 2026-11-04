@@ -1,0 +1,13 @@
+
+> trace-app@0.0.0 test
+> vitest run tests/hooks/coachNutritionLifecycle.test.ts
+
+
+ RUN  v4.1.10 C:/Users/imint/TRACE
+
+
+ Test Files  1 passed (1)
+      Tests  70 passed (70)
+   Start at  11:27:29
+   Duration  824ms (transform 130ms, setup 0ms, import 168ms, tests 31ms, environment 0ms)
+

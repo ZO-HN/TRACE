@@ -1,0 +1,5 @@
+
+> trace-app@0.0.0 db:types:check
+> node scripts/generate-database-types.mjs --check
+
+Database types verified for 2 app(s).

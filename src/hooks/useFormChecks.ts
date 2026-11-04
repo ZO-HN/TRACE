@@ -52,9 +52,9 @@ export function useFormChecks(coachId: string): UseFormChecks {
       const { data, error: queryError } = await supabase
         .from('form_checks')
         .select(
-          'id, client_id, exercise_id, video_key, status, coach_notes, submitted_at, reviewed_at, client:profiles!form_checks_client_id_fkey(first_name,last_name), exercise:exercises(name)',
+          'id, client_id, exercise_id, video_key, status, coach_notes, submitted_at, reviewed_at, client:profiles!form_checks_client_id_fkey!inner(first_name,last_name), exercise:exercises(name)',
         )
-        .eq('coach_id', coachId)
+        .eq('client.coach_id', coachId)
         .order('submitted_at', { ascending: false });
 
       if (cancelled) return;

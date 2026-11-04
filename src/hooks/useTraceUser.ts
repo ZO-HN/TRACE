@@ -1,5 +1,6 @@
 import { useState, useEffect, useRef } from 'react';
 import { supabase } from '../lib/supabase';
+import { setDashboardIdentity, verifyDashboardProfile } from '../lib/dashboardAnalyticsCache';
 import type { User } from '@supabase/supabase-js';
 
 // ==========================================
@@ -59,85 +60,80 @@ export function useTraceUser(): UseTraceUserReturn {
   const [profile, setProfile] = useState<TraceProfile | null>(null);
   const [isLoading, setIsLoading] = useState<boolean>(true);
   const [error, setError] = useState<Error | null>(null);
-  const mountedRef = useRef(true);
-  useEffect(() => () => {
-    mountedRef.current = false;
-  }, []);
+  const mountedRef = useRef(false);
+  const userRef = useRef<User | null>(null);
+  const revisionRef = useRef(0);
+
+  const fetchProfile = async (currentUser: User, revision: number) => {
+    const current = () => mountedRef.current && revisionRef.current === revision && userRef.current?.id === currentUser.id;
+    try {
+      const { data, error: profileError } = await supabase.from('profiles').select('*').eq('id', currentUser.id).single();
+      if (!current()) return;
+      if (profileError) throw profileError;
+      if (!data || data.id !== currentUser.id) throw new Error('Account profile is unavailable.');
+      verifyDashboardProfile(currentUser.id, data as TraceProfile);
+      setProfile(data as TraceProfile);
+      setError(null);
+    } catch (cause: unknown) {
+      if (!current()) return;
+      verifyDashboardProfile(currentUser.id, null);
+      setProfile(null);
+      setError(cause instanceof Error ? cause : new Error('Failed to fetch profile'));
+    } finally {
+      if (current()) setIsLoading(false);
+    }
+  };
 
   const refreshProfile = async () => {
-    const { data: { user: currentUser } } = await supabase.auth.getUser();
-    if (!currentUser) return;
-    const { data, error: profileError } = await supabase
-      .from('profiles')
-      .select('*')
-      .eq('id', currentUser.id)
-      .single();
-    if (!mountedRef.current) return;
-    if (!profileError) setProfile(data as TraceProfile);
+    const currentUser = userRef.current;
+    if (!mountedRef.current || !currentUser) return;
+    const revision = ++revisionRef.current;
+    await fetchProfile(currentUser, revision);
   };
 
   useEffect(() => {
-    let isMounted = true;
-
-    async function fetchUserAndProfile(currentUser: User) {
-      try {
-        const { data, error: profileError } = await supabase
-          .from('profiles')
-          .select('*')
-          .eq('id', currentUser.id)
-          .single();
-
-        if (profileError) throw profileError;
-        if (isMounted) setProfile(data as TraceProfile);
-      } catch (err: unknown) {
-        if (isMounted) {
-          setError(err instanceof Error ? err : new Error('Failed to fetch profile'));
-          setProfile(null);
-        }
-      } finally {
-        if (isMounted) setIsLoading(false);
-      }
-    }
-
-    async function init() {
-      setIsLoading(true);
-      setError(null);
-
-      const { data: { session }, error: authError } = await supabase.auth.getSession();
-      if (authError && isMounted) {
-        setError(authError);
-        setIsLoading(false);
-        return;
-      }
-
-      const currentUser = session?.user ?? null;
-      if (isMounted) setUser(currentUser);
-
-      if (!currentUser) {
-        if (isMounted) { setProfile(null); setIsLoading(false); }
-        return;
-      }
-
-      await fetchUserAndProfile(currentUser);
-    }
-
-    init();
-
-    const { data: { subscription } } = supabase.auth.onAuthStateChange((_event, session) => {
-      if (!isMounted) return;
-      const currentUser = session?.user ?? null;
+    mountedRef.current = true;
+    let active = true;
+    const initialRevision = ++revisionRef.current;
+    const acceptUser = (currentUser: User | null) => {
+      const revision = ++revisionRef.current;
+      const changed = userRef.current?.id !== currentUser?.id;
+      userRef.current = currentUser;
+      setDashboardIdentity(currentUser?.id ?? null);
       setUser(currentUser);
-      if (!currentUser) {
-        setProfile(null);
-        setIsLoading(false);
-      } else {
-        fetchUserAndProfile(currentUser);
+      setError(null);
+      if (changed || !currentUser) setProfile(null);
+      setIsLoading(Boolean(currentUser));
+      if (currentUser) {
+        // Release the Supabase auth callback lock before querying a profile.
+        setTimeout(() => {
+          if (active && revisionRef.current === revision) void fetchProfile(currentUser, revision);
+        }, 0);
       }
+    };
+    void supabase.auth.getSession().then(({ data: { session }, error: authError }) => {
+      if (!active || revisionRef.current !== initialRevision) return;
+      if (authError) throw authError;
+      acceptUser(session?.user ?? null);
+    }).catch((cause: unknown) => {
+      if (!active || revisionRef.current !== initialRevision) return;
+      setDashboardIdentity(null);
+      userRef.current = null;
+      setUser(null);
+      setProfile(null);
+      setError(cause instanceof Error ? cause : new Error('Could not load sign-in session'));
+      setIsLoading(false);
     });
-
+    const { data: { subscription } } = supabase.auth.onAuthStateChange((_event, session) => {
+      if (active) acceptUser(session?.user ?? null);
+    });
     return () => {
-      isMounted = false;
+      active = false;
+      mountedRef.current = false;
+      revisionRef.current += 1;
       subscription.unsubscribe();
+      // No cache survives a period without an observing auth boundary.
+      setDashboardIdentity(null);
     };
   }, []);
 

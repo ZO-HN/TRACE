@@ -1,7 +1,7 @@
 // Check-in templates a coach authors — the client app renders these as a
 // form for the trainee to fill out when submitting a check-in.
 
-import { useEffect, useRef, useState } from 'react';
+import { useCallback, useEffect, useRef, useState } from 'react';
 import { supabase } from '../lib/supabase';
 
 export type CheckInQuestionType =
@@ -63,55 +63,76 @@ export interface UseCheckInTemplates {
   templates: CheckInTemplate[];
   isLoading: boolean;
   error: string | null;
+  refresh: () => Promise<void>;
   createTemplate: (input: TemplateInput) => Promise<{ error: string | null }>;
   updateTemplate: (id: string, input: TemplateInput) => Promise<{ error: string | null }>;
   deleteTemplate: (id: string) => Promise<{ error: string | null }>;
 }
 
+type LoadedData = { templates: CheckInTemplate[] };
+type LoadScope = { owner: string; request: number };
+const emptyData = (): LoadedData => ({ templates: [] });
+
 export function useCheckInTemplates(coachId: string): UseCheckInTemplates {
-  const [templates, setTemplates] = useState<CheckInTemplate[]>([]);
-  const [isLoading, setIsLoading] = useState(true);
-  const [error, setError] = useState<string | null>(null);
-  const mountedRef = useRef(true);
-  useEffect(() => () => {
-    mountedRef.current = false;
+  const [state, setState] = useState<LoadedData & { isLoading: boolean; error: string | null; owner: string }>(
+    () => ({ ...emptyData(), owner: coachId, isLoading: Boolean(coachId), error: null }),
+  );
+  const owner = useRef(coachId);
+  owner.current = coachId;
+  const active = useRef<LoadScope | null>(null);
+  const fetchTemplates = useCallback(async (scope: LoadScope) => {
+    const current = () => active.current === scope && owner.current === scope.owner;
+    if (!current()) return;
+    const request = ++scope.request;
+    setState((previous) => ({ ...(previous.owner === scope.owner ? previous : emptyData()), owner: scope.owner, isLoading: true, error: null }));
+    try {
+      const { data, error: queryError } = await supabase
+        .from('check_in_templates')
+        .select('id, name, description, questions, schedule, created_at')
+        .eq('coach_id', scope.owner)
+        .order('created_at', { ascending: false });
+      if (queryError) throw new Error(queryError.message);
+      const next: LoadedData = { templates: ((data as (CheckInTemplate & { schedule: CheckInSchedule | null })[]) ?? []).map((t) => ({
+        ...t,
+        schedule: t.schedule && Object.keys(t.schedule).length > 0 ? t.schedule : DEFAULT_SCHEDULE,
+      })) };
+      if (current() && scope.request === request) setState({ ...next, owner: scope.owner, isLoading: false, error: null });
+    } catch (cause) {
+      if (current() && scope.request === request) setState((previous) => ({ ...previous, isLoading: false,
+        error: cause instanceof Error ? cause.message : 'Could not load data. Please retry.' }));
+    }
   }, []);
 
-  const fetchTemplates = async () => {
-    const { data, error: queryError } = await supabase
-      .from('check_in_templates')
-      .select('id, name, description, questions, schedule, created_at')
-      .eq('coach_id', coachId)
-      .order('created_at', { ascending: false });
-
-    if (!mountedRef.current) return;
-    if (queryError) {
-      setError(queryError.message);
-    } else {
-      setError(null);
-      setTemplates(
-        ((data as (CheckInTemplate & { schedule: CheckInSchedule | null })[]) ?? []).map((t) => ({
-          ...t,
-          schedule: t.schedule && Object.keys(t.schedule).length > 0 ? t.schedule : DEFAULT_SCHEDULE,
-        })),
-      );
+  useEffect(() => {
+    if (!coachId) {
+      active.current = null;
+      setState({ ...emptyData(), owner: coachId, isLoading: false, error: null });
+      return;
     }
-    setIsLoading(false);
+    const scope: LoadScope = { owner: coachId, request: 0 };
+    active.current = scope;
+    void fetchTemplates(scope);
+    return () => { if (active.current === scope) active.current = null; };
+  }, [coachId, fetchTemplates]);
+
+  const refresh = useCallback(async () => {
+    const scope = active.current;
+    if (scope?.owner === coachId && owner.current === coachId) await fetchTemplates(scope);
+  }, [coachId, fetchTemplates]);
+
+  const runMutation = async (operation: (scope: LoadScope) => Promise<{ error: string | null }>) => {
+    const scope = active.current;
+    if (!scope || scope.owner !== coachId || owner.current !== coachId) return { error: 'The active account changed. Please retry from the current view.' };
+    try {
+      const result = await operation(scope);
+      if (!result.error && active.current === scope && owner.current === scope.owner) await fetchTemplates(scope);
+      return result;
+    } catch (cause) {
+      return { error: cause instanceof Error ? cause.message : 'Could not complete the operation. Please retry.' };
+    }
   };
 
-  useEffect(() => {
-    let cancelled = false;
-    (async () => {
-      if (cancelled) return;
-      await fetchTemplates();
-    })();
-    return () => {
-      cancelled = true;
-    };
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [coachId]);
-
-  const createTemplate = async (input: TemplateInput) => {
+  const createTemplate = async (input: TemplateInput) => runMutation(async () => {
     const { error: insertError } = await supabase.from('check_in_templates').insert({
       coach_id: coachId,
       name: input.name,
@@ -119,11 +140,10 @@ export function useCheckInTemplates(coachId: string): UseCheckInTemplates {
       questions: input.questions,
       schedule: input.schedule,
     });
-    if (!insertError) await fetchTemplates();
     return { error: insertError?.message ?? null };
-  };
+  });
 
-  const updateTemplate = async (id: string, input: TemplateInput) => {
+  const updateTemplate = async (id: string, input: TemplateInput) => runMutation(async () => {
     const { error: updateError } = await supabase
       .from('check_in_templates')
       .update({
@@ -133,15 +153,14 @@ export function useCheckInTemplates(coachId: string): UseCheckInTemplates {
         schedule: input.schedule,
       })
       .eq('id', id);
-    if (!updateError) await fetchTemplates();
     return { error: updateError?.message ?? null };
-  };
+  });
 
-  const deleteTemplate = async (id: string) => {
+  const deleteTemplate = async (id: string) => runMutation(async () => {
     const { error: deleteError } = await supabase.from('check_in_templates').delete().eq('id', id);
-    if (!deleteError) await fetchTemplates();
     return { error: deleteError?.message ?? null };
-  };
+  });
 
-  return { templates, isLoading, error, createTemplate, updateTemplate, deleteTemplate };
+  const visible = state.owner === coachId ? state : { ...emptyData(), isLoading: Boolean(coachId), error: null };
+  return { templates: visible.templates, isLoading: visible.isLoading, error: visible.error, refresh, createTemplate, updateTemplate, deleteTemplate };
 }

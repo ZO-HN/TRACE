@@ -1,0 +1,366 @@
+
+> trace-app@0.0.0 test
+> vitest run tests/hooks/useClients.test.ts
+
+
+ RUN  v4.1.10 C:/Users/imint/TRACE
+
+ ❯ tests/hooks/useClients.test.ts (17 tests | 14 failed) 5083ms
+   × survives StrictMode setup/cleanup replay and ignores the first setup response 18ms
+   × hides loaded coach A rows immediately when coach B starts loading 8ms
+   × ignores out-of-order responses after coach A switches to B 4ms
+   × rejects old same-coach generations after A to B to A 4ms
+   × does not let an old-coach failure settle the new roster load 2ms
+   × settles a returned read failure and can retry 2ms
+   × settles a rejected read failure and can retry 2ms
+   × settles a thrown read failure and can retry 2ms
+   × preserves same-coach rows on refresh failure and lets the newest refresh win 2ms
+   × does not refresh coach A after a churn RPC completes while B is active 3ms
+   × does not refresh an obsolete lifecycle when a churn RPC finishes after A to B to A 2ms
+   × does not refresh after unmount or invoke an old coach action while another coach is active 5008ms
+   × returns a rejected churn failure without claiming success or refreshing 1ms
+   × treats no coach as an empty idle roster and does not issue requests 3ms
+
+⎯⎯⎯⎯⎯⎯ Failed Tests 14 ⎯⎯⎯⎯⎯⎯⎯
+
+ FAIL  tests/hooks/useClients.test.ts > survives StrictMode setup/cleanup replay and ignores the first setup response
+AssertionError: expected true to be false // Object.is equality
+
+- Expected
++ Received
+
+- false
++ true
+
+ ❯ tests/hooks/useClients.test.ts:40:34
+     38|   const hook = new HookHarness(() => useClients('a')); hook.replay();
+     39|   second.resolve(success('new')); await settle();
+     40|   expect(hook.current.isLoading).toBe(false); expect(hook.current.clie…
+       |                                  ^
+     41|   first.resolve(success('old')); await settle();
+     42|   expect(hook.current.clients).toEqual([row('new')]);
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[1/14]⎯
+
+ FAIL  tests/hooks/useClients.test.ts > hides loaded coach A rows immediately when coach B starts loading
+AssertionError: expected [ { id: 'a', first_name: 'a', …(4) } ] to deeply equal []
+
+- Expected
++ Received
+
+- []
++ [
++   {
++     "created_at": "2026-10-31T00:00:00Z",
++     "email": "a@test.invalid",
++     "first_name": "a",
++     "id": "a",
++     "last_name": "Fixture",
++     "manually_marked_churned": false,
++   },
++ ]
+
+ ❯ tests/hooks/useClients.test.ts:50:32
+     48|   api.read.mockImplementation(() => pending.promise);
+     49|   owner = 'b'; hook.render();
+     50|   expect(hook.current.clients).toEqual([]); expect(hook.current.error)…
+       |                                ^
+     51|   pending.resolve({ data: null, error: { message: 'B unavailable' } })…
+     52|   expect(hook.current.clients).toEqual([]); expect(hook.current.error)…
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[2/14]⎯
+
+ FAIL  tests/hooks/useClients.test.ts > ignores out-of-order responses after coach A switches to B
+AssertionError: expected [ { id: 'a', first_name: 'a', …(4) } ] to deeply equal [ { id: 'b', first_name: 'b', …(4) } ]
+
+- Expected
++ Received
+
+  [
+    {
+      "created_at": "2026-10-31T00:00:00Z",
+-     "email": "b@test.invalid",
+-     "first_name": "b",
+-     "id": "b",
++     "email": "a@test.invalid",
++     "first_name": "a",
++     "id": "a",
+      "last_name": "Fixture",
+      "manually_marked_churned": false,
+    },
+  ]
+
+ ❯ tests/hooks/useClients.test.ts:61:32
+     59|   owner = 'b'; hook.render(); b.resolve(success('b')); await settle();
+     60|   a.resolve(success('a')); await settle();
+     61|   expect(hook.current.clients).toEqual([row('b')]); expect(hook.curren…
+       |                                ^
+     62| });
+     63|
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[3/14]⎯
+
+ FAIL  tests/hooks/useClients.test.ts > rejects old same-coach generations after A to B to A
+AssertionError: expected [ { id: 'old-a', …(5) } ] to deeply equal [ { id: 'a', first_name: 'a', …(4) } ]
+
+- Expected
++ Received
+
+  [
+    {
+      "created_at": "2026-10-31T00:00:00Z",
+-     "email": "a@test.invalid",
+-     "first_name": "a",
+-     "id": "a",
++     "email": "old-a@test.invalid",
++     "first_name": "old-a",
++     "id": "old-a",
+      "last_name": "Fixture",
+      "manually_marked_churned": false,
+    },
+  ]
+
+ ❯ tests/hooks/useClients.test.ts:70:32
+     68|   owner = 'b'; hook.render(); await settle(); owner = 'a'; hook.render…
+     69|   old.resolve(success('old-a')); await settle();
+     70|   expect(hook.current.clients).toEqual([row('a')]);
+       |                                ^
+     71| });
+     72|
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[4/14]⎯
+
+ FAIL  tests/hooks/useClients.test.ts > does not let an old-coach failure settle the new roster load
+AssertionError: expected 'Old account failed' to be null
+
+- Expected:
+null
+
++ Received:
+"Old account failed"
+
+ ❯ tests/hooks/useClients.test.ts:78:30
+     76|   const hook = new HookHarness(() => useClients(owner)); owner = 'b'; …
+     77|   a.resolve({ data: null, error: { message: 'Old account failed' } });…
+     78|   expect(hook.current.error).toBeNull(); expect(hook.current.isLoading…
+       |                              ^
+     79|   b.resolve(success('b')); await settle(); expect(hook.current.clients…
+     80| });
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[5/14]⎯
+
+ FAIL  tests/hooks/useClients.test.ts > settles a returned read failure and can retry
+TypeError: hook.current.refresh is not a function
+ ❯ tests/hooks/useClients.test.ts:98:22
+     96|   const hook = new HookHarness(() => useClients('a')); await settle();
+     97|   expect(hook.current.isLoading).toBe(false); expect(hook.current.erro…
+     98|   await hook.current.refresh(); await settle();
+       |                      ^
+     99|   expect(hook.current.error).toBeNull(); expect(hook.current.clients).…
+    100| });
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[6/14]⎯
+
+ FAIL  tests/hooks/useClients.test.ts > settles a rejected read failure and can retry
+ FAIL  tests/hooks/useClients.test.ts > settles a thrown read failure and can retry
+AssertionError: expected true to be false // Object.is equality
+
+- Expected
++ Received
+
+- false
++ true
+
+ ❯ tests/hooks/useClients.test.ts:97:34
+     95|   });
+     96|   const hook = new HookHarness(() => useClients('a')); await settle();
+     97|   expect(hook.current.isLoading).toBe(false); expect(hook.current.erro…
+       |                                  ^
+     98|   await hook.current.refresh(); await settle();
+     99|   expect(hook.current.error).toBeNull(); expect(hook.current.clients).…
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[7/14]⎯
+
+ FAIL  tests/hooks/useClients.test.ts > preserves same-coach rows on refresh failure and lets the newest refresh win
+TypeError: hook.current.refresh is not a function
+ ❯ tests/hooks/useClients.test.ts:105:22
+    103|   const hook = new HookHarness(() => useClients('a')); await settle();
+    104|   api.read.mockResolvedValueOnce({ data: null, error: { message: 'Offl…
+    105|   await hook.current.refresh(); await settle();
+       |                      ^
+    106|   expect(hook.current.clients).toEqual([row('a')]); expect(hook.curren…
+    107|   const old = deferred<ReadResult>(), latest = deferred<ReadResult>();
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[8/14]⎯
+
+ FAIL  tests/hooks/useClients.test.ts > does not refresh coach A after a churn RPC completes while B is active
+AssertionError: expected [ [ 'a' ], [ 'b' ], [ 'a' ] ] to deeply equal [ [ 'a' ], [ 'b' ] ]
+
+- Expected
++ Received
+
+@@ -3,6 +3,9 @@
+      "a",
+    ],
+    [
+      "b",
+    ],
++   [
++     "a",
++   ],
+  ]
+
+ ❯ tests/hooks/useClients.test.ts:120:31
+    118|   const action = hook.current.setChurned('trainee-a', true);
+    119|   owner = 'b'; hook.render(); await settle(); update.resolve({ error: …
+    120|   expect(api.read.mock.calls).toEqual([['a'], ['b']]); expect(hook.cur…
+       |                               ^
+    121| });
+    122|
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[9/14]⎯
+
+ FAIL  tests/hooks/useClients.test.ts > does not refresh an obsolete lifecycle when a churn RPC finishes after A to B to A
+AssertionError: expected [ [ 'a' ], [ 'b' ], [ 'a' ], [ 'a' ] ] to deeply equal [ [ 'a' ], [ 'b' ], [ 'a' ] ]
+
+- Expected
++ Received
+
+@@ -6,6 +6,9 @@
+      "b",
+    ],
+    [
+      "a",
+    ],
++   [
++     "a",
++   ],
+  ]
+
+ ❯ tests/hooks/useClients.test.ts:129:31
+    127|   owner = 'b'; hook.render(); await settle(); owner = 'a'; hook.render…
+    128|   update.resolve({ error: null }); await action; await settle();
+    129|   expect(api.read.mock.calls).toEqual([['a'], ['b'], ['a']]);
+       |                               ^
+    130| });
+    131|
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[10/14]⎯
+
+ FAIL  tests/hooks/useClients.test.ts > does not refresh after unmount or invoke an old coach action while another coach is active
+Error: Test timed out in 5000ms.
+If this is a long-running test, pass a timeout value as the last argument or configure it globally with "testTimeout".
+ ❯ tests/hooks/useClients.test.ts:132:1
+    130| });
+    131|
+    132| it('does not refresh after unmount or invoke an old coach action while…
+       | ^
+    133|   let owner = 'a'; const update = deferred<{ error: null }>(); api.rpc…
+    134|   const hook = new HookHarness(() => useClients(owner)); await settle(…
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[11/14]⎯
+
+ FAIL  tests/hooks/useClients.test.ts > returns a rejected churn failure without claiming success or refreshing
+Error: Not allowed
+ ❯ Object.<anonymous> tests/hooks/useClients.test.ts:145:130
+    143| it.each(['returned', 'rejected'])('returns a %s churn failure without …
+    144|   const hook = new HookHarness(() => useClients('a')); await settle();
+    145|   api.rpc.mockImplementation(() => mode === 'returned' ? Promise.resol…
+       |                                                                                                                                  ^
+    146|   expect(await hook.current.setChurned('trainee', true)).toEqual({ err…
+    147|   expect(api.read).toHaveBeenCalledTimes(1);
+ ❯ Object.rpc tests/hooks/useClients.test.ts:14:36
+ ❯ Object.setChurned src/hooks/useClients.ts:65:51
+ ❯ tests/hooks/useClients.test.ts:146:29
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[12/14]⎯
+
+ FAIL  tests/hooks/useClients.test.ts > treats no coach as an empty idle roster and does not issue requests
+AssertionError: expected [ { id: '', first_name: '', …(4) } ] to deeply equal []
+
+- Expected
++ Received
+
+- []
++ [
++   {
++     "created_at": "2026-10-31T00:00:00Z",
++     "email": "@test.invalid",
++     "first_name": "",
++     "id": "",
++     "last_name": "Fixture",
++     "manually_marked_churned": false,
++   },
++ ]
+
+ ❯ tests/hooks/useClients.test.ts:152:32
+    150| it('treats no coach as an empty idle roster and does not issue request…
+    151|   const hook = new HookHarness(() => useClients('')); await settle();
+    152|   expect(hook.current.clients).toEqual([]); expect(hook.current.isLoad…
+       |                                ^
+    153|   expect(api.read).not.toHaveBeenCalled();
+    154|   expect((await hook.current.setChurned('trainee', true)).error).toBeT…
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[13/14]⎯
+
+⎯⎯⎯⎯⎯⎯ Unhandled Errors ⎯⎯⎯⎯⎯⎯
+
+Vitest caught 2 unhandled errors during the test run.
+This might cause false positive tests. Resolve unhandled errors to make sure your tests are not affected.
+
+⎯⎯⎯⎯ Unhandled Rejection ⎯⎯⎯⎯⎯
+Error: Read failed
+ ❯ Object.<anonymous> tests/hooks/useClients.test.ts:93:52
+     91|   api.read.mockImplementationOnce(() => {
+     92|     if (mode === 'thrown') throw new Error('Read failed');
+     93|     if (mode === 'rejected') return Promise.reject(new Error('Read fai…
+       |                                                    ^
+     94|     return Promise.resolve({ data: null, error: { message: 'Read faile…
+     95|   });
+ ❯ Object.Mock node_modules/@vitest/spy/dist/index.js:332:34
+ ❯ Object.order tests/hooks/useClients.test.ts:11:24
+ ❯ fetchClients src/hooks/useClients.ts:38:8
+ ❯ src/hooks/useClients.ts:53:29
+ ❯ src/hooks/useClients.ts:54:6
+ ❯ tests/hooks/hookHarness.ts:43:44
+ ❯ HookHarness.render tests/hooks/hookHarness.ts:20:48
+ ❯ new HookHarness tests/hooks/hookHarness.ts:14:85
+ ❯ tests/hooks/useClients.test.ts:96:16
+
+This error originated in "tests/hooks/useClients.test.ts" test file. It doesn't mean the error was thrown inside the file itself, but while it was running.
+The latest test that might've caused the error is "does not refresh after unmount or invoke an old coach action while another coach is active". It might mean one of the following:
+- The error was thrown, while Vitest was running this test.
+- If the error occurred after the test had been completed, this was the last documented test before it was thrown.
+
+⎯⎯⎯⎯ Unhandled Rejection ⎯⎯⎯⎯⎯
+Error: Read failed
+ ❯ Object.<anonymous> tests/hooks/useClients.test.ts:92:34
+     90| it.each(['returned', 'rejected', 'thrown'])('settles a %s read failure…
+     91|   api.read.mockImplementationOnce(() => {
+     92|     if (mode === 'thrown') throw new Error('Read failed');
+       |                                  ^
+     93|     if (mode === 'rejected') return Promise.reject(new Error('Read fai…
+     94|     return Promise.resolve({ data: null, error: { message: 'Read faile…
+ ❯ Object.Mock node_modules/@vitest/spy/dist/index.js:332:34
+ ❯ Object.order tests/hooks/useClients.test.ts:11:24
+ ❯ fetchClients src/hooks/useClients.ts:38:8
+ ❯ src/hooks/useClients.ts:53:29
+ ❯ src/hooks/useClients.ts:54:6
+ ❯ tests/hooks/hookHarness.ts:43:44
+ ❯ HookHarness.render tests/hooks/hookHarness.ts:20:48
+ ❯ new HookHarness tests/hooks/hookHarness.ts:14:85
+ ❯ tests/hooks/useClients.test.ts:96:16
+
+This error originated in "tests/hooks/useClients.test.ts" test file. It doesn't mean the error was thrown inside the file itself, but while it was running.
+The latest test that might've caused the error is "does not refresh after unmount or invoke an old coach action while another coach is active". It might mean one of the following:
+- The error was thrown, while Vitest was running this test.
+- If the error occurred after the test had been completed, this was the last documented test before it was thrown.
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯
+
+
+ Test Files  1 failed (1)
+      Tests  14 failed | 3 passed (17)
+     Errors  2 errors
+   Start at  23:54:04
+   Duration  6.68s (transform 237ms, setup 0ms, import 319ms, tests 5.08s, environment 0ms)
+

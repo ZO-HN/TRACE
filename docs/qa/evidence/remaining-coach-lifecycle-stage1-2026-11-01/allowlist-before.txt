@@ -1,0 +1,118 @@
+
+> trace-app@0.0.0 test
+> vitest run tests/hooks/allowlistLifecycle.test.ts
+
+
+ RUN  v4.1.10 C:/Users/imint/TRACE
+
+ ❯ tests/hooks/allowlistLifecycle.test.ts (17 tests | 15 failed) 288ms
+   × survives StrictMode replay and takes only the current request 5ms
+   × replaces actual shell/admin lifetime on loading without late state or stale actions 125ms
+   × replaces actual shell/admin lifetime on signedout without late state or stale actions 41ms
+   × replaces actual shell/admin lifetime on trainee without late state or stale actions 33ms
+   × replaces actual shell/admin lifetime on nonadmin without late state or stale actions 32ms
+   × replaces actual shell/admin lifetime on error without late state or stale actions 43ms
+   × does not reload a removed admin lifetime after an in-flight write completes 1ms
+   × settles returned read failures, retains successful data and retries 1ms
+   × settles thrown read failures, retains successful data and retries 1ms
+   × settles rejected read failures, retains successful data and retries 1ms
+   × add returns thrown failures without post-write reads 0ms
+   × add returns rejected failures without post-write reads 0ms
+   × remove returns thrown failures without post-write reads 0ms
+   × remove returns rejected failures without post-write reads 0ms
+   × preserves delete email filter and distinguishes successful write from failed refresh 0ms
+
+⎯⎯⎯⎯⎯⎯ Failed Tests 15 ⎯⎯⎯⎯⎯⎯⎯
+
+ FAIL  tests/hooks/allowlistLifecycle.test.ts > survives StrictMode replay and takes only the current request
+TypeError: Cannot read properties of undefined (reading 'email')
+ ❯ tests/hooks/allowlistLifecycle.test.ts:50:137
+     48| it('survives StrictMode replay and takes only the current request', as…
+     49|   const a = deferred<ReturnType<typeof result>>(), b = deferred<Return…
+     50|   const h = new HookHarness(() => useCoachAllowlist()); h.replay(); b.…
+       |                                                                                                                                         ^
+     51|   a.resolve(result('a')); await settle(); expect(h.current.entries[0].…
+     52| });
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[1/15]⎯
+
+ FAIL  tests/hooks/allowlistLifecycle.test.ts > replaces actual shell/admin lifetime on loading without late state or stale actions
+ FAIL  tests/hooks/allowlistLifecycle.test.ts > replaces actual shell/admin lifetime on signedout without late state or stale actions
+ FAIL  tests/hooks/allowlistLifecycle.test.ts > replaces actual shell/admin lifetime on trainee without late state or stale actions
+ FAIL  tests/hooks/allowlistLifecycle.test.ts > replaces actual shell/admin lifetime on nonadmin without late state or stale actions
+ FAIL  tests/hooks/allowlistLifecycle.test.ts > replaces actual shell/admin lifetime on error without late state or stale actions
+AssertionError: expected null to be truthy
+
+- Expected:
+true
+
++ Received:
+null
+
+ ❯ tests/hooks/allowlistLifecycle.test.ts:61:48
+     59|   expect(shellAllowsAdmin(admin('b'))).toBe(true); api.read.mockResolv…
+     60|   wait.resolve(result('a')); await settle(); expect(next.current.entri…
+     61|   expect((await stale('late', '', 'a')).error).toBeTruthy(); expect(ap…
+       |                                                ^
+     62| });
+     63| it('does not reload a removed admin lifetime after an in-flight write …
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[2/15]⎯
+
+ FAIL  tests/hooks/allowlistLifecycle.test.ts > does not reload a removed admin lifetime after an in-flight write completes
+AssertionError: expected "vi.fn()" to be called 2 times, but got 3 times
+ ❯ tests/hooks/allowlistLifecycle.test.ts:67:20
+     65|   const pending = h.current.addEmail(' A@Example.test ', '', 'admin-a'…
+     66|   api.read.mockResolvedValue(result('b')); const next = new HookHarnes…
+     67|   expect(api.read).toHaveBeenCalledTimes(2); expect(JSON.stringify(h.s…
+       |                    ^
+     68|   expect(api.write.mock.calls[0][0].payload).toEqual({ email: 'a@examp…
+     69| });
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[3/15]⎯
+
+ FAIL  tests/hooks/allowlistLifecycle.test.ts > settles returned read failures, retains successful data and retries
+ FAIL  tests/hooks/allowlistLifecycle.test.ts > settles thrown read failures, retains successful data and retries
+ FAIL  tests/hooks/allowlistLifecycle.test.ts > settles rejected read failures, retains successful data and retries
+TypeError: h.current.refresh is not a function
+ ❯ tests/hooks/allowlistLifecycle.test.ts:73:19
+
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[4/15]⎯
+
+ FAIL  tests/hooks/allowlistLifecycle.test.ts > add returns thrown failures without post-write reads
+ FAIL  tests/hooks/allowlistLifecycle.test.ts > remove returns thrown failures without post-write reads
+Error: Write failed
+ ❯ Object.<anonymous> tests/hooks/allowlistLifecycle.test.ts:78:69
+
+ ❯ Object.then tests/hooks/allowlistLifecycle.test.ts:13:133
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[5/15]⎯
+
+ FAIL  tests/hooks/allowlistLifecycle.test.ts > add returns rejected failures without post-write reads
+ FAIL  tests/hooks/allowlistLifecycle.test.ts > remove returns rejected failures without post-write reads
+Error: Write failed
+ ❯ Object.<anonymous> tests/hooks/allowlistLifecycle.test.ts:78:181
+
+ ❯ Object.then tests/hooks/allowlistLifecycle.test.ts:13:133
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[6/15]⎯
+
+ FAIL  tests/hooks/allowlistLifecycle.test.ts > preserves delete email filter and distinguishes successful write from failed refresh
+Error: Reload failed
+ ❯ tests/hooks/allowlistLifecycle.test.ts:84:100
+     82| });
+     83| it('preserves delete email filter and distinguishes successful write f…
+     84|   const h = new HookHarness(() => useCoachAllowlist()); await settle()…
+       |                                                                                                    ^
+     85|   expect(await h.current.removeEmail('exact@example.test')).toEqual({ …
+     86|   expect(api.write.mock.calls[0][0].filters).toEqual([['email', 'exact…
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[7/15]⎯
+
+
+ Test Files  1 failed (1)
+      Tests  15 failed | 2 passed (17)
+   Start at  11:59:02
+   Duration  1.35s (transform 142ms, setup 0ms, import 425ms, tests 288ms, environment 0ms)
+

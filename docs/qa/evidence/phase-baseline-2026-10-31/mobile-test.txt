@@ -1,0 +1,13 @@
+
+> trace-client@1.0.0 test
+> vitest run
+
+
+ RUN  v4.1.10 C:/Users/imint/TRACE-client
+
+
+ Test Files  61 passed (61)
+      Tests  338 passed (338)
+   Start at  20:07:38
+   Duration  11.55s (transform 9.66s, setup 0ms, import 18.05s, tests 3.79s, environment 25ms)
+

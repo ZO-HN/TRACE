@@ -1,17 +1,18 @@
 // Supabase Edge Function: r2-presign
 //
 // Issues a short-lived presigned PUT URL so the client can upload media
-// straight to Cloudflare R2 (see docs/adr/0001-media-storage.md). R2
+// straight to Cloudflare R2 (see docs/architecture/decisions/0001-media-storage.md). R2
 // credentials live ONLY here as function secrets and never reach the browser.
 //
 // Deploy:  supabase functions deploy r2-presign
 // Secrets: supabase secrets set R2_ACCOUNT_ID=... R2_ACCESS_KEY_ID=... \
 //                               R2_SECRET_ACCESS_KEY=... R2_BUCKET=...
 //
-// SUPABASE_URL and SUPABASE_ANON_KEY are injected automatically.
+// SUPABASE_URL, SUPABASE_ANON_KEY and SUPABASE_SERVICE_ROLE_KEY are injected automatically.
 
 import { createClient } from 'jsr:@supabase/supabase-js@2';
 import { AwsClient } from 'https://esm.sh/aws4fetch@1.0.20';
+import { corsHeaders as CORS } from '../_shared/cors.ts';
 
 const MB = 1024 * 1024;
 
@@ -35,12 +36,6 @@ const MEDIA_POLICY: Record<string, { contentTypes: string[]; maxBytes: number }>
   },
 };
 
-const CORS = {
-  'Access-Control-Allow-Origin': '*',
-  'Access-Control-Allow-Headers': 'authorization, content-type',
-  'Access-Control-Allow-Methods': 'POST, OPTIONS',
-};
-
 function json(status: number, body: unknown): Response {
   return new Response(JSON.stringify(body), {
     status,
@@ -62,54 +57,74 @@ Deno.serve(async (req: Request) => {
   const jwt = (req.headers.get('Authorization') ?? '').replace('Bearer ', '');
   if (!jwt) return json(401, { error: 'Missing authorization' });
 
-  const supabase = createClient(
-    Deno.env.get('SUPABASE_URL')!,
-    Deno.env.get('SUPABASE_ANON_KEY')!,
-  );
-  const {
-    data: { user },
-    error: authError,
-  } = await supabase.auth.getUser(jwt);
-  if (authError || !user) return json(401, { error: 'Invalid token' });
-
-  let body: {
-    kind?: string;
-    filename?: string;
-    contentType?: string;
-    sizeBytes?: number;
-  };
   try {
-    body = await req.json();
+    const url = Deno.env.get('SUPABASE_URL');
+    const anonKey = Deno.env.get('SUPABASE_ANON_KEY');
+    if (!url?.trim() || !anonKey?.trim()) return json(500, { error: 'Could not process request' });
+    const supabase = createClient(url, anonKey);
+    const {
+      data: { user },
+      error: authError,
+    } = await supabase.auth.getUser(jwt);
+    if (authError || !user) return json(401, { error: 'Invalid token' });
+
+    let body: unknown;
+    try {
+      body = await req.json();
+    } catch {
+      return json(400, { error: 'Invalid JSON body' });
+    }
+
+    if (!body || typeof body !== 'object' || Array.isArray(body)) {
+      return json(400, { error: 'Expected a JSON object' });
+    }
+    const { kind, filename, contentType, sizeBytes } = body as Record<string, unknown>;
+    const policy = typeof kind === 'string' && Object.prototype.hasOwnProperty.call(MEDIA_POLICY, kind)
+      ? MEDIA_POLICY[kind] : undefined;
+    if (!policy) return json(400, { error: 'Unknown media kind' });
+    if (typeof contentType !== 'string' || !policy.contentTypes.includes(contentType)) {
+      return json(400, { error: 'Disallowed content type' });
+    }
+    if (typeof sizeBytes !== 'number' || !Number.isFinite(sizeBytes) || sizeBytes <= 0 || sizeBytes > policy.maxBytes) {
+      return json(400, { error: 'File missing or exceeds size limit' });
+    }
+
+    if (filename !== undefined && typeof filename !== 'string') {
+      return json(400, { error: 'filename must be a string when supplied' });
+    }
+    const key = `${kind}/${user.id}/${crypto.randomUUID()}${extFromName(filename ?? '')}`;
+
+    const accountId = Deno.env.get('R2_ACCOUNT_ID');
+    const bucket = Deno.env.get('R2_BUCKET');
+    const accessKeyId = Deno.env.get('R2_ACCESS_KEY_ID');
+    const secretAccessKey = Deno.env.get('R2_SECRET_ACCESS_KEY');
+    const serviceKey = Deno.env.get('SUPABASE_SERVICE_ROLE_KEY');
+    if (!accountId?.trim() || !bucket?.trim() || !accessKeyId?.trim() || !secretAccessKey?.trim() || !serviceKey?.trim()) {
+      return json(500, { error: 'Could not process request' });
+    }
+    // Only this verified server path can issue ownership; clients cannot insert
+    // registry rows. Never return a PUT URL if ownership could not be recorded.
+    const admin = createClient(url, serviceKey, { auth: { persistSession: false, autoRefreshToken: false } });
+    const { error: registryError } = await admin.from('media_objects').insert({
+      object_key: key, owner_id: user.id, kind, content_type: contentType, declared_size_bytes: sizeBytes,
+    });
+    if (registryError) return json(500, { error: 'Could not process request' });
+
+    const aws = new AwsClient({
+      accessKeyId,
+      secretAccessKey,
+      service: 's3',
+      region: 'auto',
+    });
+
+    const endpoint = `https://${accountId}.r2.cloudflarestorage.com/${bucket}/${key}`;
+    const signed = await aws.sign(`${endpoint}?X-Amz-Expires=600`, {
+      method: 'PUT',
+      aws: { signQuery: true },
+    });
+
+    return json(200, { uploadUrl: signed.url, key, expiresIn: 600 });
   } catch {
-    return json(400, { error: 'Invalid JSON body' });
+    return json(500, { error: 'Could not process request' });
   }
-
-  const { kind, filename, contentType, sizeBytes } = body;
-  const policy = kind ? MEDIA_POLICY[kind] : undefined;
-  if (!policy) return json(400, { error: 'Unknown media kind' });
-  if (!contentType || !policy.contentTypes.includes(contentType)) {
-    return json(400, { error: 'Disallowed content type' });
-  }
-  if (typeof sizeBytes !== 'number' || sizeBytes <= 0 || sizeBytes > policy.maxBytes) {
-    return json(400, { error: 'File missing or exceeds size limit' });
-  }
-
-  const key = `${kind}/${user.id}/${crypto.randomUUID()}${extFromName(String(filename ?? ''))}`;
-
-  const accountId = Deno.env.get('R2_ACCOUNT_ID')!;
-  const bucket = Deno.env.get('R2_BUCKET')!;
-  const aws = new AwsClient({
-    accessKeyId: Deno.env.get('R2_ACCESS_KEY_ID')!,
-    secretAccessKey: Deno.env.get('R2_SECRET_ACCESS_KEY')!,
-    service: 's3',
-    region: 'auto',
-  });
-
-  const endpoint = `https://${accountId}.r2.cloudflarestorage.com/${bucket}/${key}`;
-  const signed = await aws.sign(`${endpoint}?X-Amz-Expires=600`, {
-    method: 'PUT',
-    aws: { signQuery: true },
-  });
-
-  return json(200, { uploadUrl: signed.url, key, expiresIn: 600 });
 });

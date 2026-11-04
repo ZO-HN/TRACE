@@ -1,0 +1,54 @@
+{
+  "repositories": [
+    {
+      "repository": "TRACE",
+      "preexisting_dirty_paths_preserved": 156,
+      "changed_existing": [
+        "docs/features/nutrition.md",
+        "docs/planning/implementation-board.md"
+      ],
+      "new_dirty_paths": [
+        "docs/qa/coach-nutrition-lifecycle-2026-11-01.md",
+        "docs/qa/evidence/coach-nutrition-lifecycle-2026-11-01/final-results.json",
+        "docs/qa/evidence/coach-nutrition-lifecycle-2026-11-01/final-web-build.txt",
+        "docs/qa/evidence/coach-nutrition-lifecycle-2026-11-01/final-web-lint.txt",
+        "docs/qa/evidence/coach-nutrition-lifecycle-2026-11-01/final-web-test.txt",
+        "docs/qa/evidence/coach-nutrition-lifecycle-2026-11-01/regression-after.txt",
+        "docs/qa/evidence/coach-nutrition-lifecycle-2026-11-01/regression-before.txt",
+        "docs/qa/evidence/coach-nutrition-lifecycle-2026-11-01/results.json",
+        "docs/qa/evidence/coach-nutrition-lifecycle-2026-11-01/source-fingerprints.json",
+        "docs/qa/evidence/coach-nutrition-lifecycle-2026-11-01/web-lint.txt",
+        "src/hooks/useFoods.ts",
+        "src/hooks/useMealPlans.ts",
+        "src/hooks/useMeals.ts",
+        "tests/hooks/coachNutritionLifecycle.test.ts"
+      ],
+      "staged_paths": []
+    },
+    {
+      "repository": "TRACE-client",
+      "preexisting_dirty_paths_preserved": 154,
+      "changed_existing": [],
+      "new_dirty_paths": [],
+      "staged_paths": []
+    }
+  ],
+  "protected_candidate_sha256_unchanged": {
+    "C:\\Users\\imint\\.codex\\local-candidates\\trace-local-20261101-1115-sgt\\candidate-manifest.json": "d332982bf22e5887b760a1e195e69555a696fae665fd0594a532ba0dace421bb",
+    "C:\\Users\\imint\\.codex\\local-candidates\\trace-local-20261101-1115-sgt\\SHA256SUMS.txt": "4841cd8c6ac3e91b1d3461308a1de2bc24d8ef9a084e5da5728ad9d6cd3722d3",
+    "C:\\Users\\imint\\.codex\\local-candidates\\trace-local-20261101-1115-sgt\\selected-source.zip": "ed1be6b8b8430ad4946e83d73b4f564596e8ce6d73b494b79a225cab3b9dfa65",
+    "C:\\Users\\imint\\.codex\\local-candidates\\trace-local-20261101-1115-sgt\\coach-web-production.zip": "a6601f3d5b228504361cc0ecdb60436fe1bb8a0a1d465b8f63c9fa34db49682f",
+    "C:\\Users\\imint\\.codex\\local-candidates\\trace-local-20261101-1115-sgt\\mobile-expo-web.zip": "71e50b17eb496964cf726e2d5cb852b23042423f15bcb23bdca9359f7a9c854a",
+    "C:\\Users\\imint\\TRACE\\docs\\qa\\local-candidate-2026-11-01.md": "b18a07d813c48a902f43b69b7eca59cb3da1d6836fe51cc18ed9f11711c72ed9"
+  },
+  "tested_source_fingerprints_unchanged": true,
+  "scoped_whitespace_files": [
+    "src/hooks/useFoods.ts",
+    "src/hooks/useMeals.ts",
+    "src/hooks/useMealPlans.ts",
+    "tests/hooks/coachNutritionLifecycle.test.ts",
+    "docs/features/nutrition.md",
+    "docs/planning/implementation-board.md",
+    "docs/qa/coach-nutrition-lifecycle-2026-11-01.md"
+  ]
+}

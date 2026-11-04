@@ -1,0 +1,13 @@
+
+> trace-app@0.0.0 test
+> vitest run tests/hooks/useClients.test.ts
+
+
+ RUN  v4.1.10 C:/Users/imint/TRACE
+
+
+ Test Files  1 passed (1)
+      Tests  17 passed (17)
+   Start at  23:54:39
+   Duration  1.84s (transform 243ms, setup 0ms, import 318ms, tests 36ms, environment 1ms)
+

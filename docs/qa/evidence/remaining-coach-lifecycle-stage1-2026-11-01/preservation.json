@@ -1,0 +1,66 @@
+{
+  "stage1_owned_files": [
+    "src/hooks/useClientTags.ts",
+    "src/hooks/useCoachAllowlist.ts",
+    "src/hooks/useCheckInTemplates.ts",
+    "src/hooks/useExercises.ts",
+    "src/hooks/useEquipment.ts",
+    "src/hooks/useInviteLink.ts",
+    "src/hooks/usePrograms.ts",
+    "src/hooks/useRoadmaps.ts",
+    "src/hooks/useVaultFolders.ts",
+    "src/hooks/useTrainingGroups.ts",
+    "tests/hooks/remainingCoachLifecycle.test.ts",
+    "tests/hooks/allowlistLifecycle.test.ts",
+    "docs/README.md",
+    "docs/planning/implementation-board.md",
+    "docs/qa/remaining-coach-lifecycle-stage1-2026-11-01.md"
+  ],
+  "observed_parallel_changes_not_owned": [
+    {
+      "repo": "TRACE",
+      "changed_preexisting": [
+        "docs/README.md",
+        "docs/features/ai.md",
+        "docs/planning/implementation-board.md"
+      ],
+      "new_dirty": [
+        "docs/qa/ai-chat-lifecycle-2026-11-01.md",
+        "docs/qa/evidence/remaining-coach-lifecycle-stage1-2026-11-01/allowlist-before.txt",
+        "docs/qa/evidence/remaining-coach-lifecycle-stage1-2026-11-01/before.txt",
+        "docs/qa/evidence/remaining-coach-lifecycle-stage1-2026-11-01/scoped-lint-final.txt",
+        "docs/qa/evidence/remaining-coach-lifecycle-stage1-2026-11-01/source-fingerprints.json",
+        "docs/qa/evidence/remaining-coach-lifecycle-stage1-2026-11-01/stage1-results.json",
+        "docs/qa/evidence/remaining-coach-lifecycle-stage1-2026-11-01/targeted-final.txt",
+        "docs/qa/remaining-coach-lifecycle-stage1-2026-11-01.md",
+        "src/hooks/useAiChat.ts",
+        "src/hooks/useCheckInTemplates.ts",
+        "src/hooks/useClientTags.ts",
+        "src/hooks/useCoachAllowlist.ts",
+        "src/hooks/useEquipment.ts",
+        "src/hooks/useExercises.ts",
+        "src/hooks/useInviteLink.ts",
+        "src/hooks/usePrograms.ts",
+        "src/hooks/useRoadmaps.ts",
+        "src/hooks/useTrainingGroups.ts",
+        "src/hooks/useVaultFolders.ts",
+        "tests/hooks/aiChatHarness.ts",
+        "tests/hooks/allowlistLifecycle.test.ts",
+        "tests/hooks/remainingCoachLifecycle.test.ts",
+        "tests/hooks/useAiChat.test.ts"
+      ],
+      "missing_preexisting": [],
+      "staged": []
+    },
+    {
+      "repo": "TRACE-client",
+      "changed_preexisting": [],
+      "new_dirty": [],
+      "missing_preexisting": [],
+      "staged": []
+    }
+  ],
+  "tested_source_fingerprints_unchanged": true,
+  "shared_harness_edited": false,
+  "candidate_artifact_capture": false
+}

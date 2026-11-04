@@ -1,0 +1,7 @@
+{
+  "supabase/functions/_shared/cors.ts": "44851e80e7fdd5cc5abef3872772202bcb7ed4beef8ba318c3fa5c6b5b93e0cb",
+  "supabase/functions/r2-presign/index.ts": "f666d678515e59e6f5081d71d1b0d72ceb9170a00888113a946ef3721482efee",
+  "supabase/functions/r2-get-url/index.ts": "682b7479d83c312096c8bec4b92e7f4ac24b29673059e12a0e21703e85c8b6b7",
+  "supabase/functions/trace-brain/index.ts": "e11d1388eae3af80118bbe1fe308d61988d1ffd83e483f9bcfd5a1922d52d0d1",
+  "tests/edge/cors.test.ts": "906eca68654c81459db08a245152bcc18a66ec33d0c2a02396d7a7ce39722f03"
+}

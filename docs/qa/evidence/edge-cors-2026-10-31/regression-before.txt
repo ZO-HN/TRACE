@@ -1,0 +1,132 @@
+
+> trace-app@0.0.0 test
+> vitest run tests/edge/cors.test.ts
+
+
+ RUN  v4.1.10 C:/Users/imint/TRACE
+
+ ❯ tests/edge/cors.test.ts (24 tests | 24 failed) 1456ms
+     × accepts headers emitted by the installed web SDK before authenticating 259ms
+     × accepts headers emitted by the installed mobile SDK before authenticating 233ms
+     × keeps CORS on 'unsupported method' without issuing URLs 27ms
+     × keeps CORS on 'missing authorization' without issuing URLs 19ms
+     × keeps CORS on 'invalid token' without issuing URLs 21ms
+     × keeps CORS on 'malformed JSON' without issuing URLs 19ms
+     × keeps CORS on 'missing fields' without issuing URLs 29ms
+     × accepts headers emitted by the installed web SDK before authenticating 50ms
+     × accepts headers emitted by the installed mobile SDK before authenticating 64ms
+     × keeps CORS on 'unsupported method' without issuing URLs 34ms
+     × keeps CORS on 'missing authorization' without issuing URLs 33ms
+     × keeps CORS on 'invalid token' without issuing URLs 62ms
+     × keeps CORS on 'malformed JSON' without issuing URLs 49ms
+     × keeps CORS on 'missing fields' without issuing URLs 39ms
+     × keeps CORS on denied object/session access 65ms
+     × accepts headers emitted by the installed web SDK before authenticating 100ms
+     × accepts headers emitted by the installed mobile SDK before authenticating 41ms
+     × keeps CORS on 'unsupported method' without issuing URLs 29ms
+     × keeps CORS on 'missing authorization' without issuing URLs 74ms
+     × keeps CORS on 'invalid token' without issuing URLs 29ms
+     × keeps CORS on 'malformed JSON' without issuing URLs 54ms
+     × keeps CORS on 'missing fields' without issuing URLs 59ms
+     × keeps CORS on denied object/session access 36ms
+     × keeps CORS on a handled database failure 25ms
+
+⎯⎯⎯⎯⎯⎯ Failed Tests 24 ⎯⎯⎯⎯⎯⎯⎯
+
+ FAIL  tests/edge/cors.test.ts > r2-presign browser CORS contract > accepts headers emitted by the installed web SDK before authenticating
+ FAIL  tests/edge/cors.test.ts > r2-presign browser CORS contract > accepts headers emitted by the installed mobile SDK before authenticating
+ FAIL  tests/edge/cors.test.ts > r2-get-url browser CORS contract > accepts headers emitted by the installed web SDK before authenticating
+ FAIL  tests/edge/cors.test.ts > r2-get-url browser CORS contract > accepts headers emitted by the installed mobile SDK before authenticating
+ FAIL  tests/edge/cors.test.ts > trace-brain browser CORS contract > accepts headers emitted by the installed web SDK before authenticating
+ FAIL  tests/edge/cors.test.ts > trace-brain browser CORS contract > accepts headers emitted by the installed mobile SDK before authenticating
+AssertionError: expected FunctionsFetchError: Failed to send a req… { context: AssertionError: … { …(4) } } to be null
+
+- Expected:
+null
+
++ Received:
+FunctionsFetchError {
+  "message": "Failed to send a request to the Edge Function",
+  "name": "FunctionsFetchError",
+  "context": AssertionError {
+    "message": "expected [ 'authorization', 'content-type' ] to include 'apikey'",
+    "actual": [
+      "authorization",
+      "content-type",
+    ],
+    "expected": undefined,
+    "showDiff": false,
+    "operator": "strictEqual",
+  },
+}
+
+ ❯ tests/edge/cors.test.ts:90:19
+     88|     });
+     89|     const { data, error } = await sdk.functions.invoke(name, { body: b…
+     90|     expect(error).toBeNull();
+       |                   ^
+     91|     if (name === 'r2-presign') expect(data).toMatchObject({ key: expec…
+     92|     else if (name === 'r2-get-url') expect(data).toMatchObject({ url: …
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[1/24]⎯
+
+ FAIL  tests/edge/cors.test.ts > r2-presign browser CORS contract > keeps CORS on 'unsupported method' without issuing URLs
+ FAIL  tests/edge/cors.test.ts > r2-presign browser CORS contract > keeps CORS on 'missing authorization' without issuing URLs
+ FAIL  tests/edge/cors.test.ts > r2-presign browser CORS contract > keeps CORS on 'invalid token' without issuing URLs
+ FAIL  tests/edge/cors.test.ts > r2-presign browser CORS contract > keeps CORS on 'malformed JSON' without issuing URLs
+ FAIL  tests/edge/cors.test.ts > r2-presign browser CORS contract > keeps CORS on 'missing fields' without issuing URLs
+ FAIL  tests/edge/cors.test.ts > r2-get-url browser CORS contract > keeps CORS on 'unsupported method' without issuing URLs
+ FAIL  tests/edge/cors.test.ts > r2-get-url browser CORS contract > keeps CORS on 'missing authorization' without issuing URLs
+ FAIL  tests/edge/cors.test.ts > r2-get-url browser CORS contract > keeps CORS on 'invalid token' without issuing URLs
+ FAIL  tests/edge/cors.test.ts > r2-get-url browser CORS contract > keeps CORS on 'malformed JSON' without issuing URLs
+ FAIL  tests/edge/cors.test.ts > r2-get-url browser CORS contract > keeps CORS on 'missing fields' without issuing URLs
+ FAIL  tests/edge/cors.test.ts > trace-brain browser CORS contract > keeps CORS on 'unsupported method' without issuing URLs
+ FAIL  tests/edge/cors.test.ts > trace-brain browser CORS contract > keeps CORS on 'missing authorization' without issuing URLs
+ FAIL  tests/edge/cors.test.ts > trace-brain browser CORS contract > keeps CORS on 'invalid token' without issuing URLs
+ FAIL  tests/edge/cors.test.ts > trace-brain browser CORS contract > keeps CORS on 'malformed JSON' without issuing URLs
+ FAIL  tests/edge/cors.test.ts > trace-brain browser CORS contract > keeps CORS on 'missing fields' without issuing URLs
+AssertionError: expected [ 'authorization', 'content-type' ] to include 'apikey'
+ ❯ expectCors tests/edge/cors.test.ts:61:102
+     59|   expect(response.headers.get('access-control-allow-methods')).toBe('P…
+     60|   const allowed = response.headers.get('access-control-allow-headers')…
+     61|   for (const header of ['authorization', 'apikey', 'content-type', 'x-…
+       |                                                                                                      ^
+     62| }
+     63|
+ ❯ tests/edge/cors.test.ts:106:5
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[2/24]⎯
+
+ FAIL  tests/edge/cors.test.ts > r2-get-url browser CORS contract > keeps CORS on denied object/session access
+ FAIL  tests/edge/cors.test.ts > trace-brain browser CORS contract > keeps CORS on denied object/session access
+AssertionError: expected [ 'authorization', 'content-type' ] to include 'apikey'
+ ❯ expectCors tests/edge/cors.test.ts:61:102
+     59|   expect(response.headers.get('access-control-allow-methods')).toBe('P…
+     60|   const allowed = response.headers.get('access-control-allow-headers')…
+     61|   for (const header of ['authorization', 'apikey', 'content-type', 'x-…
+       |                                                                                                      ^
+     62| }
+     63|
+ ❯ tests/edge/cors.test.ts:116:5
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[3/24]⎯
+
+ FAIL  tests/edge/cors.test.ts > trace-brain browser CORS contract > keeps CORS on a handled database failure
+AssertionError: expected [ 'authorization', 'content-type' ] to include 'apikey'
+ ❯ expectCors tests/edge/cors.test.ts:61:102
+     59|   expect(response.headers.get('access-control-allow-methods')).toBe('P…
+     60|   const allowed = response.headers.get('access-control-allow-headers')…
+     61|   for (const header of ['authorization', 'apikey', 'content-type', 'x-…
+       |                                                                                                      ^
+     62| }
+     63|
+ ❯ tests/edge/cors.test.ts:124:5
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[4/24]⎯
+
+
+ Test Files  1 failed (1)
+      Tests  24 failed (24)
+   Start at  20:12:06
+   Duration  3.81s (transform 227ms, setup 0ms, import 904ms, tests 1.46s, environment 0ms)
+

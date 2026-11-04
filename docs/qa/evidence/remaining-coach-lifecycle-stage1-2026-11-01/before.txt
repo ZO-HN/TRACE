@@ -1,0 +1,1053 @@
+
+> trace-app@0.0.0 test
+> vitest run tests/hooks/remainingCoachLifecycle.test.ts
+
+
+ RUN  v4.1.10 C:/Users/imint/TRACE
+
+ ❯ tests/hooks/remainingCoachLifecycle.test.ts (210 tests | 159 failed) 117ms
+     × loads successfully through StrictMode replay and ignores the first setup result 10ms
+     × hides old-owner data immediately and ignores out-of-order reads 2ms
+     × rejects a late A result after B wins 1ms
+     × invalidates the first A scope after A to B to A 1ms
+     × catches returned read failure and retries 1ms
+     × catches thrown read failure and retries 1ms
+     × catches rejected read failure and retries 0ms
+     × preserves complete same-owner data on reload failure; newest refresh wins 1ms
+     × does not read or mutate an empty owner 1ms
+       × returns thrown operation failures without reloading 0ms
+       × returns rejected operation failures without reloading 0ms
+       × blocks stale callbacks and late owner reloads 1ms
+       × returns thrown operation failures without reloading 0ms
+       × returns rejected operation failures without reloading 0ms
+       × blocks stale callbacks and late owner reloads 1ms
+       × returns thrown operation failures without reloading 0ms
+       × returns rejected operation failures without reloading 0ms
+       × blocks stale callbacks and late owner reloads 0ms
+       × returns thrown operation failures without reloading 0ms
+       × returns rejected operation failures without reloading 0ms
+       × blocks stale callbacks and late owner reloads 1ms
+     × does not reload an old mutation scope after A to B to A or unmount 3ms
+     × loads successfully through StrictMode replay and ignores the first setup result 1ms
+     × hides old-owner data immediately and ignores out-of-order reads 1ms
+     × rejects a late A result after B wins 1ms
+     × invalidates the first A scope after A to B to A 1ms
+     × catches returned read failure and retries 0ms
+     × catches thrown read failure and retries 0ms
+     × catches rejected read failure and retries 0ms
+     × preserves complete same-owner data on reload failure; newest refresh wins 0ms
+     × does not read or mutate an empty owner 0ms
+       × returns thrown operation failures without reloading 0ms
+       × returns rejected operation failures without reloading 0ms
+       × blocks stale callbacks and late owner reloads 0ms
+       × returns thrown operation failures without reloading 0ms
+       × returns rejected operation failures without reloading 0ms
+       × blocks stale callbacks and late owner reloads 0ms
+       × returns thrown operation failures without reloading 1ms
+       × returns rejected operation failures without reloading 1ms
+       × blocks stale callbacks and late owner reloads 1ms
+     × does not reload an old mutation scope after A to B to A or unmount 1ms
+     × loads successfully through StrictMode replay and ignores the first setup result 1ms
+     × hides old-owner data immediately and ignores out-of-order reads 1ms
+     × rejects a late A result after B wins 1ms
+     × invalidates the first A scope after A to B to A 1ms
+     × catches returned read failure and retries 0ms
+     × catches thrown read failure and retries 0ms
+     × catches rejected read failure and retries 0ms
+     × preserves complete same-owner data on reload failure; newest refresh wins 0ms
+     × does not read or mutate an empty owner 0ms
+       × returns thrown operation failures without reloading 0ms
+       × returns rejected operation failures without reloading 0ms
+       × blocks stale callbacks and late owner reloads 0ms
+     × does not reload an old mutation scope after A to B to A or unmount 0ms
+     × loads successfully through StrictMode replay and ignores the first setup result 1ms
+     × hides old-owner data immediately and ignores out-of-order reads 1ms
+     × rejects a late A result after B wins 0ms
+     × invalidates the first A scope after A to B to A 0ms
+     × catches returned read failure and retries 0ms
+     × catches thrown read failure and retries 0ms
+     × catches rejected read failure and retries 0ms
+     × preserves complete same-owner data on reload failure; newest refresh wins 0ms
+     × does not read or mutate an empty owner 0ms
+       × returns thrown operation failures without reloading 0ms
+       × returns rejected operation failures without reloading 0ms
+       × blocks stale callbacks and late owner reloads 2ms
+       × returns thrown operation failures without reloading 0ms
+       × returns rejected operation failures without reloading 0ms
+       × blocks stale callbacks and late owner reloads 0ms
+     × does not reload an old mutation scope after A to B to A or unmount 0ms
+     × loads successfully through StrictMode replay and ignores the first setup result 1ms
+     × hides old-owner data immediately and ignores out-of-order reads 0ms
+     × rejects a late A result after B wins 0ms
+     × invalidates the first A scope after A to B to A 1ms
+     × catches returned read failure and retries 0ms
+     × catches thrown read failure and retries 0ms
+     × catches rejected read failure and retries 0ms
+     × preserves complete same-owner data on reload failure; newest refresh wins 0ms
+     × does not read or mutate an empty owner 0ms
+       × returns thrown operation failures without reloading 1ms
+       × returns rejected operation failures without reloading 0ms
+       × blocks stale callbacks and late owner reloads 0ms
+       × returns thrown operation failures without reloading 0ms
+       × returns rejected operation failures without reloading 0ms
+       × blocks stale callbacks and late owner reloads 0ms
+     × does not reload an old mutation scope after A to B to A or unmount 1ms
+     × loads successfully through StrictMode replay and ignores the first setup result 1ms
+     × hides old-owner data immediately and ignores out-of-order reads 0ms
+     × rejects a late A result after B wins 0ms
+     × invalidates the first A scope after A to B to A 0ms
+     × catches returned read failure and retries 0ms
+     × catches thrown read failure and retries 0ms
+     × catches rejected read failure and retries 0ms
+     × preserves complete same-owner data on reload failure; newest refresh wins 0ms
+     × does not read or mutate an empty owner 0ms
+       × returns thrown operation failures without reloading 0ms
+       × returns rejected operation failures without reloading 0ms
+       × blocks stale callbacks and late owner reloads 0ms
+       × returns thrown operation failures without reloading 0ms
+       × returns rejected operation failures without reloading 0ms
+       × blocks stale callbacks and late owner reloads 0ms
+     × does not reload an old mutation scope after A to B to A or unmount 0ms
+     × loads successfully through StrictMode replay and ignores the first setup result 1ms
+     × hides old-owner data immediately and ignores out-of-order reads 0ms
+     × rejects a late A result after B wins 1ms
+     × invalidates the first A scope after A to B to A 1ms
+     × catches returned read failure and retries 0ms
+     × catches thrown read failure and retries 0ms
+     × catches rejected read failure and retries 0ms
+     × preserves complete same-owner data on reload failure; newest refresh wins 0ms
+     × does not read or mutate an empty owner 0ms
+       × returns thrown operation failures without reloading 0ms
+       × returns rejected operation failures without reloading 0ms
+       × blocks stale callbacks and late owner reloads 1ms
+       × returns thrown operation failures without reloading 0ms
+       × returns rejected operation failures without reloading 0ms
+       × blocks stale callbacks and late owner reloads 0ms
+     × does not reload an old mutation scope after A to B to A or unmount 0ms
+     × loads successfully through StrictMode replay and ignores the first setup result 1ms
+     × hides old-owner data immediately and ignores out-of-order reads 0ms
+     × rejects a late A result after B wins 0ms
+     × invalidates the first A scope after A to B to A 0ms
+     × catches returned read failure and retries 0ms
+     × catches thrown read failure and retries 0ms
+     × catches rejected read failure and retries 0ms
+     × preserves complete same-owner data on reload failure; newest refresh wins 0ms
+     × does not read or mutate an empty owner 0ms
+       × returns thrown operation failures without reloading 0ms
+       × returns rejected operation failures without reloading 0ms
+       × blocks stale callbacks and late owner reloads 1ms
+       × returns thrown operation failures without reloading 0ms
+       × returns rejected operation failures without reloading 0ms
+       × blocks stale callbacks and late owner reloads 0ms
+     × does not reload an old mutation scope after A to B to A or unmount 0ms
+     × loads successfully through StrictMode replay and ignores the first setup result 1ms
+     × hides old-owner data immediately and ignores out-of-order reads 0ms
+     × rejects a late A result after B wins 0ms
+     × invalidates the first A scope after A to B to A 1ms
+     × catches returned read failure and retries 0ms
+     × catches thrown read failure and retries 0ms
+     × catches rejected read failure and retries 0ms
+     × preserves complete same-owner data on reload failure; newest refresh wins 0ms
+     × does not read or mutate an empty owner 0ms
+       × returns thrown operation failures without reloading 0ms
+       × returns rejected operation failures without reloading 0ms
+       × blocks stale callbacks and late owner reloads 1ms
+       × returns thrown operation failures without reloading 0ms
+       × returns rejected operation failures without reloading 0ms
+       × blocks stale callbacks and late owner reloads 0ms
+       × returns thrown operation failures without reloading 0ms
+       × returns rejected operation failures without reloading 0ms
+       × blocks stale callbacks and late owner reloads 1ms
+       × returns thrown operation failures without reloading 1ms
+       × returns rejected operation failures without reloading 0ms
+       × blocks stale callbacks and late owner reloads 0ms
+     × does not reload an old mutation scope after A to B to A or unmount 1ms
+   × keeps tag rows/assignment mapping together and retains both after a partial read failure 1ms
+   × preserves no-active-invite versus error and rotate/revoke payloads 3ms
+   × keeps exercise parent/link partial-write semantics and does not start links after an owner switch 2ms
+
+⎯⎯⎯⎯⎯⎯ Failed Tests 159 ⎯⎯⎯⎯⎯⎯
+
+ FAIL  tests/hooks/remainingCoachLifecycle.test.ts > 'tags' actual-hook state lifecycle > loads successfully through StrictMode replay and ignores the first setup result
+ FAIL  tests/hooks/remainingCoachLifecycle.test.ts > 'templates' actual-hook state lifecycle > loads successfully through StrictMode replay and ignores the first setup result
+ FAIL  tests/hooks/remainingCoachLifecycle.test.ts > 'exercises' actual-hook state lifecycle > loads successfully through StrictMode replay and ignores the first setup result
+ FAIL  tests/hooks/remainingCoachLifecycle.test.ts > 'equipment' actual-hook state lifecycle > loads successfully through StrictMode replay and ignores the first setup result
+ FAIL  tests/hooks/remainingCoachLifecycle.test.ts > 'invite' actual-hook state lifecycle > loads successfully through StrictMode replay and ignores the first setup result
+ FAIL  tests/hooks/remainingCoachLifecycle.test.ts > 'programs' actual-hook state lifecycle > loads successfully through StrictMode replay and ignores the first setup result
+ FAIL  tests/hooks/remainingCoachLifecycle.test.ts > 'roadmaps' actual-hook state lifecycle > loads successfully through StrictMode replay and ignores the first setup result
+ FAIL  tests/hooks/remainingCoachLifecycle.test.ts > 'vault' actual-hook state lifecycle > loads successfully through StrictMode replay and ignores the first setup result
+ FAIL  tests/hooks/remainingCoachLifecycle.test.ts > 'groups' actual-hook state lifecycle > loads successfully through StrictMode replay and ignores the first setup result
+AssertionError: expected [] to deeply equal [ 'latest' ]
+
+- Expected
++ Received
+
+- [
+-   "latest",
+- ]
++ []
+
+ ❯ tests/hooks/remainingCoachLifecycle.test.ts:92:27
+     90|     api.read.mockImplementation((q: Trace) => q.table === c.table ? (+…
+     91|     const h = new HookHarness(() => c.useView('a')); h.replay(); next.…
+     92|     expect(h.current.ids).toEqual(['latest']); expect(h.current.isLoad…
+       |                           ^
+     93|     old.resolve(response(c.table, 'old')); await settle(); expect(h.cu…
+     94|   });
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[1/159]⎯
+
+ FAIL  tests/hooks/remainingCoachLifecycle.test.ts > 'tags' actual-hook state lifecycle > hides old-owner data immediately and ignores out-of-order reads
+ FAIL  tests/hooks/remainingCoachLifecycle.test.ts > 'templates' actual-hook state lifecycle > hides old-owner data immediately and ignores out-of-order reads
+ FAIL  tests/hooks/remainingCoachLifecycle.test.ts > 'exercises' actual-hook state lifecycle > hides old-owner data immediately and ignores out-of-order reads
+ FAIL  tests/hooks/remainingCoachLifecycle.test.ts > 'equipment' actual-hook state lifecycle > hides old-owner data immediately and ignores out-of-order reads
+ FAIL  tests/hooks/remainingCoachLifecycle.test.ts > 'invite' actual-hook state lifecycle > hides old-owner data immediately and ignores out-of-order reads
+ FAIL  tests/hooks/remainingCoachLifecycle.test.ts > 'programs' actual-hook state lifecycle > hides old-owner data immediately and ignores out-of-order reads
+ FAIL  tests/hooks/remainingCoachLifecycle.test.ts > 'roadmaps' actual-hook state lifecycle > hides old-owner data immediately and ignores out-of-order reads
+ FAIL  tests/hooks/remainingCoachLifecycle.test.ts > 'vault' actual-hook state lifecycle > hides old-owner data immediately and ignores out-of-order reads
+ FAIL  tests/hooks/remainingCoachLifecycle.test.ts > 'groups' actual-hook state lifecycle > hides old-owner data immediately and ignores out-of-order reads
+AssertionError: expected false to be true // Object.is equality
+
+- Expected
++ Received
+
+- true
++ false
+
+ ❯ tests/hooks/remainingCoachLifecycle.test.ts:98:29
+     96|     let owner = 'a'; const h = new HookHarness(() => c.useView(owner))…
+     97|     const b = deferred<Read>(); delayMain(c, b.promise); owner = 'b'; …
+     98|     expect(h.current.empty).toBe(true); expect(h.current.error).toBeNu…
+       |                             ^
+     99|     b.resolve(response(c.table, 'b')); await settle(); expect(h.curren…
+    100|   });
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[2/159]⎯
+
+ FAIL  tests/hooks/remainingCoachLifecycle.test.ts > 'tags' actual-hook state lifecycle > rejects a late A result after B wins
+ FAIL  tests/hooks/remainingCoachLifecycle.test.ts > 'templates' actual-hook state lifecycle > rejects a late A result after B wins
+ FAIL  tests/hooks/remainingCoachLifecycle.test.ts > 'exercises' actual-hook state lifecycle > rejects a late A result after B wins
+ FAIL  tests/hooks/remainingCoachLifecycle.test.ts > 'equipment' actual-hook state lifecycle > rejects a late A result after B wins
+ FAIL  tests/hooks/remainingCoachLifecycle.test.ts > 'invite' actual-hook state lifecycle > rejects a late A result after B wins
+ FAIL  tests/hooks/remainingCoachLifecycle.test.ts > 'programs' actual-hook state lifecycle > rejects a late A result after B wins
+ FAIL  tests/hooks/remainingCoachLifecycle.test.ts > 'roadmaps' actual-hook state lifecycle > rejects a late A result after B wins
+ FAIL  tests/hooks/remainingCoachLifecycle.test.ts > 'vault' actual-hook state lifecycle > rejects a late A result after B wins
+ FAIL  tests/hooks/remainingCoachLifecycle.test.ts > 'groups' actual-hook state lifecycle > rejects a late A result after B wins
+AssertionError: expected [ 'old' ] to deeply equal [ 'b' ]
+
+- Expected
++ Received
+
+  [
+-   "b",
++   "old",
+  ]
+
+ ❯ tests/hooks/remainingCoachLifecycle.test.ts:105:82
+    103|     api.read.mockImplementation((q: Trace) => q.table === c.table && m…
+    104|     const h = new HookHarness(() => c.useView(owner)); owner = 'b'; h.…
+    105|     old.resolve(response(c.table, 'old')); await settle(); expect(h.cu…
+       |                                                                                  ^
+    106|   });
+    107|   it('invalidates the first A scope after A to B to A', async () => {
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[3/159]⎯
+
+ FAIL  tests/hooks/remainingCoachLifecycle.test.ts > 'tags' actual-hook state lifecycle > invalidates the first A scope after A to B to A
+ FAIL  tests/hooks/remainingCoachLifecycle.test.ts > 'templates' actual-hook state lifecycle > invalidates the first A scope after A to B to A
+ FAIL  tests/hooks/remainingCoachLifecycle.test.ts > 'exercises' actual-hook state lifecycle > invalidates the first A scope after A to B to A
+ FAIL  tests/hooks/remainingCoachLifecycle.test.ts > 'equipment' actual-hook state lifecycle > invalidates the first A scope after A to B to A
+ FAIL  tests/hooks/remainingCoachLifecycle.test.ts > 'invite' actual-hook state lifecycle > invalidates the first A scope after A to B to A
+ FAIL  tests/hooks/remainingCoachLifecycle.test.ts > 'programs' actual-hook state lifecycle > invalidates the first A scope after A to B to A
+ FAIL  tests/hooks/remainingCoachLifecycle.test.ts > 'roadmaps' actual-hook state lifecycle > invalidates the first A scope after A to B to A
+ FAIL  tests/hooks/remainingCoachLifecycle.test.ts > 'vault' actual-hook state lifecycle > invalidates the first A scope after A to B to A
+ FAIL  tests/hooks/remainingCoachLifecycle.test.ts > 'groups' actual-hook state lifecycle > invalidates the first A scope after A to B to A
+AssertionError: expected [ 'old' ] to deeply equal [ 'a' ]
+
+- Expected
++ Received
+
+  [
+-   "a",
++   "old",
+  ]
+
+ ❯ tests/hooks/remainingCoachLifecycle.test.ts:111:82
+    109|     api.read.mockImplementation((q: Trace) => q.table === c.table && n…
+    110|     const h = new HookHarness(() => c.useView(owner)); owner = 'b'; h.…
+    111|     old.resolve(response(c.table, 'old')); await settle(); expect(h.cu…
+       |                                                                                  ^
+    112|   });
+    113|   it('ignores old rejection while the new owner remains loading', asyn…
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[4/159]⎯
+
+ FAIL  tests/hooks/remainingCoachLifecycle.test.ts > 'tags' actual-hook state lifecycle > catches returned read failure and retries
+ FAIL  tests/hooks/remainingCoachLifecycle.test.ts > 'templates' actual-hook state lifecycle > catches returned read failure and retries
+ FAIL  tests/hooks/remainingCoachLifecycle.test.ts > 'exercises' actual-hook state lifecycle > catches returned read failure and retries
+ FAIL  tests/hooks/remainingCoachLifecycle.test.ts > 'equipment' actual-hook state lifecycle > catches returned read failure and retries
+ FAIL  tests/hooks/remainingCoachLifecycle.test.ts > 'invite' actual-hook state lifecycle > catches returned read failure and retries
+ FAIL  tests/hooks/remainingCoachLifecycle.test.ts > 'programs' actual-hook state lifecycle > catches returned read failure and retries
+ FAIL  tests/hooks/remainingCoachLifecycle.test.ts > 'roadmaps' actual-hook state lifecycle > catches returned read failure and retries
+ FAIL  tests/hooks/remainingCoachLifecycle.test.ts > 'vault' actual-hook state lifecycle > catches returned read failure and retries
+ FAIL  tests/hooks/remainingCoachLifecycle.test.ts > 'groups' actual-hook state lifecycle > catches returned read failure and retries
+TypeError: h.current.refresh is not a function
+ ❯ tests/hooks/remainingCoachLifecycle.test.ts:131:60
+    129|     });
+    130|     const h = new HookHarness(() => c.useView('a')); await settle(); e…
+    131|     api.read.mockImplementation(fallback); await h.current.refresh(); …
+       |                                                            ^
+    132|   });
+    133|   it('preserves complete same-owner data on reload failure; newest ref…
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[5/159]⎯
+
+ FAIL  tests/hooks/remainingCoachLifecycle.test.ts > 'tags' actual-hook state lifecycle > catches thrown read failure and retries
+ FAIL  tests/hooks/remainingCoachLifecycle.test.ts > 'tags' actual-hook state lifecycle > catches rejected read failure and retries
+ FAIL  tests/hooks/remainingCoachLifecycle.test.ts > 'templates' actual-hook state lifecycle > catches thrown read failure and retries
+ FAIL  tests/hooks/remainingCoachLifecycle.test.ts > 'templates' actual-hook state lifecycle > catches rejected read failure and retries
+ FAIL  tests/hooks/remainingCoachLifecycle.test.ts > 'exercises' actual-hook state lifecycle > catches thrown read failure and retries
+ FAIL  tests/hooks/remainingCoachLifecycle.test.ts > 'exercises' actual-hook state lifecycle > catches rejected read failure and retries
+ FAIL  tests/hooks/remainingCoachLifecycle.test.ts > 'equipment' actual-hook state lifecycle > catches thrown read failure and retries
+ FAIL  tests/hooks/remainingCoachLifecycle.test.ts > 'equipment' actual-hook state lifecycle > catches rejected read failure and retries
+ FAIL  tests/hooks/remainingCoachLifecycle.test.ts > 'invite' actual-hook state lifecycle > catches thrown read failure and retries
+ FAIL  tests/hooks/remainingCoachLifecycle.test.ts > 'invite' actual-hook state lifecycle > catches rejected read failure and retries
+ FAIL  tests/hooks/remainingCoachLifecycle.test.ts > 'programs' actual-hook state lifecycle > catches thrown read failure and retries
+ FAIL  tests/hooks/remainingCoachLifecycle.test.ts > 'programs' actual-hook state lifecycle > catches rejected read failure and retries
+ FAIL  tests/hooks/remainingCoachLifecycle.test.ts > 'roadmaps' actual-hook state lifecycle > catches thrown read failure and retries
+ FAIL  tests/hooks/remainingCoachLifecycle.test.ts > 'roadmaps' actual-hook state lifecycle > catches rejected read failure and retries
+ FAIL  tests/hooks/remainingCoachLifecycle.test.ts > 'vault' actual-hook state lifecycle > catches thrown read failure and retries
+ FAIL  tests/hooks/remainingCoachLifecycle.test.ts > 'vault' actual-hook state lifecycle > catches rejected read failure and retries
+ FAIL  tests/hooks/remainingCoachLifecycle.test.ts > 'groups' actual-hook state lifecycle > catches thrown read failure and retries
+ FAIL  tests/hooks/remainingCoachLifecycle.test.ts > 'groups' actual-hook state lifecycle > catches rejected read failure and retries
+AssertionError: expected null to be 'Read failed' // Object.is equality
+
+- Expected:
+"Read failed"
+
++ Received:
+null
+
+ ❯ tests/hooks/remainingCoachLifecycle.test.ts:130:94
+    128|       return mode === 'returned' ? { data: null, error: { message: 'Re…
+    129|     });
+    130|     const h = new HookHarness(() => c.useView('a')); await settle(); e…
+       |                                                                                              ^
+    131|     api.read.mockImplementation(fallback); await h.current.refresh(); …
+    132|   });
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[6/159]⎯
+
+ FAIL  tests/hooks/remainingCoachLifecycle.test.ts > 'tags' actual-hook state lifecycle > preserves complete same-owner data on reload failure; newest refresh wins
+ FAIL  tests/hooks/remainingCoachLifecycle.test.ts > 'templates' actual-hook state lifecycle > preserves complete same-owner data on reload failure; newest refresh wins
+ FAIL  tests/hooks/remainingCoachLifecycle.test.ts > 'exercises' actual-hook state lifecycle > preserves complete same-owner data on reload failure; newest refresh wins
+ FAIL  tests/hooks/remainingCoachLifecycle.test.ts > 'equipment' actual-hook state lifecycle > preserves complete same-owner data on reload failure; newest refresh wins
+ FAIL  tests/hooks/remainingCoachLifecycle.test.ts > 'invite' actual-hook state lifecycle > preserves complete same-owner data on reload failure; newest refresh wins
+ FAIL  tests/hooks/remainingCoachLifecycle.test.ts > 'programs' actual-hook state lifecycle > preserves complete same-owner data on reload failure; newest refresh wins
+ FAIL  tests/hooks/remainingCoachLifecycle.test.ts > 'roadmaps' actual-hook state lifecycle > preserves complete same-owner data on reload failure; newest refresh wins
+ FAIL  tests/hooks/remainingCoachLifecycle.test.ts > 'vault' actual-hook state lifecycle > preserves complete same-owner data on reload failure; newest refresh wins
+ FAIL  tests/hooks/remainingCoachLifecycle.test.ts > 'groups' actual-hook state lifecycle > preserves complete same-owner data on reload failure; newest refresh wins
+TypeError: h.current.refresh is not a function
+ ❯ tests/hooks/remainingCoachLifecycle.test.ts:136:21
+    134|     const h = new HookHarness(() => c.useView('a')); await settle(); c…
+    135|     api.read.mockImplementation((q: Trace) => q.table === c.table ? Pr…
+    136|     await h.current.refresh(); await settle(); expect(h.current.ids).t…
+       |                     ^
+    137|     const a = deferred<Read>(), b = deferred<Read>(); let n = 0;
+    138|     api.read.mockImplementation((q: Trace) => q.table === c.table ? (+…
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[7/159]⎯
+
+ FAIL  tests/hooks/remainingCoachLifecycle.test.ts > 'tags' actual-hook state lifecycle > does not read or mutate an empty owner
+ FAIL  tests/hooks/remainingCoachLifecycle.test.ts > 'templates' actual-hook state lifecycle > does not read or mutate an empty owner
+ FAIL  tests/hooks/remainingCoachLifecycle.test.ts > 'exercises' actual-hook state lifecycle > does not read or mutate an empty owner
+ FAIL  tests/hooks/remainingCoachLifecycle.test.ts > 'equipment' actual-hook state lifecycle > does not read or mutate an empty owner
+ FAIL  tests/hooks/remainingCoachLifecycle.test.ts > 'invite' actual-hook state lifecycle > does not read or mutate an empty owner
+ FAIL  tests/hooks/remainingCoachLifecycle.test.ts > 'programs' actual-hook state lifecycle > does not read or mutate an empty owner
+ FAIL  tests/hooks/remainingCoachLifecycle.test.ts > 'roadmaps' actual-hook state lifecycle > does not read or mutate an empty owner
+ FAIL  tests/hooks/remainingCoachLifecycle.test.ts > 'vault' actual-hook state lifecycle > does not read or mutate an empty owner
+ FAIL  tests/hooks/remainingCoachLifecycle.test.ts > 'groups' actual-hook state lifecycle > does not read or mutate an empty owner
+AssertionError: expected false to be true // Object.is equality
+
+- Expected
++ Received
+
+- true
++ false
+
+ ❯ tests/hooks/remainingCoachLifecycle.test.ts:143:93
+    141|   });
+    142|   it('does not read or mutate an empty owner', async () => {
+    143|     const h = new HookHarness(() => c.useView('')); await settle(); ex…
+       |                                                                                             ^
+    144|     for (const action of h.current.actions) expect((await action.run()…
+    145|   });
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[8/159]⎯
+
+ FAIL  tests/hooks/remainingCoachLifecycle.test.ts > 'tags' actual-hook state lifecycle > create > returns thrown operation failures without reloading
+ FAIL  tests/hooks/remainingCoachLifecycle.test.ts > 'tags' actual-hook state lifecycle > delete > returns thrown operation failures without reloading
+ FAIL  tests/hooks/remainingCoachLifecycle.test.ts > 'tags' actual-hook state lifecycle > assign > returns thrown operation failures without reloading
+ FAIL  tests/hooks/remainingCoachLifecycle.test.ts > 'tags' actual-hook state lifecycle > unassign > returns thrown operation failures without reloading
+ FAIL  tests/hooks/remainingCoachLifecycle.test.ts > 'templates' actual-hook state lifecycle > create > returns thrown operation failures without reloading
+ FAIL  tests/hooks/remainingCoachLifecycle.test.ts > 'templates' actual-hook state lifecycle > update > returns thrown operation failures without reloading
+ FAIL  tests/hooks/remainingCoachLifecycle.test.ts > 'templates' actual-hook state lifecycle > delete > returns thrown operation failures without reloading
+ FAIL  tests/hooks/remainingCoachLifecycle.test.ts > 'exercises' actual-hook state lifecycle > create > returns thrown operation failures without reloading
+ FAIL  tests/hooks/remainingCoachLifecycle.test.ts > 'equipment' actual-hook state lifecycle > create > returns thrown operation failures without reloading
+ FAIL  tests/hooks/remainingCoachLifecycle.test.ts > 'equipment' actual-hook state lifecycle > delete > returns thrown operation failures without reloading
+ FAIL  tests/hooks/remainingCoachLifecycle.test.ts > 'programs' actual-hook state lifecycle > create > returns thrown operation failures without reloading
+ FAIL  tests/hooks/remainingCoachLifecycle.test.ts > 'programs' actual-hook state lifecycle > delete > returns thrown operation failures without reloading
+ FAIL  tests/hooks/remainingCoachLifecycle.test.ts > 'roadmaps' actual-hook state lifecycle > create > returns thrown operation failures without reloading
+ FAIL  tests/hooks/remainingCoachLifecycle.test.ts > 'roadmaps' actual-hook state lifecycle > delete > returns thrown operation failures without reloading
+ FAIL  tests/hooks/remainingCoachLifecycle.test.ts > 'vault' actual-hook state lifecycle > create > returns thrown operation failures without reloading
+ FAIL  tests/hooks/remainingCoachLifecycle.test.ts > 'vault' actual-hook state lifecycle > delete > returns thrown operation failures without reloading
+ FAIL  tests/hooks/remainingCoachLifecycle.test.ts > 'groups' actual-hook state lifecycle > create > returns thrown operation failures without reloading
+ FAIL  tests/hooks/remainingCoachLifecycle.test.ts > 'groups' actual-hook state lifecycle > delete > returns thrown operation failures without reloading
+ FAIL  tests/hooks/remainingCoachLifecycle.test.ts > 'groups' actual-hook state lifecycle > add > returns thrown operation failures without reloading
+ FAIL  tests/hooks/remainingCoachLifecycle.test.ts > 'groups' actual-hook state lifecycle > remove > returns thrown operation failures without reloading
+Error: Write failed
+ ❯ Object.fail tests/hooks/remainingCoachLifecycle.test.ts:149:57
+
+ ❯ Object.then tests/hooks/remainingCoachLifecycle.test.ts:26:143
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[9/159]⎯
+
+ FAIL  tests/hooks/remainingCoachLifecycle.test.ts > 'tags' actual-hook state lifecycle > create > returns rejected operation failures without reloading
+ FAIL  tests/hooks/remainingCoachLifecycle.test.ts > 'tags' actual-hook state lifecycle > delete > returns rejected operation failures without reloading
+ FAIL  tests/hooks/remainingCoachLifecycle.test.ts > 'tags' actual-hook state lifecycle > assign > returns rejected operation failures without reloading
+ FAIL  tests/hooks/remainingCoachLifecycle.test.ts > 'tags' actual-hook state lifecycle > unassign > returns rejected operation failures without reloading
+ FAIL  tests/hooks/remainingCoachLifecycle.test.ts > 'templates' actual-hook state lifecycle > create > returns rejected operation failures without reloading
+ FAIL  tests/hooks/remainingCoachLifecycle.test.ts > 'templates' actual-hook state lifecycle > update > returns rejected operation failures without reloading
+ FAIL  tests/hooks/remainingCoachLifecycle.test.ts > 'templates' actual-hook state lifecycle > delete > returns rejected operation failures without reloading
+ FAIL  tests/hooks/remainingCoachLifecycle.test.ts > 'exercises' actual-hook state lifecycle > create > returns rejected operation failures without reloading
+ FAIL  tests/hooks/remainingCoachLifecycle.test.ts > 'equipment' actual-hook state lifecycle > create > returns rejected operation failures without reloading
+ FAIL  tests/hooks/remainingCoachLifecycle.test.ts > 'equipment' actual-hook state lifecycle > delete > returns rejected operation failures without reloading
+ FAIL  tests/hooks/remainingCoachLifecycle.test.ts > 'programs' actual-hook state lifecycle > create > returns rejected operation failures without reloading
+ FAIL  tests/hooks/remainingCoachLifecycle.test.ts > 'programs' actual-hook state lifecycle > delete > returns rejected operation failures without reloading
+ FAIL  tests/hooks/remainingCoachLifecycle.test.ts > 'roadmaps' actual-hook state lifecycle > create > returns rejected operation failures without reloading
+ FAIL  tests/hooks/remainingCoachLifecycle.test.ts > 'roadmaps' actual-hook state lifecycle > delete > returns rejected operation failures without reloading
+ FAIL  tests/hooks/remainingCoachLifecycle.test.ts > 'vault' actual-hook state lifecycle > create > returns rejected operation failures without reloading
+ FAIL  tests/hooks/remainingCoachLifecycle.test.ts > 'vault' actual-hook state lifecycle > delete > returns rejected operation failures without reloading
+ FAIL  tests/hooks/remainingCoachLifecycle.test.ts > 'groups' actual-hook state lifecycle > create > returns rejected operation failures without reloading
+ FAIL  tests/hooks/remainingCoachLifecycle.test.ts > 'groups' actual-hook state lifecycle > delete > returns rejected operation failures without reloading
+ FAIL  tests/hooks/remainingCoachLifecycle.test.ts > 'groups' actual-hook state lifecycle > add > returns rejected operation failures without reloading
+ FAIL  tests/hooks/remainingCoachLifecycle.test.ts > 'groups' actual-hook state lifecycle > remove > returns rejected operation failures without reloading
+Error: Write failed
+ ❯ Object.fail tests/hooks/remainingCoachLifecycle.test.ts:149:181
+
+ ❯ Object.then tests/hooks/remainingCoachLifecycle.test.ts:26:143
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[10/159]⎯
+
+ FAIL  tests/hooks/remainingCoachLifecycle.test.ts > 'tags' actual-hook state lifecycle > create > blocks stale callbacks and late owner reloads
+ FAIL  tests/hooks/remainingCoachLifecycle.test.ts > 'tags' actual-hook state lifecycle > delete > blocks stale callbacks and late owner reloads
+ FAIL  tests/hooks/remainingCoachLifecycle.test.ts > 'tags' actual-hook state lifecycle > assign > blocks stale callbacks and late owner reloads
+ FAIL  tests/hooks/remainingCoachLifecycle.test.ts > 'tags' actual-hook state lifecycle > unassign > blocks stale callbacks and late owner reloads
+ FAIL  tests/hooks/remainingCoachLifecycle.test.ts > 'templates' actual-hook state lifecycle > create > blocks stale callbacks and late owner reloads
+ FAIL  tests/hooks/remainingCoachLifecycle.test.ts > 'templates' actual-hook state lifecycle > update > blocks stale callbacks and late owner reloads
+ FAIL  tests/hooks/remainingCoachLifecycle.test.ts > 'templates' actual-hook state lifecycle > delete > blocks stale callbacks and late owner reloads
+ FAIL  tests/hooks/remainingCoachLifecycle.test.ts > 'exercises' actual-hook state lifecycle > create > blocks stale callbacks and late owner reloads
+ FAIL  tests/hooks/remainingCoachLifecycle.test.ts > 'equipment' actual-hook state lifecycle > create > blocks stale callbacks and late owner reloads
+ FAIL  tests/hooks/remainingCoachLifecycle.test.ts > 'equipment' actual-hook state lifecycle > delete > blocks stale callbacks and late owner reloads
+ FAIL  tests/hooks/remainingCoachLifecycle.test.ts > 'invite' actual-hook state lifecycle > rotate > blocks stale callbacks and late owner reloads
+ FAIL  tests/hooks/remainingCoachLifecycle.test.ts > 'invite' actual-hook state lifecycle > revoke > blocks stale callbacks and late owner reloads
+ FAIL  tests/hooks/remainingCoachLifecycle.test.ts > 'programs' actual-hook state lifecycle > create > blocks stale callbacks and late owner reloads
+ FAIL  tests/hooks/remainingCoachLifecycle.test.ts > 'programs' actual-hook state lifecycle > delete > blocks stale callbacks and late owner reloads
+ FAIL  tests/hooks/remainingCoachLifecycle.test.ts > 'roadmaps' actual-hook state lifecycle > create > blocks stale callbacks and late owner reloads
+ FAIL  tests/hooks/remainingCoachLifecycle.test.ts > 'roadmaps' actual-hook state lifecycle > delete > blocks stale callbacks and late owner reloads
+ FAIL  tests/hooks/remainingCoachLifecycle.test.ts > 'vault' actual-hook state lifecycle > create > blocks stale callbacks and late owner reloads
+ FAIL  tests/hooks/remainingCoachLifecycle.test.ts > 'vault' actual-hook state lifecycle > delete > blocks stale callbacks and late owner reloads
+ FAIL  tests/hooks/remainingCoachLifecycle.test.ts > 'groups' actual-hook state lifecycle > create > blocks stale callbacks and late owner reloads
+ FAIL  tests/hooks/remainingCoachLifecycle.test.ts > 'groups' actual-hook state lifecycle > delete > blocks stale callbacks and late owner reloads
+ FAIL  tests/hooks/remainingCoachLifecycle.test.ts > 'groups' actual-hook state lifecycle > add > blocks stale callbacks and late owner reloads
+ FAIL  tests/hooks/remainingCoachLifecycle.test.ts > 'groups' actual-hook state lifecycle > remove > blocks stale callbacks and late owner reloads
+AssertionError: expected 2 to be 1 // Object.is equality
+
+- Expected
++ Received
+
+- 1
++ 2
+
+ ❯ tests/hooks/remainingCoachLifecycle.test.ts:159:113
+    157|       const wait = deferred<{ data: { id: string }; error: null }>(); …
+    158|       const pending = stale(); owner = 'b'; h.render(); await settle()…
+    159|       const rejected = stale(); await settle(); expect(api.write.mock.…
+       |                                                                                                                 ^
+    160|       wait.resolve({ data: { id: 'created' }, error: null }); await pe…
+    161|     });
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[11/159]⎯
+
+ FAIL  tests/hooks/remainingCoachLifecycle.test.ts > 'tags' actual-hook state lifecycle > does not reload an old mutation scope after A to B to A or unmount
+ FAIL  tests/hooks/remainingCoachLifecycle.test.ts > 'exercises' actual-hook state lifecycle > does not reload an old mutation scope after A to B to A or unmount
+ FAIL  tests/hooks/remainingCoachLifecycle.test.ts > 'equipment' actual-hook state lifecycle > does not reload an old mutation scope after A to B to A or unmount
+ FAIL  tests/hooks/remainingCoachLifecycle.test.ts > 'programs' actual-hook state lifecycle > does not reload an old mutation scope after A to B to A or unmount
+ FAIL  tests/hooks/remainingCoachLifecycle.test.ts > 'roadmaps' actual-hook state lifecycle > does not reload an old mutation scope after A to B to A or unmount
+AssertionError: expected [ …(4) ] to have a length of 3 but got 4
+
+- Expected
++ Received
+
+- 3
++ 4
+
+ ❯ tests/hooks/remainingCoachLifecycle.test.ts:167:115
+    165|     api.write.mockImplementation(() => wait.promise); api.rpc.mockImpl…
+    166|     owner = 'b'; h.render(); await settle(); owner = 'a'; h.render(); …
+    167|     wait.resolve({ data: { id: 'created' }, error: null }); await pend…
+       |                                                                                                                   ^
+    168|   });
+    169|   it('keeps a committed operation successful while exposing a reload e…
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[12/159]⎯
+
+ FAIL  tests/hooks/remainingCoachLifecycle.test.ts > 'templates' actual-hook state lifecycle > does not reload an old mutation scope after A to B to A or unmount
+ FAIL  tests/hooks/remainingCoachLifecycle.test.ts > 'invite' actual-hook state lifecycle > does not reload an old mutation scope after A to B to A or unmount
+ FAIL  tests/hooks/remainingCoachLifecycle.test.ts > 'vault' actual-hook state lifecycle > does not reload an old mutation scope after A to B to A or unmount
+ FAIL  tests/hooks/remainingCoachLifecycle.test.ts > 'groups' actual-hook state lifecycle > does not reload an old mutation scope after A to B to A or unmount
+AssertionError: expected [ [ { …(6) } ], [ { …(6) } ], …(2) ] to have a length of 3 but got 4
+
+- Expected
++ Received
+
+- 3
++ 4
+
+ ❯ tests/hooks/remainingCoachLifecycle.test.ts:167:115
+    165|     api.write.mockImplementation(() => wait.promise); api.rpc.mockImpl…
+    166|     owner = 'b'; h.render(); await settle(); owner = 'a'; h.render(); …
+    167|     wait.resolve({ data: { id: 'created' }, error: null }); await pend…
+       |                                                                                                                   ^
+    168|   });
+    169|   it('keeps a committed operation successful while exposing a reload e…
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[13/159]⎯
+
+ FAIL  tests/hooks/remainingCoachLifecycle.test.ts > 'invite' actual-hook state lifecycle > rotate > returns thrown operation failures without reloading
+Error: Write failed
+ ❯ Object.fail tests/hooks/remainingCoachLifecycle.test.ts:149:57
+
+ ❯ Object.rpc tests/hooks/remainingCoachLifecycle.test.ts:29:39
+ ❯ Object.generateLink src/hooks/useInviteLink.ts:63:48
+ ❯ Object.run tests/hooks/remainingCoachLifecycle.test.ts:56:155
+ ❯ tests/hooks/remainingCoachLifecycle.test.ts:151:72
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[14/159]⎯
+
+ FAIL  tests/hooks/remainingCoachLifecycle.test.ts > 'invite' actual-hook state lifecycle > rotate > returns rejected operation failures without reloading
+Error: Write failed
+ ❯ Object.fail tests/hooks/remainingCoachLifecycle.test.ts:149:181
+
+ ❯ Object.rpc tests/hooks/remainingCoachLifecycle.test.ts:29:39
+ ❯ Object.generateLink src/hooks/useInviteLink.ts:63:48
+ ❯ Object.run tests/hooks/remainingCoachLifecycle.test.ts:56:155
+ ❯ tests/hooks/remainingCoachLifecycle.test.ts:151:72
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[15/159]⎯
+
+ FAIL  tests/hooks/remainingCoachLifecycle.test.ts > 'invite' actual-hook state lifecycle > revoke > returns thrown operation failures without reloading
+Error: Write failed
+ ❯ Object.fail tests/hooks/remainingCoachLifecycle.test.ts:149:57
+
+ ❯ Object.rpc tests/hooks/remainingCoachLifecycle.test.ts:29:39
+ ❯ Object.revokeLink [as run] src/hooks/useInviteLink.ts:72:48
+ ❯ tests/hooks/remainingCoachLifecycle.test.ts:151:72
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[16/159]⎯
+
+ FAIL  tests/hooks/remainingCoachLifecycle.test.ts > 'invite' actual-hook state lifecycle > revoke > returns rejected operation failures without reloading
+Error: Write failed
+ ❯ Object.fail tests/hooks/remainingCoachLifecycle.test.ts:149:181
+
+ ❯ Object.rpc tests/hooks/remainingCoachLifecycle.test.ts:29:39
+ ❯ Object.revokeLink [as run] src/hooks/useInviteLink.ts:72:48
+ ❯ tests/hooks/remainingCoachLifecycle.test.ts:151:72
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[17/159]⎯
+
+ FAIL  tests/hooks/remainingCoachLifecycle.test.ts > keeps tag rows/assignment mapping together and retains both after a partial read failure
+TypeError: h.current.refresh is not a function
+ ❯ tests/hooks/remainingCoachLifecycle.test.ts:180:19
+    178|   const oldMap = h.current.assignmentsByClient, fallback = api.read.ge…
+    179|   api.read.mockImplementation((q: Trace) => q.table === 'client_tag_as…
+    180|   await h.current.refresh(); await settle(); expect(h.current.assignme…
+       |                   ^
+    181| });
+    182| it('preserves template schedule fallback and roadmap/exercise/group ma…
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[18/159]⎯
+
+ FAIL  tests/hooks/remainingCoachLifecycle.test.ts > preserves no-active-invite versus error and rotate/revoke payloads
+TypeError: h.current.refresh is not a function
+ ❯ tests/hooks/remainingCoachLifecycle.test.ts:195:98
+
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[19/159]⎯
+
+ FAIL  tests/hooks/remainingCoachLifecycle.test.ts > keeps exercise parent/link partial-write semantics and does not start links after an owner switch
+AssertionError: the given combination of arguments (null and string) is invalid for this assertion. You can use an array, a map, an object, a set, a string, or a weakset instead of a string
+ ❯ tests/hooks/remainingCoachLifecycle.test.ts:209:130
+    207|   expect(api.write.mock.calls[1][0].payload).toEqual([{ exercise_id: '…
+    208|   const wait = deferred<{ data: { id: string }; error: null }>(); api.…
+    209|   owner = 'b'; h.render(); await settle(); wait.resolve({ data: { id: …
+       |                                                                                                                                  ^
+    210| });
+    211|
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[20/159]⎯
+
+⎯⎯⎯⎯⎯⎯ Unhandled Errors ⎯⎯⎯⎯⎯⎯
+
+Vitest caught 27 unhandled errors during the test run.
+This might cause false positive tests. Resolve unhandled errors to make sure your tests are not affected.
+
+⎯⎯⎯⎯ Unhandled Rejection ⎯⎯⎯⎯⎯
+Error: Old failure
+ ❯ tests/hooks/remainingCoachLifecycle.test.ts:116:90
+    114|     let owner = 'a'; const a = deferred<Read>(), b = deferred<Read>(),…
+    115|     api.read.mockImplementation((q: Trace) => q.table === c.table ? (m…
+    116|     const h = new HookHarness(() => c.useView(owner)); owner = 'b'; h.…
+       |                                                                                          ^
+    117|     expect(h.current.error).toBeNull(); expect(h.current.isLoading).to…
+    118|   });
+ ❯ node_modules/@vitest/runner/dist/chunk-artifact.js:302:11
+ ❯ node_modules/@vitest/runner/dist/chunk-artifact.js:1903:26
+ ❯ node_modules/@vitest/runner/dist/chunk-artifact.js:2326:20
+ ❯ runWithCancel node_modules/@vitest/runner/dist/chunk-artifact.js:2323:10
+ ❯ node_modules/@vitest/runner/dist/chunk-artifact.js:2305:20
+ ❯ runWithTimeout node_modules/@vitest/runner/dist/chunk-artifact.js:2272:10
+ ❯ node_modules/@vitest/runner/dist/chunk-artifact.js:2955:64
+
+This error originated in "tests/hooks/remainingCoachLifecycle.test.ts" test file. It doesn't mean the error was thrown inside the file itself, but while it was running.
+
+⎯⎯⎯⎯ Unhandled Rejection ⎯⎯⎯⎯⎯
+Error: Read failed
+ ❯ Object.<anonymous> tests/hooks/remainingCoachLifecycle.test.ts:127:36
+    125|     api.read.mockImplementation((q: Trace) => {
+    126|       if (q.table !== c.table) return fallback(q);
+    127|       if (mode === 'thrown') throw new Error('Read failed');
+       |                                    ^
+    128|       return mode === 'returned' ? { data: null, error: { message: 'Re…
+    129|     });
+ ❯ Object.Mock node_modules/@vitest/spy/dist/index.js:332:34
+ ❯ Object.then tests/hooks/remainingCoachLifecycle.test.ts:26:125
+ ❯ processTicksAndRejections node:internal/process/task_queues:104:5
+
+This error originated in "tests/hooks/remainingCoachLifecycle.test.ts" test file. It doesn't mean the error was thrown inside the file itself, but while it was running.
+
+⎯⎯⎯⎯ Unhandled Rejection ⎯⎯⎯⎯⎯
+Error: Read failed
+ ❯ Object.<anonymous> tests/hooks/remainingCoachLifecycle.test.ts:128:103
+    126|       if (q.table !== c.table) return fallback(q);
+    127|       if (mode === 'thrown') throw new Error('Read failed');
+    128|       return mode === 'returned' ? { data: null, error: { message: 'Re…
+       |                                                                                                       ^
+    129|     });
+    130|     const h = new HookHarness(() => c.useView('a')); await settle(); e…
+ ❯ Object.Mock node_modules/@vitest/spy/dist/index.js:332:34
+ ❯ Object.then tests/hooks/remainingCoachLifecycle.test.ts:26:125
+ ❯ processTicksAndRejections node:internal/process/task_queues:104:5
+
+This error originated in "tests/hooks/remainingCoachLifecycle.test.ts" test file. It doesn't mean the error was thrown inside the file itself, but while it was running.
+
+⎯⎯⎯⎯ Unhandled Rejection ⎯⎯⎯⎯⎯
+Error: Old failure
+ ❯ tests/hooks/remainingCoachLifecycle.test.ts:116:90
+    114|     let owner = 'a'; const a = deferred<Read>(), b = deferred<Read>(),…
+    115|     api.read.mockImplementation((q: Trace) => q.table === c.table ? (m…
+    116|     const h = new HookHarness(() => c.useView(owner)); owner = 'b'; h.…
+       |                                                                                          ^
+    117|     expect(h.current.error).toBeNull(); expect(h.current.isLoading).to…
+    118|   });
+ ❯ node_modules/@vitest/runner/dist/chunk-artifact.js:302:11
+ ❯ node_modules/@vitest/runner/dist/chunk-artifact.js:1903:26
+ ❯ node_modules/@vitest/runner/dist/chunk-artifact.js:2326:20
+ ❯ runWithCancel node_modules/@vitest/runner/dist/chunk-artifact.js:2323:10
+ ❯ node_modules/@vitest/runner/dist/chunk-artifact.js:2305:20
+ ❯ runWithTimeout node_modules/@vitest/runner/dist/chunk-artifact.js:2272:10
+ ❯ node_modules/@vitest/runner/dist/chunk-artifact.js:2955:64
+
+This error originated in "tests/hooks/remainingCoachLifecycle.test.ts" test file. It doesn't mean the error was thrown inside the file itself, but while it was running.
+
+⎯⎯⎯⎯ Unhandled Rejection ⎯⎯⎯⎯⎯
+Error: Read failed
+ ❯ Object.<anonymous> tests/hooks/remainingCoachLifecycle.test.ts:127:36
+    125|     api.read.mockImplementation((q: Trace) => {
+    126|       if (q.table !== c.table) return fallback(q);
+    127|       if (mode === 'thrown') throw new Error('Read failed');
+       |                                    ^
+    128|       return mode === 'returned' ? { data: null, error: { message: 'Re…
+    129|     });
+ ❯ Object.Mock node_modules/@vitest/spy/dist/index.js:332:34
+ ❯ Object.then tests/hooks/remainingCoachLifecycle.test.ts:26:125
+ ❯ processTicksAndRejections node:internal/process/task_queues:104:5
+
+This error originated in "tests/hooks/remainingCoachLifecycle.test.ts" test file. It doesn't mean the error was thrown inside the file itself, but while it was running.
+
+⎯⎯⎯⎯ Unhandled Rejection ⎯⎯⎯⎯⎯
+Error: Read failed
+ ❯ Object.<anonymous> tests/hooks/remainingCoachLifecycle.test.ts:128:103
+    126|       if (q.table !== c.table) return fallback(q);
+    127|       if (mode === 'thrown') throw new Error('Read failed');
+    128|       return mode === 'returned' ? { data: null, error: { message: 'Re…
+       |                                                                                                       ^
+    129|     });
+    130|     const h = new HookHarness(() => c.useView('a')); await settle(); e…
+ ❯ Object.Mock node_modules/@vitest/spy/dist/index.js:332:34
+ ❯ Object.then tests/hooks/remainingCoachLifecycle.test.ts:26:125
+ ❯ processTicksAndRejections node:internal/process/task_queues:104:5
+
+This error originated in "tests/hooks/remainingCoachLifecycle.test.ts" test file. It doesn't mean the error was thrown inside the file itself, but while it was running.
+
+⎯⎯⎯⎯ Unhandled Rejection ⎯⎯⎯⎯⎯
+Error: Old failure
+ ❯ tests/hooks/remainingCoachLifecycle.test.ts:116:90
+    114|     let owner = 'a'; const a = deferred<Read>(), b = deferred<Read>(),…
+    115|     api.read.mockImplementation((q: Trace) => q.table === c.table ? (m…
+    116|     const h = new HookHarness(() => c.useView(owner)); owner = 'b'; h.…
+       |                                                                                          ^
+    117|     expect(h.current.error).toBeNull(); expect(h.current.isLoading).to…
+    118|   });
+ ❯ node_modules/@vitest/runner/dist/chunk-artifact.js:302:11
+ ❯ node_modules/@vitest/runner/dist/chunk-artifact.js:1903:26
+ ❯ node_modules/@vitest/runner/dist/chunk-artifact.js:2326:20
+ ❯ runWithCancel node_modules/@vitest/runner/dist/chunk-artifact.js:2323:10
+ ❯ node_modules/@vitest/runner/dist/chunk-artifact.js:2305:20
+ ❯ runWithTimeout node_modules/@vitest/runner/dist/chunk-artifact.js:2272:10
+ ❯ node_modules/@vitest/runner/dist/chunk-artifact.js:2955:64
+
+This error originated in "tests/hooks/remainingCoachLifecycle.test.ts" test file. It doesn't mean the error was thrown inside the file itself, but while it was running.
+
+⎯⎯⎯⎯ Unhandled Rejection ⎯⎯⎯⎯⎯
+Error: Read failed
+ ❯ Object.<anonymous> tests/hooks/remainingCoachLifecycle.test.ts:127:36
+    125|     api.read.mockImplementation((q: Trace) => {
+    126|       if (q.table !== c.table) return fallback(q);
+    127|       if (mode === 'thrown') throw new Error('Read failed');
+       |                                    ^
+    128|       return mode === 'returned' ? { data: null, error: { message: 'Re…
+    129|     });
+ ❯ Object.Mock node_modules/@vitest/spy/dist/index.js:332:34
+ ❯ Object.then tests/hooks/remainingCoachLifecycle.test.ts:26:125
+ ❯ processTicksAndRejections node:internal/process/task_queues:104:5
+
+This error originated in "tests/hooks/remainingCoachLifecycle.test.ts" test file. It doesn't mean the error was thrown inside the file itself, but while it was running.
+
+⎯⎯⎯⎯ Unhandled Rejection ⎯⎯⎯⎯⎯
+Error: Read failed
+ ❯ Object.<anonymous> tests/hooks/remainingCoachLifecycle.test.ts:128:103
+    126|       if (q.table !== c.table) return fallback(q);
+    127|       if (mode === 'thrown') throw new Error('Read failed');
+    128|       return mode === 'returned' ? { data: null, error: { message: 'Re…
+       |                                                                                                       ^
+    129|     });
+    130|     const h = new HookHarness(() => c.useView('a')); await settle(); e…
+ ❯ Object.Mock node_modules/@vitest/spy/dist/index.js:332:34
+ ❯ Object.then tests/hooks/remainingCoachLifecycle.test.ts:26:125
+ ❯ processTicksAndRejections node:internal/process/task_queues:104:5
+
+This error originated in "tests/hooks/remainingCoachLifecycle.test.ts" test file. It doesn't mean the error was thrown inside the file itself, but while it was running.
+
+⎯⎯⎯⎯ Unhandled Rejection ⎯⎯⎯⎯⎯
+Error: Old failure
+ ❯ tests/hooks/remainingCoachLifecycle.test.ts:116:90
+    114|     let owner = 'a'; const a = deferred<Read>(), b = deferred<Read>(),…
+    115|     api.read.mockImplementation((q: Trace) => q.table === c.table ? (m…
+    116|     const h = new HookHarness(() => c.useView(owner)); owner = 'b'; h.…
+       |                                                                                          ^
+    117|     expect(h.current.error).toBeNull(); expect(h.current.isLoading).to…
+    118|   });
+ ❯ node_modules/@vitest/runner/dist/chunk-artifact.js:302:11
+ ❯ node_modules/@vitest/runner/dist/chunk-artifact.js:1903:26
+ ❯ node_modules/@vitest/runner/dist/chunk-artifact.js:2326:20
+ ❯ runWithCancel node_modules/@vitest/runner/dist/chunk-artifact.js:2323:10
+ ❯ node_modules/@vitest/runner/dist/chunk-artifact.js:2305:20
+ ❯ runWithTimeout node_modules/@vitest/runner/dist/chunk-artifact.js:2272:10
+ ❯ node_modules/@vitest/runner/dist/chunk-artifact.js:2955:64
+
+This error originated in "tests/hooks/remainingCoachLifecycle.test.ts" test file. It doesn't mean the error was thrown inside the file itself, but while it was running.
+
+⎯⎯⎯⎯ Unhandled Rejection ⎯⎯⎯⎯⎯
+Error: Read failed
+ ❯ Object.<anonymous> tests/hooks/remainingCoachLifecycle.test.ts:127:36
+    125|     api.read.mockImplementation((q: Trace) => {
+    126|       if (q.table !== c.table) return fallback(q);
+    127|       if (mode === 'thrown') throw new Error('Read failed');
+       |                                    ^
+    128|       return mode === 'returned' ? { data: null, error: { message: 'Re…
+    129|     });
+ ❯ Object.Mock node_modules/@vitest/spy/dist/index.js:332:34
+ ❯ Object.then tests/hooks/remainingCoachLifecycle.test.ts:26:125
+ ❯ processTicksAndRejections node:internal/process/task_queues:104:5
+
+This error originated in "tests/hooks/remainingCoachLifecycle.test.ts" test file. It doesn't mean the error was thrown inside the file itself, but while it was running.
+
+⎯⎯⎯⎯ Unhandled Rejection ⎯⎯⎯⎯⎯
+Error: Read failed
+ ❯ Object.<anonymous> tests/hooks/remainingCoachLifecycle.test.ts:128:103
+    126|       if (q.table !== c.table) return fallback(q);
+    127|       if (mode === 'thrown') throw new Error('Read failed');
+    128|       return mode === 'returned' ? { data: null, error: { message: 'Re…
+       |                                                                                                       ^
+    129|     });
+    130|     const h = new HookHarness(() => c.useView('a')); await settle(); e…
+ ❯ Object.Mock node_modules/@vitest/spy/dist/index.js:332:34
+ ❯ Object.then tests/hooks/remainingCoachLifecycle.test.ts:26:125
+ ❯ processTicksAndRejections node:internal/process/task_queues:104:5
+
+This error originated in "tests/hooks/remainingCoachLifecycle.test.ts" test file. It doesn't mean the error was thrown inside the file itself, but while it was running.
+
+⎯⎯⎯⎯ Unhandled Rejection ⎯⎯⎯⎯⎯
+Error: Old failure
+ ❯ tests/hooks/remainingCoachLifecycle.test.ts:116:90
+    114|     let owner = 'a'; const a = deferred<Read>(), b = deferred<Read>(),…
+    115|     api.read.mockImplementation((q: Trace) => q.table === c.table ? (m…
+    116|     const h = new HookHarness(() => c.useView(owner)); owner = 'b'; h.…
+       |                                                                                          ^
+    117|     expect(h.current.error).toBeNull(); expect(h.current.isLoading).to…
+    118|   });
+ ❯ node_modules/@vitest/runner/dist/chunk-artifact.js:302:11
+ ❯ node_modules/@vitest/runner/dist/chunk-artifact.js:1903:26
+ ❯ node_modules/@vitest/runner/dist/chunk-artifact.js:2326:20
+ ❯ runWithCancel node_modules/@vitest/runner/dist/chunk-artifact.js:2323:10
+ ❯ node_modules/@vitest/runner/dist/chunk-artifact.js:2305:20
+ ❯ runWithTimeout node_modules/@vitest/runner/dist/chunk-artifact.js:2272:10
+ ❯ node_modules/@vitest/runner/dist/chunk-artifact.js:2955:64
+
+This error originated in "tests/hooks/remainingCoachLifecycle.test.ts" test file. It doesn't mean the error was thrown inside the file itself, but while it was running.
+
+⎯⎯⎯⎯ Unhandled Rejection ⎯⎯⎯⎯⎯
+Error: Read failed
+ ❯ Object.<anonymous> tests/hooks/remainingCoachLifecycle.test.ts:127:36
+    125|     api.read.mockImplementation((q: Trace) => {
+    126|       if (q.table !== c.table) return fallback(q);
+    127|       if (mode === 'thrown') throw new Error('Read failed');
+       |                                    ^
+    128|       return mode === 'returned' ? { data: null, error: { message: 'Re…
+    129|     });
+ ❯ Object.Mock node_modules/@vitest/spy/dist/index.js:332:34
+ ❯ Object.then tests/hooks/remainingCoachLifecycle.test.ts:26:125
+ ❯ processTicksAndRejections node:internal/process/task_queues:104:5
+
+This error originated in "tests/hooks/remainingCoachLifecycle.test.ts" test file. It doesn't mean the error was thrown inside the file itself, but while it was running.
+
+⎯⎯⎯⎯ Unhandled Rejection ⎯⎯⎯⎯⎯
+Error: Read failed
+ ❯ Object.<anonymous> tests/hooks/remainingCoachLifecycle.test.ts:128:103
+    126|       if (q.table !== c.table) return fallback(q);
+    127|       if (mode === 'thrown') throw new Error('Read failed');
+    128|       return mode === 'returned' ? { data: null, error: { message: 'Re…
+       |                                                                                                       ^
+    129|     });
+    130|     const h = new HookHarness(() => c.useView('a')); await settle(); e…
+ ❯ Object.Mock node_modules/@vitest/spy/dist/index.js:332:34
+ ❯ Object.then tests/hooks/remainingCoachLifecycle.test.ts:26:125
+ ❯ processTicksAndRejections node:internal/process/task_queues:104:5
+
+This error originated in "tests/hooks/remainingCoachLifecycle.test.ts" test file. It doesn't mean the error was thrown inside the file itself, but while it was running.
+
+⎯⎯⎯⎯ Unhandled Rejection ⎯⎯⎯⎯⎯
+Error: Old failure
+ ❯ tests/hooks/remainingCoachLifecycle.test.ts:116:90
+    114|     let owner = 'a'; const a = deferred<Read>(), b = deferred<Read>(),…
+    115|     api.read.mockImplementation((q: Trace) => q.table === c.table ? (m…
+    116|     const h = new HookHarness(() => c.useView(owner)); owner = 'b'; h.…
+       |                                                                                          ^
+    117|     expect(h.current.error).toBeNull(); expect(h.current.isLoading).to…
+    118|   });
+ ❯ node_modules/@vitest/runner/dist/chunk-artifact.js:302:11
+ ❯ node_modules/@vitest/runner/dist/chunk-artifact.js:1903:26
+ ❯ node_modules/@vitest/runner/dist/chunk-artifact.js:2326:20
+ ❯ runWithCancel node_modules/@vitest/runner/dist/chunk-artifact.js:2323:10
+ ❯ node_modules/@vitest/runner/dist/chunk-artifact.js:2305:20
+ ❯ runWithTimeout node_modules/@vitest/runner/dist/chunk-artifact.js:2272:10
+ ❯ node_modules/@vitest/runner/dist/chunk-artifact.js:2955:64
+
+This error originated in "tests/hooks/remainingCoachLifecycle.test.ts" test file. It doesn't mean the error was thrown inside the file itself, but while it was running.
+
+⎯⎯⎯⎯ Unhandled Rejection ⎯⎯⎯⎯⎯
+Error: Read failed
+ ❯ Object.<anonymous> tests/hooks/remainingCoachLifecycle.test.ts:127:36
+    125|     api.read.mockImplementation((q: Trace) => {
+    126|       if (q.table !== c.table) return fallback(q);
+    127|       if (mode === 'thrown') throw new Error('Read failed');
+       |                                    ^
+    128|       return mode === 'returned' ? { data: null, error: { message: 'Re…
+    129|     });
+ ❯ Object.Mock node_modules/@vitest/spy/dist/index.js:332:34
+ ❯ Object.then tests/hooks/remainingCoachLifecycle.test.ts:26:125
+ ❯ processTicksAndRejections node:internal/process/task_queues:104:5
+
+This error originated in "tests/hooks/remainingCoachLifecycle.test.ts" test file. It doesn't mean the error was thrown inside the file itself, but while it was running.
+
+⎯⎯⎯⎯ Unhandled Rejection ⎯⎯⎯⎯⎯
+Error: Read failed
+ ❯ Object.<anonymous> tests/hooks/remainingCoachLifecycle.test.ts:128:103
+    126|       if (q.table !== c.table) return fallback(q);
+    127|       if (mode === 'thrown') throw new Error('Read failed');
+    128|       return mode === 'returned' ? { data: null, error: { message: 'Re…
+       |                                                                                                       ^
+    129|     });
+    130|     const h = new HookHarness(() => c.useView('a')); await settle(); e…
+ ❯ Object.Mock node_modules/@vitest/spy/dist/index.js:332:34
+ ❯ Object.then tests/hooks/remainingCoachLifecycle.test.ts:26:125
+ ❯ processTicksAndRejections node:internal/process/task_queues:104:5
+
+This error originated in "tests/hooks/remainingCoachLifecycle.test.ts" test file. It doesn't mean the error was thrown inside the file itself, but while it was running.
+
+⎯⎯⎯⎯ Unhandled Rejection ⎯⎯⎯⎯⎯
+Error: Old failure
+ ❯ tests/hooks/remainingCoachLifecycle.test.ts:116:90
+    114|     let owner = 'a'; const a = deferred<Read>(), b = deferred<Read>(),…
+    115|     api.read.mockImplementation((q: Trace) => q.table === c.table ? (m…
+    116|     const h = new HookHarness(() => c.useView(owner)); owner = 'b'; h.…
+       |                                                                                          ^
+    117|     expect(h.current.error).toBeNull(); expect(h.current.isLoading).to…
+    118|   });
+ ❯ node_modules/@vitest/runner/dist/chunk-artifact.js:302:11
+ ❯ node_modules/@vitest/runner/dist/chunk-artifact.js:1903:26
+ ❯ node_modules/@vitest/runner/dist/chunk-artifact.js:2326:20
+ ❯ runWithCancel node_modules/@vitest/runner/dist/chunk-artifact.js:2323:10
+ ❯ node_modules/@vitest/runner/dist/chunk-artifact.js:2305:20
+ ❯ runWithTimeout node_modules/@vitest/runner/dist/chunk-artifact.js:2272:10
+ ❯ node_modules/@vitest/runner/dist/chunk-artifact.js:2955:64
+
+This error originated in "tests/hooks/remainingCoachLifecycle.test.ts" test file. It doesn't mean the error was thrown inside the file itself, but while it was running.
+
+⎯⎯⎯⎯ Unhandled Rejection ⎯⎯⎯⎯⎯
+Error: Read failed
+ ❯ Object.<anonymous> tests/hooks/remainingCoachLifecycle.test.ts:127:36
+    125|     api.read.mockImplementation((q: Trace) => {
+    126|       if (q.table !== c.table) return fallback(q);
+    127|       if (mode === 'thrown') throw new Error('Read failed');
+       |                                    ^
+    128|       return mode === 'returned' ? { data: null, error: { message: 'Re…
+    129|     });
+ ❯ Object.Mock node_modules/@vitest/spy/dist/index.js:332:34
+ ❯ Object.then tests/hooks/remainingCoachLifecycle.test.ts:26:125
+ ❯ processTicksAndRejections node:internal/process/task_queues:104:5
+
+This error originated in "tests/hooks/remainingCoachLifecycle.test.ts" test file. It doesn't mean the error was thrown inside the file itself, but while it was running.
+
+⎯⎯⎯⎯ Unhandled Rejection ⎯⎯⎯⎯⎯
+Error: Read failed
+ ❯ Object.<anonymous> tests/hooks/remainingCoachLifecycle.test.ts:128:103
+    126|       if (q.table !== c.table) return fallback(q);
+    127|       if (mode === 'thrown') throw new Error('Read failed');
+    128|       return mode === 'returned' ? { data: null, error: { message: 'Re…
+       |                                                                                                       ^
+    129|     });
+    130|     const h = new HookHarness(() => c.useView('a')); await settle(); e…
+ ❯ Object.Mock node_modules/@vitest/spy/dist/index.js:332:34
+ ❯ Object.then tests/hooks/remainingCoachLifecycle.test.ts:26:125
+ ❯ processTicksAndRejections node:internal/process/task_queues:104:5
+
+This error originated in "tests/hooks/remainingCoachLifecycle.test.ts" test file. It doesn't mean the error was thrown inside the file itself, but while it was running.
+
+⎯⎯⎯⎯ Unhandled Rejection ⎯⎯⎯⎯⎯
+Error: Old failure
+ ❯ tests/hooks/remainingCoachLifecycle.test.ts:116:90
+    114|     let owner = 'a'; const a = deferred<Read>(), b = deferred<Read>(),…
+    115|     api.read.mockImplementation((q: Trace) => q.table === c.table ? (m…
+    116|     const h = new HookHarness(() => c.useView(owner)); owner = 'b'; h.…
+       |                                                                                          ^
+    117|     expect(h.current.error).toBeNull(); expect(h.current.isLoading).to…
+    118|   });
+ ❯ node_modules/@vitest/runner/dist/chunk-artifact.js:302:11
+ ❯ node_modules/@vitest/runner/dist/chunk-artifact.js:1903:26
+ ❯ node_modules/@vitest/runner/dist/chunk-artifact.js:2326:20
+ ❯ runWithCancel node_modules/@vitest/runner/dist/chunk-artifact.js:2323:10
+ ❯ node_modules/@vitest/runner/dist/chunk-artifact.js:2305:20
+ ❯ runWithTimeout node_modules/@vitest/runner/dist/chunk-artifact.js:2272:10
+ ❯ node_modules/@vitest/runner/dist/chunk-artifact.js:2955:64
+
+This error originated in "tests/hooks/remainingCoachLifecycle.test.ts" test file. It doesn't mean the error was thrown inside the file itself, but while it was running.
+
+⎯⎯⎯⎯ Unhandled Rejection ⎯⎯⎯⎯⎯
+Error: Read failed
+ ❯ Object.<anonymous> tests/hooks/remainingCoachLifecycle.test.ts:127:36
+    125|     api.read.mockImplementation((q: Trace) => {
+    126|       if (q.table !== c.table) return fallback(q);
+    127|       if (mode === 'thrown') throw new Error('Read failed');
+       |                                    ^
+    128|       return mode === 'returned' ? { data: null, error: { message: 'Re…
+    129|     });
+ ❯ Object.Mock node_modules/@vitest/spy/dist/index.js:332:34
+ ❯ Object.then tests/hooks/remainingCoachLifecycle.test.ts:26:125
+ ❯ processTicksAndRejections node:internal/process/task_queues:104:5
+
+This error originated in "tests/hooks/remainingCoachLifecycle.test.ts" test file. It doesn't mean the error was thrown inside the file itself, but while it was running.
+
+⎯⎯⎯⎯ Unhandled Rejection ⎯⎯⎯⎯⎯
+Error: Read failed
+ ❯ Object.<anonymous> tests/hooks/remainingCoachLifecycle.test.ts:128:103
+    126|       if (q.table !== c.table) return fallback(q);
+    127|       if (mode === 'thrown') throw new Error('Read failed');
+    128|       return mode === 'returned' ? { data: null, error: { message: 'Re…
+       |                                                                                                       ^
+    129|     });
+    130|     const h = new HookHarness(() => c.useView('a')); await settle(); e…
+ ❯ Object.Mock node_modules/@vitest/spy/dist/index.js:332:34
+ ❯ Object.then tests/hooks/remainingCoachLifecycle.test.ts:26:125
+ ❯ processTicksAndRejections node:internal/process/task_queues:104:5
+
+This error originated in "tests/hooks/remainingCoachLifecycle.test.ts" test file. It doesn't mean the error was thrown inside the file itself, but while it was running.
+
+⎯⎯⎯⎯ Unhandled Rejection ⎯⎯⎯⎯⎯
+Error: Old failure
+ ❯ tests/hooks/remainingCoachLifecycle.test.ts:116:90
+    114|     let owner = 'a'; const a = deferred<Read>(), b = deferred<Read>(),…
+    115|     api.read.mockImplementation((q: Trace) => q.table === c.table ? (m…
+    116|     const h = new HookHarness(() => c.useView(owner)); owner = 'b'; h.…
+       |                                                                                          ^
+    117|     expect(h.current.error).toBeNull(); expect(h.current.isLoading).to…
+    118|   });
+ ❯ node_modules/@vitest/runner/dist/chunk-artifact.js:302:11
+ ❯ node_modules/@vitest/runner/dist/chunk-artifact.js:1903:26
+ ❯ node_modules/@vitest/runner/dist/chunk-artifact.js:2326:20
+ ❯ runWithCancel node_modules/@vitest/runner/dist/chunk-artifact.js:2323:10
+ ❯ node_modules/@vitest/runner/dist/chunk-artifact.js:2305:20
+ ❯ runWithTimeout node_modules/@vitest/runner/dist/chunk-artifact.js:2272:10
+ ❯ node_modules/@vitest/runner/dist/chunk-artifact.js:2955:64
+
+This error originated in "tests/hooks/remainingCoachLifecycle.test.ts" test file. It doesn't mean the error was thrown inside the file itself, but while it was running.
+
+⎯⎯⎯⎯ Unhandled Rejection ⎯⎯⎯⎯⎯
+Error: Read failed
+ ❯ Object.<anonymous> tests/hooks/remainingCoachLifecycle.test.ts:127:36
+    125|     api.read.mockImplementation((q: Trace) => {
+    126|       if (q.table !== c.table) return fallback(q);
+    127|       if (mode === 'thrown') throw new Error('Read failed');
+       |                                    ^
+    128|       return mode === 'returned' ? { data: null, error: { message: 'Re…
+    129|     });
+ ❯ Object.Mock node_modules/@vitest/spy/dist/index.js:332:34
+ ❯ Object.then tests/hooks/remainingCoachLifecycle.test.ts:26:125
+ ❯ processTicksAndRejections node:internal/process/task_queues:104:5
+
+This error originated in "tests/hooks/remainingCoachLifecycle.test.ts" test file. It doesn't mean the error was thrown inside the file itself, but while it was running.
+
+⎯⎯⎯⎯ Unhandled Rejection ⎯⎯⎯⎯⎯
+Error: Read failed
+ ❯ Object.<anonymous> tests/hooks/remainingCoachLifecycle.test.ts:128:103
+    126|       if (q.table !== c.table) return fallback(q);
+    127|       if (mode === 'thrown') throw new Error('Read failed');
+    128|       return mode === 'returned' ? { data: null, error: { message: 'Re…
+       |                                                                                                       ^
+    129|     });
+    130|     const h = new HookHarness(() => c.useView('a')); await settle(); e…
+ ❯ Object.Mock node_modules/@vitest/spy/dist/index.js:332:34
+ ❯ Object.then tests/hooks/remainingCoachLifecycle.test.ts:26:125
+ ❯ processTicksAndRejections node:internal/process/task_queues:104:5
+
+This error originated in "tests/hooks/remainingCoachLifecycle.test.ts" test file. It doesn't mean the error was thrown inside the file itself, but while it was running.
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯
+
+
+ Test Files  1 failed (1)
+      Tests  159 failed | 51 passed (210)
+     Errors  27 errors
+   Start at  11:58:05
+   Duration  1.36s (transform 192ms, setup 0ms, import 252ms, tests 117ms, environment 0ms)
+

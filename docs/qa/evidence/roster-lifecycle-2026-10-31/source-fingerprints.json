@@ -1,0 +1,5 @@
+{
+  "src/hooks/useClients.ts": "6c12d0390024c98506d6affb9f06819e9cbb29f80ab883ad02873d4b9c4e6fba",
+  "tests/hooks/useClients.test.ts": "cf4b0352ca8e0e753d16354b7e0fb2b917b634a4739cea14893d3634037e6396",
+  "tests/hooks/hookHarness.ts": "8e8ec8c43eb436f1849f045dbb165c9bcfde1c66d86b396f42ddfc6063e29a23"
+}

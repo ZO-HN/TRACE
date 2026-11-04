@@ -1,0 +1,44 @@
+[
+  {
+    "command": "npm run test",
+    "name": "final-web-test",
+    "exitCode": 0,
+    "startedAt": "2026-10-31T23:19:28.8141974+08:00",
+    "finishedAt": "2026-10-31T23:19:41.7344849+08:00"
+  },
+  {
+    "command": "npm run lint",
+    "name": "final-web-lint",
+    "exitCode": 0,
+    "startedAt": "2026-10-31T23:19:41.8606602+08:00",
+    "finishedAt": "2026-10-31T23:19:44.6500107+08:00"
+  },
+  {
+    "command": "npm run build",
+    "name": "final-web-build",
+    "exitCode": 0,
+    "startedAt": "2026-10-31T23:19:44.7555641+08:00",
+    "finishedAt": "2026-10-31T23:20:25.4999700+08:00"
+  },
+  {
+    "command": "npm run test:db",
+    "name": "final-db",
+    "exitCode": 0,
+    "startedAt": "2026-10-31T23:20:25.5634769+08:00",
+    "finishedAt": "2026-10-31T23:20:44.9171900+08:00"
+  },
+  {
+    "command": "npm run db:types:check",
+    "name": "final-types",
+    "exitCode": 0,
+    "startedAt": "2026-10-31T23:20:44.9747648+08:00",
+    "finishedAt": "2026-10-31T23:21:00.9566130+08:00"
+  },
+  {
+    "command": "npm run test:contracts",
+    "name": "final-contracts",
+    "exitCode": 0,
+    "startedAt": "2026-10-31T23:21:00.9821455+08:00",
+    "finishedAt": "2026-10-31T23:21:31.3119953+08:00"
+  }
+]

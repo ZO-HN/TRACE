@@ -1,0 +1,10 @@
+{
+  "capturedAt": "2026-11-01 11:31 SGT (UTC+08:00)",
+  "files": {
+    "src/hooks/useFoods.ts": "e54ef63945988c624022678fde77cdd5406fca7552241fe47b91ddb8f9fd79fd",
+    "src/hooks/useMeals.ts": "501f3622939441f92c381d263a5f1118117507846f906126d5cc1d9a26c00516",
+    "src/hooks/useMealPlans.ts": "da31780e1911da90df69d10663185beb738afa8222eb63f83ff2a6300a666880",
+    "tests/hooks/coachNutritionLifecycle.test.ts": "09ae22db9bd14f7708d2909f441254b031745c51eeee4ce9273f1320f6b7fb05",
+    "tests/hooks/hookHarness.ts": "8e8ec8c43eb436f1849f045dbb165c9bcfde1c66d86b396f42ddfc6063e29a23"
+  }
+}

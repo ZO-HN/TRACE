@@ -1,0 +1,150 @@
+{
+  "capturedAt": "2026-11-01 12:11 SGT (UTC+08:00)",
+  "sites": [
+    {
+      "file": "src/hooks/useClients.ts",
+      "head_initialized_mounted_ref_true": true,
+      "current_initialized_mounted_ref_true": false,
+      "current_sets_mounted_true": false,
+      "current_sets_mounted_false": false,
+      "head_cleanup_sets_false": true,
+      "head_setup_restores_true": false
+    },
+    {
+      "file": "src/hooks/useFoods.ts",
+      "head_initialized_mounted_ref_true": true,
+      "current_initialized_mounted_ref_true": false,
+      "current_sets_mounted_true": false,
+      "current_sets_mounted_false": false,
+      "head_cleanup_sets_false": true,
+      "head_setup_restores_true": false
+    },
+    {
+      "file": "src/hooks/useMeals.ts",
+      "head_initialized_mounted_ref_true": true,
+      "current_initialized_mounted_ref_true": false,
+      "current_sets_mounted_true": false,
+      "current_sets_mounted_false": false,
+      "head_cleanup_sets_false": true,
+      "head_setup_restores_true": false
+    },
+    {
+      "file": "src/hooks/useMealPlans.ts",
+      "head_initialized_mounted_ref_true": true,
+      "current_initialized_mounted_ref_true": false,
+      "current_sets_mounted_true": false,
+      "current_sets_mounted_false": false,
+      "head_cleanup_sets_false": true,
+      "head_setup_restores_true": false
+    },
+    {
+      "file": "src/hooks/useClientTags.ts",
+      "head_initialized_mounted_ref_true": true,
+      "current_initialized_mounted_ref_true": false,
+      "current_sets_mounted_true": false,
+      "current_sets_mounted_false": false,
+      "head_cleanup_sets_false": true,
+      "head_setup_restores_true": false
+    },
+    {
+      "file": "src/hooks/useCoachAllowlist.ts",
+      "head_initialized_mounted_ref_true": true,
+      "current_initialized_mounted_ref_true": false,
+      "current_sets_mounted_true": false,
+      "current_sets_mounted_false": false,
+      "head_cleanup_sets_false": true,
+      "head_setup_restores_true": false
+    },
+    {
+      "file": "src/hooks/useCheckInTemplates.ts",
+      "head_initialized_mounted_ref_true": true,
+      "current_initialized_mounted_ref_true": false,
+      "current_sets_mounted_true": false,
+      "current_sets_mounted_false": false,
+      "head_cleanup_sets_false": true,
+      "head_setup_restores_true": false
+    },
+    {
+      "file": "src/hooks/useExercises.ts",
+      "head_initialized_mounted_ref_true": true,
+      "current_initialized_mounted_ref_true": false,
+      "current_sets_mounted_true": false,
+      "current_sets_mounted_false": false,
+      "head_cleanup_sets_false": true,
+      "head_setup_restores_true": false
+    },
+    {
+      "file": "src/hooks/useEquipment.ts",
+      "head_initialized_mounted_ref_true": true,
+      "current_initialized_mounted_ref_true": false,
+      "current_sets_mounted_true": false,
+      "current_sets_mounted_false": false,
+      "head_cleanup_sets_false": true,
+      "head_setup_restores_true": false
+    },
+    {
+      "file": "src/hooks/useInviteLink.ts",
+      "head_initialized_mounted_ref_true": true,
+      "current_initialized_mounted_ref_true": false,
+      "current_sets_mounted_true": false,
+      "current_sets_mounted_false": false,
+      "head_cleanup_sets_false": true,
+      "head_setup_restores_true": false
+    },
+    {
+      "file": "src/hooks/usePrograms.ts",
+      "head_initialized_mounted_ref_true": true,
+      "current_initialized_mounted_ref_true": false,
+      "current_sets_mounted_true": false,
+      "current_sets_mounted_false": false,
+      "head_cleanup_sets_false": true,
+      "head_setup_restores_true": false
+    },
+    {
+      "file": "src/hooks/useRoadmaps.ts",
+      "head_initialized_mounted_ref_true": true,
+      "current_initialized_mounted_ref_true": false,
+      "current_sets_mounted_true": false,
+      "current_sets_mounted_false": false,
+      "head_cleanup_sets_false": true,
+      "head_setup_restores_true": false
+    },
+    {
+      "file": "src/hooks/useVaultFolders.ts",
+      "head_initialized_mounted_ref_true": true,
+      "current_initialized_mounted_ref_true": false,
+      "current_sets_mounted_true": false,
+      "current_sets_mounted_false": false,
+      "head_cleanup_sets_false": true,
+      "head_setup_restores_true": false
+    },
+    {
+      "file": "src/hooks/useTrainingGroups.ts",
+      "head_initialized_mounted_ref_true": true,
+      "current_initialized_mounted_ref_true": false,
+      "current_sets_mounted_true": false,
+      "current_sets_mounted_false": false,
+      "head_cleanup_sets_false": true,
+      "head_setup_restores_true": false
+    },
+    {
+      "file": "src/hooks/useAiChat.ts",
+      "head_initialized_mounted_ref_true": true,
+      "current_initialized_mounted_ref_true": false,
+      "current_sets_mounted_true": false,
+      "current_sets_mounted_false": false,
+      "head_cleanup_sets_false": true,
+      "head_setup_restores_true": false
+    },
+    {
+      "file": "src/hooks/useTraceUser.ts",
+      "head_initialized_mounted_ref_true": true,
+      "current_initialized_mounted_ref_true": false,
+      "current_sets_mounted_true": true,
+      "current_sets_mounted_false": true,
+      "head_cleanup_sets_false": true,
+      "head_setup_restores_true": false
+    }
+  ],
+  "scope": "Exact original mountedRef source pattern only; not a proof of all browser, account or product correctness"
+}

@@ -1,0 +1,12 @@
+
+> trace-app@0.0.0 lint
+> oxlint
+
+src/components/ui/shadcn/badge.tsx:37:17: warning react(only-export-components): Fast refresh only works when a file only exports components. Use a new file to share constants or functions between components.
+src/components/layout/AppShell.tsx:17:17: warning react(only-export-components): Fast refresh only works when a file only exports components. Use a new file to share constants or functions between components.
+src/components/layout/AppShell.tsx:21:17: warning react(only-export-components): Fast refresh only works when a file only exports components. Use a new file to share constants or functions between components.
+src/components/ui/toast.tsx:51:17: warning react(only-export-components): Fast refresh only works when a file only exports components. Use a new file to share constants or functions between components.
+src/components/ui/shadcn/field.tsx:28:42: warning react(only-export-components): Fast refresh only works when a file only exports components. Use a new file to share constants or functions between components.
+tests/hooks/coachNutritionLifecycle.test.ts:32:38: error react-hooks(rules-of-hooks): React Hook "useFoods" is called in function "Anonymous" that is neither a React function component nor a custom React Hook function. React component names must start with an uppercase letter. React Hook names must start with the word "use".
+tests/hooks/coachNutritionLifecycle.test.ts:35:38: error react-hooks(rules-of-hooks): React Hook "useMeals" is called in function "Anonymous" that is neither a React function component nor a custom React Hook function. React component names must start with an uppercase letter. React Hook names must start with the word "use".
+tests/hooks/coachNutritionLifecycle.test.ts:38:38: error react-hooks(rules-of-hooks): React Hook "useMealPlans" is called in function "Anonymous" that is neither a React function component nor a custom React Hook function. React component names must start with an uppercase letter. React Hook names must start with the word "use".

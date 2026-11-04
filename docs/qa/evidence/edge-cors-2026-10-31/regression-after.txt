@@ -1,0 +1,13 @@
+
+> trace-app@0.0.0 test
+> vitest run tests/edge/cors.test.ts
+
+
+ RUN  v4.1.10 C:/Users/imint/TRACE
+
+
+ Test Files  1 passed (1)
+      Tests  24 passed (24)
+   Start at  20:12:28
+   Duration  2.30s (transform 127ms, setup 0ms, import 606ms, tests 901ms, environment 0ms)
+

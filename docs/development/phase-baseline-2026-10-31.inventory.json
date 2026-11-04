@@ -1,0 +1,1562 @@
+{
+  "date": "2026-10-31",
+  "timezone": "Asia/Singapore",
+  "boundary": "Uncommitted working-copy snapshot before handoff artifacts; proposals only, no staging or commits.",
+  "repositories": [
+    {
+      "name": "TRACE",
+      "branch": "master",
+      "head": "06675347e6b13085750cf319c3b66ffde4a6954e",
+      "paths": [
+        {
+          "status": " M",
+          "path": ".github/workflows/reliability.yml",
+          "proposed_group": "D1",
+          "sha256": "d6b16bac19e8e58e993ce56f1b8ba7fcedfe9ed4ea0ca31607d0998323bebdd3"
+        },
+        {
+          "status": " M",
+          "path": ".gitignore",
+          "proposed_group": "D1",
+          "sha256": "329e430f1f4b1d3170cff5b9e62bb1c10668e0f4eb4cfcf1f258c3768673367e"
+        },
+        {
+          "status": " M",
+          "path": "README.md",
+          "proposed_group": "D1",
+          "sha256": "efeb5fcf7e65302877fc835520f347a2e86d5f916f9deecbf27edeaa895539f0"
+        },
+        {
+          "status": " M",
+          "path": "docs/README.md",
+          "proposed_group": "D1",
+          "sha256": "721427bfc2b25db2dd3bbdec27772fcbb1bf44000f962ec6aea46e9a9fbb30ff"
+        },
+        {
+          "status": " D",
+          "path": "docs/adr/0001-media-storage.md",
+          "proposed_group": "D1",
+          "sha256": null
+        },
+        {
+          "status": " D",
+          "path": "docs/audit.md",
+          "proposed_group": "D1",
+          "sha256": null
+        },
+        {
+          "status": " D",
+          "path": "docs/client-app-contract-check-ins-exercises.md",
+          "proposed_group": "D1",
+          "sha256": null
+        },
+        {
+          "status": " D",
+          "path": "docs/deployment.md",
+          "proposed_group": "D1",
+          "sha256": null
+        },
+        {
+          "status": " D",
+          "path": "docs/provisioning.md",
+          "proposed_group": "D1",
+          "sha256": null
+        },
+        {
+          "status": " D",
+          "path": "docs/qa-testing-cross-repo.md",
+          "proposed_group": "D1",
+          "sha256": null
+        },
+        {
+          "status": " D",
+          "path": "docs/specs/offline-sync-outbox.md",
+          "proposed_group": "D1",
+          "sha256": null
+        },
+        {
+          "status": " D",
+          "path": "docs/trace-app-open-items.md",
+          "proposed_group": "D1",
+          "sha256": null
+        },
+        {
+          "status": " D",
+          "path": "docs/trace_architecture.md",
+          "proposed_group": "D1",
+          "sha256": null
+        },
+        {
+          "status": " D",
+          "path": "docs/trace_features.md",
+          "proposed_group": "D1",
+          "sha256": null
+        },
+        {
+          "status": " M",
+          "path": "package.json",
+          "proposed_group": "W5",
+          "sha256": "ef81d252d1b6a8d28a8ad916c40cb1d628e259d264ac2a6b2dbe784673066c84"
+        },
+        {
+          "status": " M",
+          "path": "src/components/auth/OAuthButtons.tsx",
+          "proposed_group": "W3",
+          "sha256": "7109f6bc2d9c411d3ea970308063dbd57beeda757ed59753285248464b17fa6c"
+        },
+        {
+          "status": " M",
+          "path": "src/components/layout/AppShell.tsx",
+          "proposed_group": "W3",
+          "sha256": "cfcb7d75b74a6d1facaf16f50584c414250e5f21ad3c575e161f67c38434703d"
+        },
+        {
+          "status": " M",
+          "path": "src/components/pages/OnboardingWizardPage.tsx",
+          "proposed_group": "W4",
+          "sha256": "81ee49a718aefebc82a309e6463609fad2ae0bd78dbcd8783d75e821a02a381a"
+        },
+        {
+          "status": " M",
+          "path": "src/components/pages/ProgramsPage.tsx",
+          "proposed_group": "W6",
+          "sha256": "3e9d84ca4ae693bb4162bc9ae953e1b5db3b2219aefa017b5cbe1b533deb419f"
+        },
+        {
+          "status": " M",
+          "path": "src/components/pages/SettingsPage.tsx",
+          "proposed_group": "W4",
+          "sha256": "b549665d982bf85d3c0b645d44568265bd0e4ff3e4efa31359597abd9554832e"
+        },
+        {
+          "status": " M",
+          "path": "src/config/onboardingScreens.ts",
+          "proposed_group": "W4",
+          "sha256": "da48c67ae38d0de13a3743fad04c827dee105da65cdf831cd0e74eecff67cc1e"
+        },
+        {
+          "status": " M",
+          "path": "src/lib/supabase.ts",
+          "proposed_group": "W5",
+          "sha256": "2d4d6f86347bd0f3e277ab3262e028a5339d8a6a1ff8b5c2d7489d020494a37e"
+        },
+        {
+          "status": " M",
+          "path": "supabase/functions/r2-get-url/index.ts",
+          "proposed_group": "D1",
+          "sha256": "625ff5638a7531cdef421c2cd2b274ee2335d52f4e0d6beef765da3b65e07c40"
+        },
+        {
+          "status": " M",
+          "path": "supabase/functions/r2-presign/README.md",
+          "proposed_group": "D1",
+          "sha256": "c95f57af0d6973952a89df7d9fc644620e2d7bc7dda68ed254c5862718f7494d"
+        },
+        {
+          "status": " M",
+          "path": "supabase/functions/r2-presign/index.ts",
+          "proposed_group": "D1",
+          "sha256": "898681297b7b32281d866aa5f34ecdbc194c11cddceaa76cd8eb0384a93dde9f"
+        },
+        {
+          "status": " M",
+          "path": "supabase/functions/trace-brain/index.ts",
+          "proposed_group": "D1",
+          "sha256": "c8a6b7e833d3e6ece658eb45efcf8a8bbd5bae10f36b9d1b533ab44c8ae9c2b3"
+        },
+        {
+          "status": " M",
+          "path": "tests/database/contracts.test.mjs",
+          "proposed_group": "W2",
+          "sha256": "90b44b123e333d95d94e2c356b1652380518b385db50badd1857125132610019"
+        },
+        {
+          "status": "??",
+          "path": "AGENTS.md",
+          "proposed_group": "D1",
+          "sha256": "a71169c68ad4749f0ba7d46b9dc218727af41e7f52507ad65420f78b065f18ff"
+        },
+        {
+          "status": "??",
+          "path": "Thesis section revisions earlier draft.md",
+          "proposed_group": "EXCLUDE",
+          "sha256": "ef35c68141b64fac08da5a8a44e59cbd7d58ee654cb2b43d1c33f4c601acae94"
+        },
+        {
+          "status": "??",
+          "path": "Thesis section revisions.md",
+          "proposed_group": "EXCLUDE",
+          "sha256": "1a8caec43f7dffdc679823d7f2819a9cc3d3f739ab7585d53ad8ec399de4fb77"
+        },
+        {
+          "status": "??",
+          "path": "docs/architecture/client-contract.md",
+          "proposed_group": "D1",
+          "sha256": "1f041be94521ecaf60efe3a94cc503e2d68d8a2bfc337d99cff7bc64ba7aea2e"
+        },
+        {
+          "status": "??",
+          "path": "docs/architecture/decisions/0001-media-storage.md",
+          "proposed_group": "D1",
+          "sha256": "642c52d684d322136ca8d130b0e8b93f2baec7909ba70b3faee2d7b1d852d780"
+        },
+        {
+          "status": "??",
+          "path": "docs/architecture/decisions/0002-shared-platform.md",
+          "proposed_group": "D1",
+          "sha256": "e45f965a6543afe4629e706980f307a813409525aa7856f5c6c973a4eb729b72"
+        },
+        {
+          "status": "??",
+          "path": "docs/architecture/offline-sync.md",
+          "proposed_group": "D1",
+          "sha256": "5bc4f027e8b8bf7136dc8654d89c8c32b26fd1610035d3df42773a5eb6aa3ea8"
+        },
+        {
+          "status": "??",
+          "path": "docs/architecture/overview.md",
+          "proposed_group": "D1",
+          "sha256": "a176d3660c2f7bb947888f4c47ff2a887eca9d16e274bc325b9265d6bb524d15"
+        },
+        {
+          "status": "??",
+          "path": "docs/development/workflow.md",
+          "proposed_group": "D1",
+          "sha256": "64ee15564697f95e96e88607257c5e76387e1f9fd973b40017630ef31f213ba8"
+        },
+        {
+          "status": "??",
+          "path": "docs/features/README.md",
+          "proposed_group": "D1",
+          "sha256": "7160b6eb1882fc88bc68ac3a4d7b60842a8a0c3f962ba7c2d8e894722f76cf30"
+        },
+        {
+          "status": "??",
+          "path": "docs/features/ai.md",
+          "proposed_group": "D1",
+          "sha256": "1b62a320682e4b5d2a9978c3c9c20eb6702895bc2ddf1a6c206e1bed20e8c65d"
+        },
+        {
+          "status": "??",
+          "path": "docs/features/coaching.md",
+          "proposed_group": "D1",
+          "sha256": "37425cce7f6d79266f7f0650d2a286e5e7c8194426b2fe7e8cb5f320b912bb83"
+        },
+        {
+          "status": "??",
+          "path": "docs/features/nutrition.md",
+          "proposed_group": "D1",
+          "sha256": "991983763557abd673be9197fe5b99acebd45fede6ed7fa23ac1a61e2e07b4d9"
+        },
+        {
+          "status": "??",
+          "path": "docs/features/training.md",
+          "proposed_group": "D1",
+          "sha256": "41db861ad5b2847e5e3ea92ee43537fc91460ff7dba1ef4c6fa2c308c5617347"
+        },
+        {
+          "status": "??",
+          "path": "docs/operations/backend-provisioning.md",
+          "proposed_group": "D1",
+          "sha256": "33ad1902cbea2bea565c8dd7b4f861c68111199abba43cf321475827e59df1e5"
+        },
+        {
+          "status": "??",
+          "path": "docs/operations/cross-app-rollout.md",
+          "proposed_group": "D1",
+          "sha256": "de7eda7d989c36390827bd42ce31513a055278cf6e83cdd76f0fc8389fdf6a76"
+        },
+        {
+          "status": "??",
+          "path": "docs/operations/recovery.md",
+          "proposed_group": "D1",
+          "sha256": "2e9647b2f1f138e9c94e18e8320cfd60a8d1616b88423b3c2f1ace8307bf7abb"
+        },
+        {
+          "status": "??",
+          "path": "docs/operations/web-deployment.md",
+          "proposed_group": "D1",
+          "sha256": "271338a92246b127b6b6c530cbf3ca9ae13ad2b5c66b70ce227a4e61f44fe0ae"
+        },
+        {
+          "status": "??",
+          "path": "docs/planning/architecture-evolution.md",
+          "proposed_group": "D1",
+          "sha256": "e15ece200d09a04a97acd40cfcff634390738fe2d05d1c520d54b9f46618bd4e"
+        },
+        {
+          "status": "??",
+          "path": "docs/planning/open-items.md",
+          "proposed_group": "D1",
+          "sha256": "0bbd00cc16eb6b0e7c37f5d333759cfcde5467ea3fab8e107f86076d797a32b4"
+        },
+        {
+          "status": "??",
+          "path": "docs/planning/product-vision.md",
+          "proposed_group": "D1",
+          "sha256": "3bbe9a88fd74bf8ff5a3a955c857f02e14c25fdf9b70a15dd7a8cb9ddbc2cb0a"
+        },
+        {
+          "status": "??",
+          "path": "docs/project-overview.md",
+          "proposed_group": "D1",
+          "sha256": "412596f1808219e0efbcca578c44b57912cfa0123eb8ea868035cfeb35765e28"
+        },
+        {
+          "status": "??",
+          "path": "docs/qa/cross-app-acceptance.md",
+          "proposed_group": "D1",
+          "sha256": "9cdb84482bb609cce8512cee0bccc3ca1b24f9393ab5bd1516e02f1f7690d0be"
+        },
+        {
+          "status": "??",
+          "path": "docs/qa/diagnosis-2026-10-31.md",
+          "proposed_group": "D1",
+          "sha256": "29ac9532e1755b73e723bb97a64af20f51890eb8c60f8751b450af28afcfad67"
+        },
+        {
+          "status": "??",
+          "path": "docs/research/reference-provenance.md",
+          "proposed_group": "D1",
+          "sha256": "772ea72a825dc2d9f0b3c9d9d3ecbc841a3a6743d6a72a7b5dd0d4599db2ca49"
+        },
+        {
+          "status": "??",
+          "path": "docs/sources.md",
+          "proposed_group": "D1",
+          "sha256": "cb641e99f56af13263686965765be3c4d59f46356d3a815a8a518a608f3abfda"
+        },
+        {
+          "status": "??",
+          "path": "docs/templates/README.md",
+          "proposed_group": "D1",
+          "sha256": "d1cc02528d0436f60843c668df288077d185f302d119ef892d4767c38d2c2608"
+        },
+        {
+          "status": "??",
+          "path": "docs/templates/decision.md",
+          "proposed_group": "D1",
+          "sha256": "196e6fad48f05974805624f4480c482205470120e9a4c4458f90ddca2e2c9def"
+        },
+        {
+          "status": "??",
+          "path": "docs/templates/feature.md",
+          "proposed_group": "D1",
+          "sha256": "4ece71a1623b4aae1fe07703da00e2634db123adaaddc3b0dccd6c71059370e2"
+        },
+        {
+          "status": "??",
+          "path": "docs/templates/release.md",
+          "proposed_group": "D1",
+          "sha256": "28c4cb8203fdd8d471ca804fa633091fc48291d22c74fd328ab033d07700694e"
+        },
+        {
+          "status": "??",
+          "path": "draft_thesis_revisions.py",
+          "proposed_group": "EXCLUDE",
+          "sha256": "7e2d4da3f2daf85d1ca1158e38c9a84e0c8fb02baa3a1ca6aca2fb41439a8573"
+        },
+        {
+          "status": "??",
+          "path": "fill_thesis_methodology.py",
+          "proposed_group": "EXCLUDE",
+          "sha256": "9e855d852bc79593eecb8a52d36d5676672c26c4ab0d790944cdbfb87ba8a093"
+        },
+        {
+          "status": "??",
+          "path": "scripts/check-documentation.mjs",
+          "proposed_group": "D1",
+          "sha256": "d494dddf2792eafba40ee4a552c302b4d993d0a0b6078e4b42de150eabd50673"
+        },
+        {
+          "status": "??",
+          "path": "src/lib/googleOAuth.ts",
+          "proposed_group": "W3",
+          "sha256": "fbb4b26cc1190b3e6dda6c72616f0fb315784309104cedd49ee60615a24ca4fc"
+        },
+        {
+          "status": "??",
+          "path": "src/lib/localPreview.ts",
+          "proposed_group": "W5",
+          "sha256": "49773a5900c89d31b22775f0db8658b458993f447c3001d82c9d864102a42d12"
+        },
+        {
+          "status": "??",
+          "path": "src/lib/onboardingAccount.ts",
+          "proposed_group": "W4",
+          "sha256": "c4092a9c735199f3f5456ab442f2385dbb0042b129f03146cf63bab82b09f25f"
+        },
+        {
+          "status": "??",
+          "path": "src/lib/onboardingValidation.ts",
+          "proposed_group": "W4",
+          "sha256": "1f79e3dc716b6d016a5161ad7a8fe8cbd99cb1531ec4de105478e393295163de"
+        },
+        {
+          "status": "??",
+          "path": "supabase/migrations/20260927000000_idempotent_coach_claim.sql",
+          "proposed_group": "W1",
+          "sha256": "8b45d880ac90256136360f04f5f4d638ce93f7184041a2aefc8f4d289b3607f6"
+        },
+        {
+          "status": "??",
+          "path": "tailor_offline_thesis.py",
+          "proposed_group": "EXCLUDE",
+          "sha256": "4e8b66cc073049fe31fb7498a9158a9298e549312c32c167946410ca4aae854a"
+        },
+        {
+          "status": "??",
+          "path": "tests/lib/onboardingAccount.test.ts",
+          "proposed_group": "W4",
+          "sha256": "45a8bc26cfed1f62e197bdf20154e2b9790453bc634310e8cbb430cd9f17f700"
+        },
+        {
+          "status": "??",
+          "path": "tests/lib/onboardingValidation.test.ts",
+          "proposed_group": "W4",
+          "sha256": "9f7126d57f6f04641b633380bb8c3dbc7f830c734ad189248d8905104dda5aef"
+        },
+        {
+          "status": "??",
+          "path": "thesis-review-extract.txt",
+          "proposed_group": "EXCLUDE",
+          "sha256": "88ba9a8ea7f26910f172780a654a194b2cb011fb3b23249cc05881e2bfce5507"
+        },
+        {
+          "status": "??",
+          "path": "thesis-review-latest-media/image1.png",
+          "proposed_group": "EXCLUDE",
+          "sha256": "7d0adaa9d2c36a2863c791d716f9f5cc9c62510fd381ad7cce898328ed29c544"
+        },
+        {
+          "status": "??",
+          "path": "thesis-review-latest-media/image10.png",
+          "proposed_group": "EXCLUDE",
+          "sha256": "6a0e3e02cb27160696638f29f6b209e25cfb22168c41d36c8ea5f69639696f3c"
+        },
+        {
+          "status": "??",
+          "path": "thesis-review-latest-media/image2.jpeg",
+          "proposed_group": "EXCLUDE",
+          "sha256": "e83d7d50827c3527d44d97ac0db7b9d7e1d423b260d3b73684aee2fc97d8604e"
+        },
+        {
+          "status": "??",
+          "path": "thesis-review-latest-media/image3.jpeg",
+          "proposed_group": "EXCLUDE",
+          "sha256": "69722d1ac6794ced5d25420eea9264a6edeb5a1eeba1644bcfc28c9369ead244"
+        },
+        {
+          "status": "??",
+          "path": "thesis-review-latest-media/image4.jpeg",
+          "proposed_group": "EXCLUDE",
+          "sha256": "4accb17b23a7190bd915a4f17c4ae2dc813b9acbf341d247bbde98d253767e8a"
+        },
+        {
+          "status": "??",
+          "path": "thesis-review-latest-media/image5.jpeg",
+          "proposed_group": "EXCLUDE",
+          "sha256": "0e972ee91455a5e4d0b63d5cf5e2a54d1ed2ff81e45ea2cfb583d6192daeafb7"
+        },
+        {
+          "status": "??",
+          "path": "thesis-review-latest-media/image6.jpeg",
+          "proposed_group": "EXCLUDE",
+          "sha256": "9b40ce29af8bdf4ae9f6ab8fd12566dfd2fb3758c51dea55572ecad5a3e9f43a"
+        },
+        {
+          "status": "??",
+          "path": "thesis-review-latest-media/image7.jpeg",
+          "proposed_group": "EXCLUDE",
+          "sha256": "408b9daa18a767715cd0e3586085b397c2b689a7a3369d4edaab829bd0cfdcfe"
+        },
+        {
+          "status": "??",
+          "path": "thesis-review-latest-media/image8.png",
+          "proposed_group": "EXCLUDE",
+          "sha256": "2d29da351959df1454a037541a1494aac742bd17f33a823e78d0afcc208c7860"
+        },
+        {
+          "status": "??",
+          "path": "thesis-review-latest-media/image9.png",
+          "proposed_group": "EXCLUDE",
+          "sha256": "8c2492abe7ba679f1768e06d82a7d566595861567398d4fa43984abf1f40cdcd"
+        },
+        {
+          "status": "??",
+          "path": "thesis-review-latest.txt",
+          "proposed_group": "EXCLUDE",
+          "sha256": "aa4ca8114d3002f6fa3d7e0d6191cf88148a782ffdf78ecf384995c9b5c9045f"
+        },
+        {
+          "status": "??",
+          "path": "thesis-review-media/image1.png",
+          "proposed_group": "EXCLUDE",
+          "sha256": "7d0adaa9d2c36a2863c791d716f9f5cc9c62510fd381ad7cce898328ed29c544"
+        },
+        {
+          "status": "??",
+          "path": "thesis-review-media/image10.png",
+          "proposed_group": "EXCLUDE",
+          "sha256": "6a0e3e02cb27160696638f29f6b209e25cfb22168c41d36c8ea5f69639696f3c"
+        },
+        {
+          "status": "??",
+          "path": "thesis-review-media/image2.jpeg",
+          "proposed_group": "EXCLUDE",
+          "sha256": "e83d7d50827c3527d44d97ac0db7b9d7e1d423b260d3b73684aee2fc97d8604e"
+        },
+        {
+          "status": "??",
+          "path": "thesis-review-media/image3.jpeg",
+          "proposed_group": "EXCLUDE",
+          "sha256": "69722d1ac6794ced5d25420eea9264a6edeb5a1eeba1644bcfc28c9369ead244"
+        },
+        {
+          "status": "??",
+          "path": "thesis-review-media/image4.jpeg",
+          "proposed_group": "EXCLUDE",
+          "sha256": "4accb17b23a7190bd915a4f17c4ae2dc813b9acbf341d247bbde98d253767e8a"
+        },
+        {
+          "status": "??",
+          "path": "thesis-review-media/image5.jpeg",
+          "proposed_group": "EXCLUDE",
+          "sha256": "0e972ee91455a5e4d0b63d5cf5e2a54d1ed2ff81e45ea2cfb583d6192daeafb7"
+        },
+        {
+          "status": "??",
+          "path": "thesis-review-media/image6.jpeg",
+          "proposed_group": "EXCLUDE",
+          "sha256": "9b40ce29af8bdf4ae9f6ab8fd12566dfd2fb3758c51dea55572ecad5a3e9f43a"
+        },
+        {
+          "status": "??",
+          "path": "thesis-review-media/image7.jpeg",
+          "proposed_group": "EXCLUDE",
+          "sha256": "408b9daa18a767715cd0e3586085b397c2b689a7a3369d4edaab829bd0cfdcfe"
+        },
+        {
+          "status": "??",
+          "path": "thesis-review-media/image8.png",
+          "proposed_group": "EXCLUDE",
+          "sha256": "2d29da351959df1454a037541a1494aac742bd17f33a823e78d0afcc208c7860"
+        },
+        {
+          "status": "??",
+          "path": "thesis-review-media/image9.png",
+          "proposed_group": "EXCLUDE",
+          "sha256": "8c2492abe7ba679f1768e06d82a7d566595861567398d4fa43984abf1f40cdcd"
+        },
+        {
+          "status": "??",
+          "path": "thesis-revision-current.txt",
+          "proposed_group": "EXCLUDE",
+          "sha256": "bb6575c9beca3f70ab7d6c6eacc7f3eb2d51064d76e7880a9ea340ab94d6acc4"
+        }
+      ]
+    },
+    {
+      "name": "TRACE-client",
+      "branch": "codex/trace-reliability",
+      "head": "774ab9df80d423d76f4d5d5c134ba731d10339a9",
+      "paths": [
+        {
+          "status": " M",
+          "path": ".github/workflows/reliability.yml",
+          "proposed_group": "D2",
+          "sha256": "f0c36edc566bd1ffa75e9f1b681e480e7291ac8936493ccf4c734cbedbf72493"
+        },
+        {
+          "status": " M",
+          "path": ".gitignore",
+          "proposed_group": "D2",
+          "sha256": "57640ff163950a916d1d6d04b1319723f705085ed3eee7f82940bc6413076dd6"
+        },
+        {
+          "status": " M",
+          "path": "README.md",
+          "proposed_group": "D2",
+          "sha256": "f1895819a36d0749a1e5fe7a39f800f0afadb21c524af6c2cea57443b6d9a808"
+        },
+        {
+          "status": " M",
+          "path": "app/(tabs)/leaderboards.tsx",
+          "proposed_group": "M11",
+          "sha256": "06d86c5b7337b5769c29684d02ed2043593fedfaaf3d2d107ad21e96c59444b6"
+        },
+        {
+          "status": " M",
+          "path": "app/(tabs)/social.tsx",
+          "proposed_group": "M11",
+          "sha256": "ba12e93001706924b554b777af653f2e8475bc590176bb6eb1c790dcfc268e45"
+        },
+        {
+          "status": " M",
+          "path": "app/_layout.tsx",
+          "proposed_group": "M3",
+          "sha256": "4c183bb204bffbf75d22ee131a3329a11449695ab0a5397a2e17e0308614a159"
+        },
+        {
+          "status": " M",
+          "path": "app/ai-copilot/index.tsx",
+          "proposed_group": "M4",
+          "sha256": "bfaf955c307b8ec2f50e93fa2bb1f327a9ff4e93f58700435904321f4c5c5ead"
+        },
+        {
+          "status": " M",
+          "path": "app/ai-copilot/settings.tsx",
+          "proposed_group": "M4",
+          "sha256": "d50749f87b6244a55e69020bcff6baa500c1961c1ec2cebd1553aa2f78aee9d5"
+        },
+        {
+          "status": " M",
+          "path": "app/bodyweight/history.tsx",
+          "proposed_group": "M7",
+          "sha256": "6a12382ed160f20012a080f0fa9e5924f0ff07f1956fcbec23a73d9ad5ccbc61"
+        },
+        {
+          "status": " M",
+          "path": "app/bodyweight/settings.tsx",
+          "proposed_group": "M7",
+          "sha256": "6dc3d87016f18ee8004eccc2a1eb126a453ab897a063e3ce715330053af6aa42"
+        },
+        {
+          "status": " M",
+          "path": "app/cardio/[exerciseId].tsx",
+          "proposed_group": "M11",
+          "sha256": "6d7a268ae987791b9424dde6e0c7351531ebdc5b6e6a6fbe305c4c7a3b5c71a0"
+        },
+        {
+          "status": " M",
+          "path": "app/checkins/[templateId].tsx",
+          "proposed_group": "M11",
+          "sha256": "c505a23df4811b89de55229c6e1dac467e21b86fb2130d02c890a9fb393ca6fc"
+        },
+        {
+          "status": " M",
+          "path": "app/history.tsx",
+          "proposed_group": "M9",
+          "sha256": "76ce2b5ae7e17b2d529e33874baeb6c464119a47c3272f9fa803160a6edea0a0"
+        },
+        {
+          "status": " M",
+          "path": "app/notifications.tsx",
+          "proposed_group": "M11",
+          "sha256": "8e4a15ee3e1fdb06ac5e6f0169534e6d7bbd818f7eea6fe3de1c0846d0f1b061"
+        },
+        {
+          "status": " M",
+          "path": "app/nutrition/add-meal.tsx",
+          "proposed_group": "M9",
+          "sha256": "8c3eea1857abc470dfe05a6961d24a84c3e5e1e009ef0f26c461a640f7ba6726"
+        },
+        {
+          "status": " M",
+          "path": "app/programs/new.tsx",
+          "proposed_group": "M11",
+          "sha256": "f33d9c01559037cb24f2b01900e7ebe57ea8b623695d2ee4613320f4d92b6106"
+        },
+        {
+          "status": " M",
+          "path": "app/workouts/folders/new.tsx",
+          "proposed_group": "M6",
+          "sha256": "16d1e6e2ba84cbf6c1e68afb7f759fb182702fe30017a2cac4799d8a5e71fa01"
+        },
+        {
+          "status": " D",
+          "path": "docs/feature-research/competitor-gap-analysis.md",
+          "proposed_group": "D2",
+          "sha256": null
+        },
+        {
+          "status": " D",
+          "path": "docs/feature-research/tracked-app-parity-gap.md",
+          "proposed_group": "D2",
+          "sha256": null
+        },
+        {
+          "status": " D",
+          "path": "docs/handoff/cross-repo-qa-followup-2026-08-12.md",
+          "proposed_group": "D2",
+          "sha256": null
+        },
+        {
+          "status": " D",
+          "path": "docs/handoff/nutai-integration-handoff-2026-08-12.md",
+          "proposed_group": "D2",
+          "sha256": null
+        },
+        {
+          "status": " D",
+          "path": "docs/handoff/trace-client-handoff-2026-08-10.md",
+          "proposed_group": "D2",
+          "sha256": null
+        },
+        {
+          "status": " D",
+          "path": "docs/migrations-drafts/001_bodyweight_settings.sql",
+          "proposed_group": "D2",
+          "sha256": null
+        },
+        {
+          "status": " D",
+          "path": "docs/migrations-drafts/002_workout_folders.sql",
+          "proposed_group": "D2",
+          "sha256": null
+        },
+        {
+          "status": " D",
+          "path": "docs/migrations-drafts/003_nutrition_extensions.sql",
+          "proposed_group": "D2",
+          "sha256": null
+        },
+        {
+          "status": " D",
+          "path": "docs/migrations-drafts/004_leaderboards.sql",
+          "proposed_group": "D2",
+          "sha256": null
+        },
+        {
+          "status": " D",
+          "path": "docs/migrations-drafts/005_cardio_tracking.sql",
+          "proposed_group": "D2",
+          "sha256": null
+        },
+        {
+          "status": " D",
+          "path": "docs/migrations-drafts/006_sleep_tracking.sql",
+          "proposed_group": "D2",
+          "sha256": null
+        },
+        {
+          "status": " D",
+          "path": "docs/migrations-drafts/007_social_discovery.sql",
+          "proposed_group": "D2",
+          "sha256": null
+        },
+        {
+          "status": " D",
+          "path": "docs/migrations-drafts/008_tracked_parity_tier_a.sql",
+          "proposed_group": "D2",
+          "sha256": null
+        },
+        {
+          "status": " D",
+          "path": "docs/migrations-drafts/009_tracked_parity_tier_b.sql",
+          "proposed_group": "D2",
+          "sha256": null
+        },
+        {
+          "status": " D",
+          "path": "docs/migrations-drafts/010_workout_programs.sql",
+          "proposed_group": "D2",
+          "sha256": null
+        },
+        {
+          "status": " D",
+          "path": "docs/migrations-drafts/012_program_sharing.sql",
+          "proposed_group": "D2",
+          "sha256": null
+        },
+        {
+          "status": " D",
+          "path": "docs/migrations-drafts/013_nutrition_meal_slot.sql",
+          "proposed_group": "D2",
+          "sha256": null
+        },
+        {
+          "status": " D",
+          "path": "docs/migrations-drafts/APPLY_ALL.md",
+          "proposed_group": "D2",
+          "sha256": null
+        },
+        {
+          "status": " D",
+          "path": "docs/qa/cross-repo-qa-checklist.md",
+          "proposed_group": "D2",
+          "sha256": null
+        },
+        {
+          "status": " M",
+          "path": "package-lock.json",
+          "proposed_group": "M1",
+          "sha256": "4b3e7ec05e0ad76b92918148bd44b208d9c81e4a963bd290f3732d0be66b892c"
+        },
+        {
+          "status": " M",
+          "path": "package.json",
+          "proposed_group": "M1",
+          "sha256": "81f99edf17be36a8dc05691115fb4d637b6f45a4320c09f0fb150db265315d2c"
+        },
+        {
+          "status": " M",
+          "path": "src/components/Dashboard.tsx",
+          "proposed_group": "M8",
+          "sha256": "614860a0c0f8a970fcc0f0875af4881026b906046b9992c101ebf281ce72d62e"
+        },
+        {
+          "status": " M",
+          "path": "src/components/GymLogger.tsx",
+          "proposed_group": "M5",
+          "sha256": "052d13b4599e3c9bcda0a3992ba4cdb9ef14cba3ee277650f221b20cb3206ff5"
+        },
+        {
+          "status": " M",
+          "path": "src/components/NutritionLogger.tsx",
+          "proposed_group": "M9",
+          "sha256": "a0826f38017766fdd868f925cf5d6a099c6ddf62132f179adf12c2f3987564c4"
+        },
+        {
+          "status": " M",
+          "path": "src/components/TrainingScreen.tsx",
+          "proposed_group": "M6",
+          "sha256": "1b42674e6823b15c94c284071272b3a18b9c25be1e5ac5c6c43bece5895518ff"
+        },
+        {
+          "status": " M",
+          "path": "src/components/ai/VoiceInputButton.tsx",
+          "proposed_group": "M4",
+          "sha256": "bbd7693cb4750aa05bdbc81b21191c5fa9e00ce18cf11e349f3eb85204ce6c29"
+        },
+        {
+          "status": " M",
+          "path": "src/components/auth/AuthScreen.tsx",
+          "proposed_group": "M3",
+          "sha256": "83bc463ccff427294da481a53e771134fe6d063d9304309d25d572bd9fdc7f02"
+        },
+        {
+          "status": " M",
+          "path": "src/components/bodyweight/BodyweightChart.tsx",
+          "proposed_group": "M7",
+          "sha256": "df749c9d7587aa6ca6d306d8fa7b3688dcb4dbeafbee774022c73a3055af4b89"
+        },
+        {
+          "status": " M",
+          "path": "src/components/checkins/QuestionField.tsx",
+          "proposed_group": "M11",
+          "sha256": "ca523df3e8e6d2140712fea21bf28105d4af53353c1d5d3f4e58f5a4af782432"
+        },
+        {
+          "status": " M",
+          "path": "src/components/nutrition/CreateFoodForm.tsx",
+          "proposed_group": "M9",
+          "sha256": "7b0ad98b1c13317f121c668fc8fc08c919eb44ee29669e0f796943220eea6731"
+        },
+        {
+          "status": " M",
+          "path": "src/components/nutrition/CustomFoodTab.tsx",
+          "proposed_group": "M9",
+          "sha256": "85d62b4c59fea964bb6ccb06dda89d7a83557fa5e957d28a1c64a87610de2f3c"
+        },
+        {
+          "status": " M",
+          "path": "src/components/nutrition/FavoritesTab.tsx",
+          "proposed_group": "M9",
+          "sha256": "d8f632382115444ae6be9ef49bc3fd0fb17133eb75280f0cfa00b4313ef934d0"
+        },
+        {
+          "status": " M",
+          "path": "src/components/nutrition/FoodMacroRow.tsx",
+          "proposed_group": "M9",
+          "sha256": "fb7b317a064a2dce000a8b5fde413058dc513376a816f247355149d7da4849a7"
+        },
+        {
+          "status": " M",
+          "path": "src/components/nutrition/MealTemplatesTab.tsx",
+          "proposed_group": "M9",
+          "sha256": "d17f28eb2e989635f4d2603cb654bbfd080fbeb2762c280e6fe8151a6d3e143a"
+        },
+        {
+          "status": " M",
+          "path": "src/components/nutrition/QuickAddTab.tsx",
+          "proposed_group": "M9",
+          "sha256": "5fcbe9efe7eaff1cc9eeb98f74af547b8f98b11bae321d42a97e2537a9f33ccf"
+        },
+        {
+          "status": " M",
+          "path": "src/components/nutrition/SupplementsTab.tsx",
+          "proposed_group": "M9",
+          "sha256": "ff0c35e7f4fa755482543ffd250bfd78dd42e9fbc23cb55eb28efaf2ba455f14"
+        },
+        {
+          "status": " M",
+          "path": "src/components/ui/AppMenu.tsx",
+          "proposed_group": "M10",
+          "sha256": "51893aa82f0fbe295f6b18515f1d20351b9df945c18c30f534eef90db252aec9"
+        },
+        {
+          "status": " M",
+          "path": "src/components/ui/Button.tsx",
+          "proposed_group": "M1",
+          "sha256": "68b2c25fd71e60df44d6619a6345dca2f86c322dc1bdf1a10e8e2f996d44c2dd"
+        },
+        {
+          "status": " M",
+          "path": "src/components/ui/Select.tsx",
+          "proposed_group": "M1",
+          "sha256": "8775ef2ddad5c229c0fe8d0c7266bb6effdbf7114cb05611bd2aa7d387475f0f"
+        },
+        {
+          "status": " M",
+          "path": "src/components/ui/TabBar.tsx",
+          "proposed_group": "M1",
+          "sha256": "08cc6d0c5c5fac79cd030e33e8a20fd9220f04d8c68d243ff319148991f81ca8"
+        },
+        {
+          "status": " M",
+          "path": "src/hooks/useAICopilotConfig.ts",
+          "proposed_group": "M4",
+          "sha256": "2dcb19a44edc9ab3eccfa1c124d9881cb4c518849db6a79b5b84180f54c798d7"
+        },
+        {
+          "status": " M",
+          "path": "src/hooks/useBodyweightLogs.ts",
+          "proposed_group": "M7",
+          "sha256": "5b180890b7868e30cabd2ff2a9a93152562a57cedb5ec8e8fdaefc6d7ced8a97"
+        },
+        {
+          "status": " M",
+          "path": "src/hooks/useBodyweightSettings.ts",
+          "proposed_group": "M7",
+          "sha256": "132c8ad51b4994c29b501b8b0477939389fff6172e04aa809007d454ffcfb36d"
+        },
+        {
+          "status": " M",
+          "path": "src/hooks/useCardioEntries.ts",
+          "proposed_group": "M11",
+          "sha256": "a61b2943a002d6ea84ff78dd55dbb597e15a5ef4202b9a277280899ecc3b96ec"
+        },
+        {
+          "status": " M",
+          "path": "src/hooks/useDirectChat.ts",
+          "proposed_group": "M10",
+          "sha256": "7f304754d9cafdafc5ecee7f913044312197378321412ff8fb33eaa187c36791"
+        },
+        {
+          "status": " M",
+          "path": "src/hooks/useExerciseCatalog.ts",
+          "proposed_group": "M11",
+          "sha256": "96495d92dcc9d779e6eb1b22cd6485c5e31ce77cef24f7f759f41f3b5e8e7e80"
+        },
+        {
+          "status": " M",
+          "path": "src/hooks/useJoinProgram.ts",
+          "proposed_group": "M11",
+          "sha256": "89910bbefaf9c1e23a8bbd8adb5c9e1efe55e214baa4b76bf2a72cbe8b832833"
+        },
+        {
+          "status": " M",
+          "path": "src/hooks/useNotificationSettings.ts",
+          "proposed_group": "M11",
+          "sha256": "0e7fbbf981ee9a7c06f81be13faabf75fd9309726955b5201aadbea6a938e24d"
+        },
+        {
+          "status": " M",
+          "path": "src/hooks/useNutritionLogs.ts",
+          "proposed_group": "M9",
+          "sha256": "229b39b1e132315186fa6165257760b8a7e26b981e86c136d3f924327fe09a4e"
+        },
+        {
+          "status": " M",
+          "path": "src/hooks/useSessionSummaries.ts",
+          "proposed_group": "M9",
+          "sha256": "5c2481c393e3d1a1645b8e95356b7a9e8cd834bf41068954fb2e19f6e727496c"
+        },
+        {
+          "status": " M",
+          "path": "src/hooks/useStepsLogs.ts",
+          "proposed_group": "M11",
+          "sha256": "87e71e96f95fb13045e7d497670be43195585762a8a9513c014d34182e96ddc6"
+        },
+        {
+          "status": " M",
+          "path": "src/hooks/useTraceUser.ts",
+          "proposed_group": "M10",
+          "sha256": "ad6bfc4828b39f58568e690b1b65475da6123a9897e7fc72fcc50d8c36c33776"
+        },
+        {
+          "status": " M",
+          "path": "src/hooks/useUnitPreference.ts",
+          "proposed_group": "M7",
+          "sha256": "6a484d5b574a31315ab8b23c4aa3c6866c3dc17aca26a22db388a9270f6de8f3"
+        },
+        {
+          "status": " M",
+          "path": "src/hooks/useWaterLogs.ts",
+          "proposed_group": "M11",
+          "sha256": "f86ef00b5dc86c9016cf8143f61892fa1b5da70db31ab3e2fe43fcaf49819bb9"
+        },
+        {
+          "status": " M",
+          "path": "src/hooks/useWorkoutFolders.ts",
+          "proposed_group": "M6",
+          "sha256": "abb3bd99a62689e55132822e54273b8de0df543d87cf9240addc896522723ff7"
+        },
+        {
+          "status": " M",
+          "path": "src/hooks/useWorkoutTemplates.ts",
+          "proposed_group": "M6",
+          "sha256": "f42077fe2ed615de10eaa8bf378c5dc1089d623727f5a27254e2a081e433f3a6"
+        },
+        {
+          "status": " M",
+          "path": "src/lib/ai/client.ts",
+          "proposed_group": "M4",
+          "sha256": "8c60a000ad5d746b84769df086778830a061fba3c7e0ad2e443a60f153b4358a"
+        },
+        {
+          "status": " M",
+          "path": "src/lib/ai/secureConfig.ts",
+          "proposed_group": "M4",
+          "sha256": "37f8b69429f2339323931b4f99ef82538c3483d5f65d793f5c505101f981ea85"
+        },
+        {
+          "status": " M",
+          "path": "src/lib/ai/types.ts",
+          "proposed_group": "M4",
+          "sha256": "7a43c91a3e6fccf66ab965d2167819810aec2f10d8ce61595f2a33273bb432ef"
+        },
+        {
+          "status": " M",
+          "path": "src/lib/bodyweight/chartPoints.ts",
+          "proposed_group": "M7",
+          "sha256": "bcd67b9d97cac82c74209aaee2b11d9aacbc1f626faa20d35389d54a59270ca1"
+        },
+        {
+          "status": " M",
+          "path": "src/lib/bodyweight/mapBodyweight.ts",
+          "proposed_group": "M7",
+          "sha256": "07281931ab28d568faeb5463271654ad47fd20f29b59382c47ad61eed1f549da"
+        },
+        {
+          "status": " M",
+          "path": "src/lib/nutrition/mealSlots.ts",
+          "proposed_group": "M9",
+          "sha256": "2bddd54ca377dde0f25174d09960aab304bba3eb04c17f32bbe060fb3c281442"
+        },
+        {
+          "status": " M",
+          "path": "src/lib/nutrition/types.ts",
+          "proposed_group": "M9",
+          "sha256": "ba1a604594a4d9b898c2cfc1f1ad17d430292c086273cc47ff71d0053403b221"
+        },
+        {
+          "status": " M",
+          "path": "src/lib/outbox/mapSetLog.ts",
+          "proposed_group": "M5",
+          "sha256": "b9c06f3fea772f0957c0a14cae2b6bec0894fbf0ea4c9df620beb631e0030179"
+        },
+        {
+          "status": " M",
+          "path": "src/lib/outbox/outboxStore.ts",
+          "proposed_group": "M9",
+          "sha256": "baedea2aea8488bb5673d68c4cf0203513710cafac52ed1e7f1db3319d1f6e65"
+        },
+        {
+          "status": " M",
+          "path": "src/lib/supabase.ts",
+          "proposed_group": "M3",
+          "sha256": "891190cbc3028d680b71a4ba605ec18f72ebf61bf685e246378deb3f9d66f2d4"
+        },
+        {
+          "status": " M",
+          "path": "src/lib/units/preference.ts",
+          "proposed_group": "M7",
+          "sha256": "46650299d1bb9c898c44e456405db48b1d2f0a9497f45708ded76e274e9e4b06"
+        },
+        {
+          "status": " M",
+          "path": "src/lib/workout/folders.ts",
+          "proposed_group": "M6",
+          "sha256": "9c6182e91bddc60307422ea9a04ea21209142e35cbdc15834e485f6e3d4f2c56"
+        },
+        {
+          "status": " M",
+          "path": "tests/lib/folders.test.ts",
+          "proposed_group": "M6",
+          "sha256": "284e9283b69f92ed1b2e0f0849ee6c64e26f4853bbb44d8a12f03e4a498a190b"
+        },
+        {
+          "status": " M",
+          "path": "tests/lib/mapBodyweight.test.ts",
+          "proposed_group": "M7",
+          "sha256": "3676b8bc6e66f20d227fdd87d21f5ba08725424b0cb7ea449db2bf642cdca27b"
+        },
+        {
+          "status": " M",
+          "path": "tests/lib/mapSetLog.test.ts",
+          "proposed_group": "M5",
+          "sha256": "4e370317b513a946160ad8de80329edef6eab2b2b93a07b65c2b22a4218fc5ae"
+        },
+        {
+          "status": " M",
+          "path": "tests/lib/mealSlots.test.ts",
+          "proposed_group": "M9",
+          "sha256": "c4809f01a54255967a3426105af5d3ab0d0a6ba4be090e0a666d2913807c251c"
+        },
+        {
+          "status": "??",
+          "path": "AGENTS.md",
+          "proposed_group": "D2",
+          "sha256": "f146c7dc85c3cf93aa4e67e29a4c53c029438f3bb2d994848114242d286628fb"
+        },
+        {
+          "status": "??",
+          "path": "app/account.tsx",
+          "proposed_group": "M10",
+          "sha256": "75d68071e9f35bf8713e2212ff11e5be130defff1463a5a8c7a6874bbb93d25a"
+        },
+        {
+          "status": "??",
+          "path": "app/bodyweight/entry.tsx",
+          "proposed_group": "M7",
+          "sha256": "fe803e41fe339b47b73d746d191949a723866240cd33d1a0044c270bb4b70934"
+        },
+        {
+          "status": "??",
+          "path": "docs/README.md",
+          "proposed_group": "D2",
+          "sha256": "e24af24048493f20180da64d4142dffbb0cb392a25ccfeee8846faec05b727af"
+        },
+        {
+          "status": "??",
+          "path": "docs/development/ai-copilot.md",
+          "proposed_group": "D2",
+          "sha256": "205fe186bc54b9bdced22f14674c7be6695f57aa7d9699959af7e931f390bf5e"
+        },
+        {
+          "status": "??",
+          "path": "docs/development/local-preview.md",
+          "proposed_group": "D2",
+          "sha256": "bc9384ad6f476c46d1b74ac325d1ddfd0e50159742f15bf47aac34e7a6c169ae"
+        },
+        {
+          "status": "??",
+          "path": "docs/operations/mobile-release.md",
+          "proposed_group": "D2",
+          "sha256": "f014ea7167edba71db29bd46b89e3fd99dd5cdbff58b1769d6450b0689b53033"
+        },
+        {
+          "status": "??",
+          "path": "docs/qa/mobile-acceptance.md",
+          "proposed_group": "D2",
+          "sha256": "8b39e85ce93e85d838a3dcd2fbe883e65fcd3613dc36f8836d56fdc8a4eb80f5"
+        },
+        {
+          "status": "??",
+          "path": "docs/qa/test-account.md",
+          "proposed_group": "D2",
+          "sha256": "7f46f7e5d3121816773e707823da1e5f6862d8bba55021c8dac76762dc995271"
+        },
+        {
+          "status": "??",
+          "path": "docs/releases/android-testing-baseline.md",
+          "proposed_group": "D2",
+          "sha256": "5bc9725e462c16dc3400cdb3f8f9a85f8794416791109842a79233f9609f9262"
+        },
+        {
+          "status": "??",
+          "path": "scripts/build-android.mjs",
+          "proposed_group": "M2",
+          "sha256": "947b494171a1a0c174c02ad9a3c2bb54e70262401d85bcc7e8cbc66505db97b8"
+        },
+        {
+          "status": "??",
+          "path": "scripts/preview.mjs",
+          "proposed_group": "M2",
+          "sha256": "74694446f2f3ad916f943ca7c136c8de0ac31d4b529ab67c35f8f2b63ae46126"
+        },
+        {
+          "status": "??",
+          "path": "scripts/serve-android-download.mjs",
+          "proposed_group": "M2",
+          "sha256": "bd963c2e083787a1554ea5a226ec83b2f6d320a2d6a1cd90b519d2f1f9d7a723"
+        },
+        {
+          "status": "??",
+          "path": "scripts/test-account.mjs",
+          "proposed_group": "M2",
+          "sha256": "b90e6c9be1313b3a3589e547be40b6c44ab620c046f3d064bdd4b029e64403aa"
+        },
+        {
+          "status": "??",
+          "path": "src/components/dashboard/DateNavigator.tsx",
+          "proposed_group": "M8",
+          "sha256": "0b4920c493cc5f005784fe805d5741423cc243bf48e05b2519d3c65e6e6a95c4"
+        },
+        {
+          "status": "??",
+          "path": "src/components/dashboard/DayHistory.tsx",
+          "proposed_group": "M8",
+          "sha256": "e56539d981fc03c8c74e2e76ddd8b14ff153406d8e389fff2485bbd476e4177f"
+        },
+        {
+          "status": "??",
+          "path": "src/hooks/useAsyncAction.ts",
+          "proposed_group": "M1",
+          "sha256": "81dd1c327ae7e2e62e5be60dd09f4e00632379d2a188b129fe19c92542c47aa5"
+        },
+        {
+          "status": "??",
+          "path": "src/hooks/useDashboardLayout.ts",
+          "proposed_group": "M8",
+          "sha256": "a599c98664eff68f3525c81eb25391a75f3f1e50a2ff4c2c6ff1b17af1302abd"
+        },
+        {
+          "status": "??",
+          "path": "src/lib/account/profileInput.ts",
+          "proposed_group": "M10",
+          "sha256": "a5942f864d7c75a39ee13b89aa8a91d6a428de878bb2add7858908f6b3cd3ada"
+        },
+        {
+          "status": "??",
+          "path": "src/lib/bodyweight/dateRange.ts",
+          "proposed_group": "M7",
+          "sha256": "8fc86b190b2717277a05928a4f9df73cb475656f1dfc5f4e34ad316024f70872"
+        },
+        {
+          "status": "??",
+          "path": "src/lib/bodyweight/entryInput.ts",
+          "proposed_group": "M7",
+          "sha256": "ba56bf93837ae0d6386b94ae01541afd87bfc98f5a29afb5c247463988d06fe9"
+        },
+        {
+          "status": "??",
+          "path": "src/lib/dashboard/layout.ts",
+          "proposed_group": "M8",
+          "sha256": "015e3c2c4035a54ddb1b87dbe47bb0e71fb1cc469fe579ef657b545d09ff2665"
+        },
+        {
+          "status": "??",
+          "path": "src/lib/devPreview.ts",
+          "proposed_group": "M3",
+          "sha256": "51ded41f1b717fabe1c465dd7b0bfddfb25b22a04e066162c8c395b9841f0bf5"
+        },
+        {
+          "status": "??",
+          "path": "src/lib/health/inputValidation.ts",
+          "proposed_group": "M11",
+          "sha256": "d35b236f11169e7bb4a2640e34cb41778347f89372f89cbd252657d9e9d81b13"
+        },
+        {
+          "status": "??",
+          "path": "src/lib/workout/activeDraft.ts",
+          "proposed_group": "M5",
+          "sha256": "d123617f7d420a118cf85dfc1a5cb2125202e9f71cfc2259dfbbafb99828cfe0"
+        },
+        {
+          "status": "??",
+          "path": "src/lib/workout/activeDraftStorage.ts",
+          "proposed_group": "M5",
+          "sha256": "b59b178dd10d201c50e173f387ffceb8095c14613367d5be7b3cab9f55ff2a79"
+        },
+        {
+          "status": "??",
+          "path": "src/lib/workout/restTimer.ts",
+          "proposed_group": "M5",
+          "sha256": "6856e4a435c2455cbaddf3a48b56d83a19ac5652d83f6e41b355988ee74a6956"
+        },
+        {
+          "status": "??",
+          "path": "tests/components/appMenu.test.ts",
+          "proposed_group": "M10",
+          "sha256": "7aa8a1d4370a42789f893bf40563fcc51da522e376b8cb42bdb7f210cd15e82c"
+        },
+        {
+          "status": "??",
+          "path": "tests/components/dateNavigator.test.ts",
+          "proposed_group": "M8",
+          "sha256": "8c701d982e3e85ff71666bfc058de2fb237108f66f7c4b366510156e4b93f953"
+        },
+        {
+          "status": "??",
+          "path": "tests/components/foodLogging.test.ts",
+          "proposed_group": "M9",
+          "sha256": "dd87174f438c1e2d036ec325d1b0cb85c38312c89fd80527bceba4998931012d"
+        },
+        {
+          "status": "??",
+          "path": "tests/components/weighInEntry.test.ts",
+          "proposed_group": "M7",
+          "sha256": "16f64fc29068aec8f37280adc1b8823abcd205a80f078ebc0d74abb1281bcb79"
+        },
+        {
+          "status": "??",
+          "path": "tests/components/workoutDraft.test.ts",
+          "proposed_group": "M5",
+          "sha256": "98cd52f66128f550459e8842620de70fc8eb55ffba937e30c423f022c6f08aee"
+        },
+        {
+          "status": "??",
+          "path": "tests/components/workoutLibrary.test.ts",
+          "proposed_group": "M6",
+          "sha256": "ea209439786e47633c4e0445494bfe36e55ccd8fbefbf1247ecaa46ea0326b60"
+        },
+        {
+          "status": "??",
+          "path": "tests/helpers/renderHook.ts",
+          "proposed_group": "M1",
+          "sha256": "a475be6d3172e9aab9a62d9212ef4d73fab33faa7e7c3f39271d1471056c2430"
+        },
+        {
+          "status": "??",
+          "path": "tests/hooks/activeDraftStorage.test.ts",
+          "proposed_group": "M5",
+          "sha256": "49d90a511293e8adcfc0c872397015282078ce5faf7350adbbd49d3c8cf1eae3"
+        },
+        {
+          "status": "??",
+          "path": "tests/hooks/asyncAction.test.ts",
+          "proposed_group": "M1",
+          "sha256": "4227c2fb24c03423acbfa5e5fa2649d7c65672b09f2cf5bb70a7f4ee7510a1a1"
+        },
+        {
+          "status": "??",
+          "path": "tests/hooks/chat.test.ts",
+          "proposed_group": "M10",
+          "sha256": "b7bf6870f2cfa6f4487ebf6747643920d2aaab8e06f249786051b75e5aa672ca"
+        },
+        {
+          "status": "??",
+          "path": "tests/hooks/settingsAndCatalog.test.ts",
+          "proposed_group": "M12",
+          "sha256": "3319acee49539e7ffe733fbf41d31e98ff6b90c19095d9c2e67886187f3855fc"
+        },
+        {
+          "status": "??",
+          "path": "tests/hooks/traceUser.test.ts",
+          "proposed_group": "M10",
+          "sha256": "b79d48451df33300306c2be849be1abaaaa599c4f2c7012814e209677a4bb52a"
+        },
+        {
+          "status": "??",
+          "path": "tests/hooks/tracking.test.ts",
+          "proposed_group": "M12",
+          "sha256": "daf2a68949d4a2ebaebf6579a6f209165dd83df0f7d0454d85aaec19d055af8e"
+        },
+        {
+          "status": "??",
+          "path": "tests/hooks/unitPreference.test.ts",
+          "proposed_group": "M7",
+          "sha256": "4c7bc0060fd4c6f85005071322bca34cc12773f5ee340a6baca764576a09f741"
+        },
+        {
+          "status": "??",
+          "path": "tests/hooks/workoutLibrary.test.ts",
+          "proposed_group": "M6",
+          "sha256": "b4266586ea49516d6a8bb66530f56fed6713d63abad3e1186c51fdfeaaa336e6"
+        },
+        {
+          "status": "??",
+          "path": "tests/lib/activeDraft.test.ts",
+          "proposed_group": "M5",
+          "sha256": "7dc465a1a55844490bead1a5723c4edb4dc5a632e4b38da151d909b10711c82b"
+        },
+        {
+          "status": "??",
+          "path": "tests/lib/aiProviders.test.ts",
+          "proposed_group": "M4",
+          "sha256": "3ae6e5fd81e592253579bc1d4831e4f1304c596487b80eef45f4c250bcb837bf"
+        },
+        {
+          "status": "??",
+          "path": "tests/lib/dashboardLayout.test.ts",
+          "proposed_group": "M8",
+          "sha256": "dcc20328a39ecf1f9814bf3615fd4a0101fd5f3033558459a64b61481268500a"
+        },
+        {
+          "status": "??",
+          "path": "tests/lib/devPreview.test.ts",
+          "proposed_group": "M3",
+          "sha256": "bd243d12b9ce4107f9391c58a37177363b8af7dc6679006f3a468d1d3cfa937d"
+        },
+        {
+          "status": "??",
+          "path": "tests/lib/healthInputValidation.test.ts",
+          "proposed_group": "M11",
+          "sha256": "5f8ea138238f50ce54ab404339103f13718113478aadf80c1e1bb8559813de2e"
+        },
+        {
+          "status": "??",
+          "path": "tests/lib/navigation.test.ts",
+          "proposed_group": "M12",
+          "sha256": "76bf6fb9d439e6d67b7a62174acfd61f6f3010feed851d0b146fb12dfe80cfb9"
+        },
+        {
+          "status": "??",
+          "path": "tests/lib/profileInput.test.ts",
+          "proposed_group": "M10",
+          "sha256": "035edc75c3b983907be9b943eb553116c35271a2ba721723c56f6efa90d22688"
+        },
+        {
+          "status": "??",
+          "path": "tests/lib/restTimer.test.ts",
+          "proposed_group": "M5",
+          "sha256": "ced72d37e7a17a61d5840f5bb155cb371600df245d4bebd9ddb443955c655999"
+        },
+        {
+          "status": "??",
+          "path": "tests/lib/weighInEntry.test.ts",
+          "proposed_group": "M7",
+          "sha256": "d9d5024eeb020a53fbd39a3f72aab21d4ee01baff6cd2e3dc5de706b25fe9c91"
+        },
+        {
+          "status": "??",
+          "path": "tests/lib/weightRange.test.ts",
+          "proposed_group": "M7",
+          "sha256": "2553b12f37a45c2c5cdfcce8a436a3ef1a8ac85146996b825315222bf616c19f"
+        }
+      ]
+    }
+  ],
+  "notes": [
+    "Groups are proposed review boundaries, not staged or committed changes. Paths are relative to the named repository.",
+    "SHA-256 fingerprints describe existing working-copy bytes, including unrelated work; deleted paths have null hashes. Ignored artifacts are outside this inventory.",
+    "Split package.json scripts between tooling/preview and test dependencies; keep the matching package-lock dependency hunk with test dependencies.",
+    "Split TRACE-client .gitignore /artifacts hunk into M2; remaining instruction-versioning hunk belongs to D2.",
+    "D1/D2 workflow checker additions must be coordinated with both documentation trees and pinned companion refs.",
+    "W4 depends on W3 OAuth redirect props; review dialog/preview and enrollment/validation hunks separately if needed.",
+    "M8 Dashboard.tsx combines dated history, card preferences, bodyweight/unit handling, water and async recovery. Review those hunks explicitly; keep together until their prerequisites are present.",
+    "M3 app/_layout.tsx combines preview, sync status and removal of the coach role gate. Hold the role change for an explicit repair/scope decision.",
+    "M12 tests cross feature boundaries and must follow their source groups, or be split with their matching source changes."
+  ],
+  "concurrent_mobile_changes": {
+    "boundary": "Detected during final preservation check, after the first mobile test/typecheck pass. Original snapshot above is retained; this supplementary snapshot belongs to M9 and requires renewed checks.",
+    "paths": [
+      {
+        "path": "src/components/NutritionLogger.tsx",
+        "proposed_group": "M9",
+        "sha256": "da4f80a8dc6a582c05110f7d593b859ff4a17e3de48b568f8c4a76818a1c8d62"
+      },
+      {
+        "path": "src/hooks/useNutritionLogs.ts",
+        "proposed_group": "M9",
+        "sha256": "8c805e0ae0099997bb330d278dcb5308d98c0b24b8eb1390ec4b6157d940e24e"
+      },
+      {
+        "path": "src/lib/nutrition/mealSlots.ts",
+        "proposed_group": "M9",
+        "sha256": "e117ee239418046b257b1588ea4f5021c4bcf4400cf204e1513f06058caaf4ef"
+      },
+      {
+        "path": "src/components/nutrition/MealSlotCard.tsx",
+        "proposed_group": "M9",
+        "sha256": "9001173562d3a74e5668695a89110f1e72e33a9ea6be9e1199185f39262c77ed"
+      }
+    ]
+  },
+  "latest_mobile_drift": {
+    "boundary": "Observed after rerunning mobile tests; active nutrition work continued during verification. Do not treat the latest dirty tree as a frozen test-passing revision.",
+    "paths": [
+      {
+        "path": "app/nutrition/add-meal.tsx",
+        "status": " M",
+        "proposed_group": "M9",
+        "sha256": "eafef24433b9d7829fe21803481d6a7a30f7b01e60310b21120b786a944563b0"
+      },
+      {
+        "path": "src/components/NutritionLogger.tsx",
+        "status": " M",
+        "proposed_group": "M9",
+        "sha256": "da4f80a8dc6a582c05110f7d593b859ff4a17e3de48b568f8c4a76818a1c8d62"
+      },
+      {
+        "path": "src/components/nutrition/CreateFoodForm.tsx",
+        "status": " M",
+        "proposed_group": "M9",
+        "sha256": "15a194d232cb489a224a340bbbca923d3135f0749f3b17f8908b6dd23b96f5c0"
+      },
+      {
+        "path": "src/components/nutrition/CustomFoodTab.tsx",
+        "status": " M",
+        "proposed_group": "M9",
+        "sha256": "ff1cfeb7958233ed8802981fd28428dbe9a74442b4c64ebf8848181cbb60f5ef"
+      },
+      {
+        "path": "src/components/nutrition/FavoritesTab.tsx",
+        "status": " M",
+        "proposed_group": "M9",
+        "sha256": "528a4e2f35e3cfa5453502f9e31533e2f0aefcb025d76ad39baf85ccb71bcff5"
+      },
+      {
+        "path": "src/components/nutrition/FoodMacroRow.tsx",
+        "status": " M",
+        "proposed_group": "M9",
+        "sha256": "6364320abf8fea86069419f5504ae7c42fac22bfdbbbbda736e6872fe80d0473"
+      },
+      {
+        "path": "src/components/nutrition/MealSlotCard.tsx",
+        "status": " M",
+        "proposed_group": "M9",
+        "sha256": "9001173562d3a74e5668695a89110f1e72e33a9ea6be9e1199185f39262c77ed"
+      },
+      {
+        "path": "src/components/nutrition/MealTemplatesTab.tsx",
+        "status": " M",
+        "proposed_group": "M9",
+        "sha256": "2ccca73c4164c53108fc4f883d5def8038fbc4379a61909595895898db025b1f"
+      },
+      {
+        "path": "src/components/nutrition/QuickAddTab.tsx",
+        "status": " M",
+        "proposed_group": "M9",
+        "sha256": "0e8a4b591ab4e9b7d893a36c42cff34db465f7e490ae4077c1e4fe58bf5e10e7"
+      },
+      {
+        "path": "src/components/nutrition/SupplementsTab.tsx",
+        "status": " M",
+        "proposed_group": "M9",
+        "sha256": "496e91477a3be4ae501f316bb1dc8b3b063e2d8a468b8c25590e67d133414b34"
+      },
+      {
+        "path": "src/hooks/useCustomFoods.ts",
+        "status": " M",
+        "proposed_group": "M9",
+        "sha256": "3e17539f621f83dc5cc5eca15afdb9ff0f0a131805acd62069dfb15f898ed3c7"
+      },
+      {
+        "path": "src/hooks/useFavoriteFoods.ts",
+        "status": " M",
+        "proposed_group": "M9",
+        "sha256": "4dda192b0ed456244f53dcdf64aae4d557ed3d2bd004c7f75bd85c0344a708c6"
+      },
+      {
+        "path": "src/hooks/useMealTemplates.ts",
+        "status": " M",
+        "proposed_group": "M9",
+        "sha256": "22254ddc67bd89dbffdb1b497c4ddcbafaf9081c25be053a6b4e618f97eaeb51"
+      },
+      {
+        "path": "src/hooks/useNutritionLogs.ts",
+        "status": " M",
+        "proposed_group": "M9",
+        "sha256": "8c805e0ae0099997bb330d278dcb5308d98c0b24b8eb1390ec4b6157d940e24e"
+      },
+      {
+        "path": "src/hooks/useSupplements.ts",
+        "status": " M",
+        "proposed_group": "M9",
+        "sha256": "fc92ef284dd1f7ef3c36f618e60852190c2d91cfbd442348e04ca84771541863"
+      },
+      {
+        "path": "src/lib/nutrition/mealSlots.ts",
+        "status": " M",
+        "proposed_group": "M9",
+        "sha256": "e117ee239418046b257b1588ea4f5021c4bcf4400cf204e1513f06058caaf4ef"
+      },
+      {
+        "path": "src/components/nutrition/CatalogStatus.tsx",
+        "status": "??",
+        "proposed_group": "M9",
+        "sha256": "e842a17240dd74043dc9563cd7f024401bd7bef144638a179330b79a5eb31389"
+      },
+      {
+        "path": "src/hooks/useNutritionCatalog.ts",
+        "status": "??",
+        "proposed_group": "M9",
+        "sha256": "519cdc3b302cdde3a9f2d1b7b525f4ad45e608f4ff8f81e8862afddcde90b293"
+      }
+    ]
+  }
+}

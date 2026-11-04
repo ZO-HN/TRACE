@@ -102,7 +102,7 @@ export const STEP_DEFS: Record<string, StepDef> = {
     category: 'training',
     kind: 'single-choice',
     title: "What's your current fitness goal?",
-    subtitle: 'Choose the primary goal you want to focus on with your coach.',
+    subtitle: 'Choose up to 3 goals you want to focus on with your coach.',
     footerText: 'Your goal helps us design the most effective training program for you.',
     options: [
       'Build muscle',
@@ -212,14 +212,14 @@ export const STEP_DEFS: Record<string, StepDef> = {
     kind: 'text',
     title: 'How many calories do you eat per day?',
     subtitle: 'Enter your approximate daily calories if you know them.',
-    footerText: 'An estimate is fine. Leave this blank if you are not sure.',
-    placeholder: 'e.g. 2200 (or leave blank)',
+    footerText: 'An estimate is fine. Enter “Not sure” if you do not know.',
+    placeholder: 'e.g. 2200 or Not sure',
   },
   'daily-macros': {
     category: 'nutrition',
     kind: 'macros',
     title: 'What are your daily macros?',
-    subtitle: 'Enter your approximate daily protein, carbs, and fat intake in grams (optional).',
+    subtitle: 'Enter your approximate daily protein, carbs, and fat intake in grams.',
     footerText: 'Your current macro intake helps us design balanced nutrition recommendations.',
   },
   'avg-number-meals-per-day': {

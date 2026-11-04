@@ -47,7 +47,7 @@ function CreateProgramDialog({
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent className="max-w-lg">
+      <DialogContent className="left-[calc(50%+52px)] w-[calc(100%-128px)] max-w-lg">
         <DialogHeader>
           <DialogTitle>Create New Program</DialogTitle>
         </DialogHeader>

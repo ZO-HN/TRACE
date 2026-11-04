@@ -14,7 +14,7 @@ export default function CoachDashboard({ firstName }: { firstName?: string }) {
   const { clients } = useClients(profile.id);
   const { needsReview } = useCheckIns(profile.id);
   const { formChecks } = useFormChecks(profile.id);
-  const { stats, wins, nutrition, steps, cardio, error: statsError } = useDashboardStats(profile.id);
+  const { stats, wins, nutrition, steps, cardio, error: statsError, isLoading: statsLoading, isUpdating, updatedAt, refresh } = useDashboardStats(profile.id);
 
   const unreviewedFormChecks = formChecks.filter((f) => f.status === 'unreviewed').length;
   const needsAttentionCount = needsReview.length + unreviewedFormChecks;
@@ -34,20 +34,28 @@ export default function CoachDashboard({ firstName }: { firstName?: string }) {
     >
       <h1 className="text-xl font-bold text-foreground">Welcome, {firstName ?? 'Coach'}</h1>
 
-      {statsError && <p className="text-sm text-danger">Could not load dashboard stats: {statsError}</p>}
+      <div className="flex flex-wrap items-center gap-3 text-sm" aria-live="polite">
+        <span className="text-muted-foreground">
+          {statsLoading ? 'Loading dashboard analytics...' : isUpdating ? 'Updating dashboard analytics...' : updatedAt === null ? 'Dashboard analytics unavailable.' : 'Dashboard analytics'}
+          {updatedAt !== null && <> | Last updated {new Date(updatedAt).toLocaleTimeString()}</>}
+        </span>
+        <button type="button" className="text-primary underline disabled:opacity-50" disabled={isUpdating} onClick={() => void refresh()}>Refresh analytics</button>
+      </div>
+      {statsError && <p role="alert" className="text-sm text-danger">{updatedAt !== null ? 'Showing previously loaded analytics. Refresh failed: ' : 'Could not load dashboard analytics: '}{statsError}</p>}
 
       <div className="grid grid-cols-2 lg:grid-cols-4 gap-4">
         <StatCard label="Total clients" value={clients.length} icon={Users} helperText="Currently on your roster" />
-        <StatCard label="New signups" value={stats?.newSignups7d ?? 0} icon={UserPlus} helperText="Last 7 days" />
-        <StatCard label="Workouts" value={stats?.workouts7d ?? 0} icon={Activity} helperText="Last 7 days" />
+        <StatCard label="New signups" value={stats ? stats.newSignups7d : '\u2014'} icon={UserPlus} helperText="Last 7 days" />
+        <StatCard label="Workouts" value={stats ? stats.workouts7d : '\u2014'} icon={Activity} helperText="Last 7 days" />
         <StatCard
           label="Churned"
-          value={stats?.churnedCount ?? 0}
+          value={stats ? stats.churnedCount : '\u2014'}
           icon={UserMinus}
           helperText="21+ days inactive, or marked manually"
         />
       </div>
 
+      {updatedAt !== null && <>
       <div>
         <h2 className="text-sm font-semibold text-foreground mb-2">Wins this week</h2>
         <Card>
@@ -73,6 +81,7 @@ export default function CoachDashboard({ firstName }: { firstName?: string }) {
         </Card>
       </div>
 
+      </>}
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
         <Card className="flex flex-col">
           <CardHeader>
@@ -106,6 +115,7 @@ export default function CoachDashboard({ firstName }: { firstName?: string }) {
           )}
         </Card>
 
+        {updatedAt !== null && (
         <Card className="flex flex-col">
           <CardHeader>
             <CardTitle>
@@ -146,8 +156,10 @@ export default function CoachDashboard({ firstName }: { firstName?: string }) {
             </div>
           )}
         </Card>
+        )}
       </div>
 
+      {updatedAt !== null && <>
       <div>
         <h2 className="text-sm font-semibold text-foreground mb-2">Client nutrition</h2>
         <p className="text-xs text-muted-foreground -mt-1 mb-2">Last 7 days — who's logging and how intake tracks to goal</p>
@@ -250,6 +262,7 @@ export default function CoachDashboard({ firstName }: { firstName?: string }) {
           )}
         </Card>
       </div>
+      </>}
     </motion.div>
   );
 }

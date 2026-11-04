@@ -2,7 +2,7 @@ import { useMemo } from 'react';
 import { Navigate, Outlet, useLocation, useOutletContext } from 'react-router';
 import { Loader2, AlertTriangle } from 'lucide-react';
 import { useTraceUser, type TraceProfile } from '@/hooks/useTraceUser';
-import { supabase } from '@/lib/supabase';
+import { switchGoogleAccount } from '@/lib/googleOAuth';
 import Button from '@/components/ui/Button';
 import { nav } from '@/config/nav';
 import Dock from './Dock';
@@ -75,12 +75,9 @@ export default function AppShell() {
             allowlist.
           </p>
           <Button
-            onClick={async () => {
-              await supabase.auth.signOut();
-              window.location.href = '/login';
-            }}
+            onClick={() => void switchGoogleAccount()}
           >
-            Sign out
+            Switch Google account
           </Button>
         </div>
       </div>

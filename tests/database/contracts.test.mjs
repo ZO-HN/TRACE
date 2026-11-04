@@ -155,6 +155,47 @@ test('nutrition and steps are visible to the connected coach only', async () => 
   await asUser(coachB, async () => assert.equal((await rows('SELECT * FROM nutrition_logs WHERE id=$1',[id(70)])).length,0));
 });
 
+test('past weigh-ins update one owned day and remain isolated from unrelated accounts', async () => {
+  await asUser(clientA, async () => {
+    await db.query("INSERT INTO bodyweight_logs(id,user_id,recorded_date,weight_kg,note) VALUES ($1,$2,'2024-02-29',70.25,$3)", [id(80),clientA,'x'.repeat(280)]);
+    await db.query("INSERT INTO bodyweight_logs(id,user_id,recorded_date,weight_kg,note) VALUES ($1,$2,'2024-02-29',71,'Updated') ON CONFLICT(user_id,recorded_date) DO UPDATE SET weight_kg=EXCLUDED.weight_kg,note=EXCLUDED.note", [id(80),clientA]);
+    const saved = await rows('SELECT * FROM bodyweight_logs WHERE user_id=$1',[clientA]);
+    assert.equal(saved.length,1);
+    assert.equal(saved[0].id,id(80));
+    assert.equal(Number(saved[0].weight_kg),71);
+    assert.equal(saved[0].note,'Updated');
+    await assert.rejects(db.query('UPDATE bodyweight_logs SET note=$1 WHERE id=$2',['x'.repeat(281),id(80)]), /too long/);
+  });
+  await asUser(coachA, async () => assert.equal((await rows('SELECT * FROM bodyweight_logs WHERE id=$1',[id(80)])).length,1));
+  await asUser(coachB, async () => assert.equal((await rows('SELECT * FROM bodyweight_logs WHERE id=$1',[id(80)])).length,0));
+  await asUser(clientB, async () => {
+    assert.equal((await rows('SELECT * FROM bodyweight_logs WHERE id=$1',[id(80)])).length,0);
+    await assert.rejects(db.query("INSERT INTO bodyweight_logs(user_id,recorded_date,weight_kg) VALUES ($1,'2024-03-01',70)",[clientA]), /row-level security/);
+  });
+});
+
+test('folder rename/delete is owner-only and deleting a folder preserves workouts', async () => {
+  await asUser(clientA, async () => {
+    await db.query("INSERT INTO workout_folders(id,user_id,name) VALUES ($1,$2,'Original')",[id(90),clientA]);
+    await db.query("INSERT INTO workout_templates(id,creator_id,name,folder_id) VALUES ($1,$2,'Keep this workout',$3)",[id(91),clientA,id(90)]);
+    await db.query("UPDATE workout_folders SET name='Renamed' WHERE id=$1",[id(90)]);
+    assert.equal((await rows('SELECT name FROM workout_folders WHERE id=$1',[id(90)]))[0].name,'Renamed');
+  });
+  await asUser(clientB, async () => {
+    assert.equal((await rows('SELECT * FROM workout_folders WHERE id=$1',[id(90)])).length,0);
+    assert.equal((await rows("UPDATE workout_folders SET name='Forged' WHERE id=$1 RETURNING id",[id(90)])).length,0);
+    assert.equal((await rows('DELETE FROM workout_folders WHERE id=$1 RETURNING id',[id(90)])).length,0);
+  });
+  await asUser(clientA, async () => {
+    assert.equal((await rows('SELECT name FROM workout_folders WHERE id=$1',[id(90)]))[0].name,'Renamed');
+    await db.query('DELETE FROM workout_folders WHERE id=$1',[id(90)]);
+    const workouts = await rows('SELECT folder_id,name FROM workout_templates WHERE id=$1',[id(91)]);
+    assert.equal(workouts.length,1);
+    assert.equal(workouts[0].folder_id,null);
+    assert.equal(workouts[0].name,'Keep this workout');
+  });
+});
+
 test('optional local seed executes against the complete canonical schema', async () => {
   await db.exec(await readFile(new URL('../../supabase/seed.sql', import.meta.url), 'utf8'));
   assert.equal((await rows("SELECT * FROM landing_pages WHERE slug='john'")).length,1);

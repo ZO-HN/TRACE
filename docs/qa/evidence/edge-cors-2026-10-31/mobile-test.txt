@@ -1,0 +1,31 @@
+
+> trace-client@1.0.0 test
+> vitest run
+
+
+ RUN  v4.1.10 C:/Users/imint/TRACE-client
+
+ ❯ tests/lib/navigation.test.ts (1 test | 1 failed) 14089ms
+   × resolves navigation targets from tabs, menus, and pages to real app routes 14052ms
+
+⎯⎯⎯⎯⎯⎯⎯ Failed Tests 1 ⎯⎯⎯⎯⎯⎯⎯
+
+ FAIL  tests/lib/navigation.test.ts > resolves navigation targets from tabs, menus, and pages to real app routes
+Error: Test timed out in 5000ms.
+If this is a long-running test, pass a timeout value as the last argument or configure it globally with "testTimeout".
+ ❯ tests/lib/navigation.test.ts:12:1
+     10| const normalize = (path: string) => ('/' + path.split('/').filter((par…
+     11|
+     12| it('resolves navigation targets from tabs, menus, and pages to real ap…
+       | ^
+     13|   const app = join(process.cwd(), 'app');
+     14|   const routeFiles = files(app).filter((file) => !file.endsWith('_layo…
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[1/1]⎯
+
+
+ Test Files  1 failed | 62 passed (63)
+      Tests  1 failed | 345 passed (346)
+   Start at  20:13:37
+   Duration  102.80s (transform 78.57s, setup 0ms, import 139.28s, tests 39.59s, environment 120ms)
+

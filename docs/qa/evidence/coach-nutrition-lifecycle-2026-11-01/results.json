@@ -1,0 +1,23 @@
+[
+  {
+    "startedAt": "2026-11-01T11:28:12.0757100+08:00",
+    "name": "web-test",
+    "exitCode": 0,
+    "command": "npm run test",
+    "finishedAt": "2026-11-01T11:28:18.1188074+08:00"
+  },
+  {
+    "startedAt": "2026-11-01T11:28:18.1960959+08:00",
+    "name": "web-lint",
+    "exitCode": 1,
+    "command": "npm run lint",
+    "finishedAt": "2026-11-01T11:28:19.0129412+08:00"
+  },
+  {
+    "startedAt": "2026-11-01T11:28:19.0311653+08:00",
+    "name": "web-build",
+    "exitCode": 0,
+    "command": "npm run build",
+    "finishedAt": "2026-11-01T11:28:29.6268287+08:00"
+  }
+]

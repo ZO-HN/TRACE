@@ -1763,6 +1763,29 @@ export type Database = { public: { Tables: {
       { foreignKeyName: "workout_sessions_user_id_fkey"; columns: ["user_id"]; isOneToOne: false; referencedRelation: "profiles"; referencedColumns: ["id"] },
     ];
   };
+  "workout_template_save_operations": {
+    Row: {
+      "operation_id": string;
+      "template_id": string;
+      "creator_id": string;
+      "request": Json;
+    };
+    Insert: {
+      "operation_id": string;
+      "template_id": string;
+      "creator_id": string;
+      "request": Json;
+    };
+    Update: {
+      "operation_id"?: string;
+      "template_id"?: string;
+      "creator_id"?: string;
+      "request"?: Json;
+    };
+    Relationships: [
+      { foreignKeyName: "workout_template_save_operations_creator_id_fkey"; columns: ["creator_id"]; isOneToOne: false; referencedRelation: "profiles"; referencedColumns: ["id"] },
+    ];
+  };
   "workout_templates": {
     Row: {
       "id": string;
@@ -1831,6 +1854,7 @@ export type Database = { public: { Tables: {
   "list_coach_roster": { Args: Record<string, never>; Returns: { "id": string; "display_name": string }[] };
   "revoke_invite_link": { Args: { "p_coach_id": string }; Returns: undefined };
   "rotate_invite_link": { Args: { "p_coach_id": string; "p_screens_config": Json }; Returns: string };
+  "save_workout_template": { Args: { "p_operation_id": string; "p_template_id": string; "p_creator_id": string; "p_name": string; "p_description": string; "p_items": Json }; Returns: string };
   "set_client_churned": { Args: { "p_client_id": string; "p_churned": boolean }; Returns: undefined };
   "sync_workout_session": { Args: { "p_session": Json }; Returns: string };
 }; Enums: {

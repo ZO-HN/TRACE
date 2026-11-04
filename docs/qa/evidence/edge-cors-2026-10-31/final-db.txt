@@ -1,0 +1,23 @@
+
+> trace-app@0.0.0 test:db
+> node tests/database/contracts.test.mjs
+
+✔ canonical mobile baseline is safe on a database where drafts were already applied (14745.0686ms)
+✔ profile editing cannot promote an account or change its coach (37.8775ms)
+✔ assigned workout -> repeated session delivery -> sets -> isolated coach read (440.9189ms)
+✔ cardio add/delete drives only the owning coach summary; days are inclusive (92.6255ms)
+✔ check-in and form review round trips are isolated between coaches (139.3971ms)
+✔ token join clones private workouts once, preserves rest days, and hides shared sources (162.4022ms)
+✔ malicious source cannot use the sharing definer to copy another private workout (62.3554ms)
+✔ nutrition and steps are visible to the connected coach only (64.2313ms)
+✔ past weigh-ins update one owned day and remain isolated from unrelated accounts (77.3381ms)
+✔ folder rename/delete is owner-only and deleting a folder preserves workouts (50.764ms)
+✔ optional local seed executes against the complete canonical schema (48.8668ms)
+ℹ tests 11
+ℹ suites 0
+ℹ pass 11
+ℹ fail 0
+ℹ cancelled 0
+ℹ skipped 0
+ℹ todo 0
+ℹ duration_ms 15984.6128

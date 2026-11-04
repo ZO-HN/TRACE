@@ -29,6 +29,8 @@ jobs:
       - uses: actions/setup-node@v4
         with:
           node-version: '24'
+      - run: node scripts/check-documentation.mjs
+        working-directory: TRACE
       - run: npm ci
         working-directory: TRACE
       - run: npm ci

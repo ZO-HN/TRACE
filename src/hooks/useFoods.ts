@@ -1,4 +1,4 @@
-import { useEffect, useRef, useState } from 'react';
+import { useCallback, useEffect, useRef, useState } from 'react';
 import { supabase } from '../lib/supabase';
 
 export interface FoodRow {
@@ -17,6 +17,7 @@ export interface UseFoods {
   foods: FoodRow[];
   isLoading: boolean;
   error: string | null;
+  refresh: () => Promise<void>;
   createFood: (input: {
     name: string;
     servingSize: string;
@@ -34,63 +35,83 @@ function toNumOrNull(v: string): number | null {
   return v.trim() !== '' && !Number.isNaN(n) ? n : null;
 }
 
+type LoadScope = { coachId: string; request: number };
+
 export function useFoods(coachId: string): UseFoods {
-  const [foods, setFoods] = useState<FoodRow[]>([]);
-  const [isLoading, setIsLoading] = useState(true);
-  const [error, setError] = useState<string | null>(null);
-  // Guards setState in fetchFoods when it's called from createFood/deleteFood
-  // after the component has unmounted (e.g. navigate away mid-save).
-  const mountedRef = useRef(true);
-  useEffect(() => () => {
-    mountedRef.current = false;
+  const [state, setState] = useState<{ coachId: string; foods: FoodRow[]; isLoading: boolean; error: string | null }>(
+    () => ({ coachId, foods: [], isLoading: Boolean(coachId), error: null }),
+  );
+  const owner = useRef(coachId);
+  owner.current = coachId;
+  const active = useRef<LoadScope | null>(null);
+
+  const fetchFoods = useCallback(async (scope: LoadScope) => {
+    const current = () => active.current === scope && owner.current === scope.coachId;
+    if (!current()) return;
+    const request = ++scope.request;
+    setState((previous) => ({ coachId: scope.coachId,
+      foods: previous.coachId === scope.coachId ? previous.foods : [], isLoading: true, error: null }));
+    try {
+      const { data, error: queryError } = await supabase
+        .from('foods')
+        .select('id, name, serving_size, calories, protein_g, carbs_g, fat_g, recipe, created_at')
+        .eq('coach_id', scope.coachId)
+        .order('created_at', { ascending: false });
+      if (queryError) throw new Error(queryError.message);
+      if (current() && scope.request === request) {
+        setState({ coachId: scope.coachId, foods: (data as FoodRow[]) ?? [], isLoading: false, error: null });
+      }
+    } catch (cause) {
+      if (current() && scope.request === request) {
+        setState((previous) => ({ ...previous, isLoading: false,
+          error: cause instanceof Error ? cause.message : 'Could not load foods. Please retry.' }));
+      }
+    }
   }, []);
 
-  const fetchFoods = async () => {
-    const { data, error: queryError } = await supabase
-      .from('foods')
-      .select('id, name, serving_size, calories, protein_g, carbs_g, fat_g, recipe, created_at')
-      .eq('coach_id', coachId)
-      .order('created_at', { ascending: false });
-    if (!mountedRef.current) return;
-    if (queryError) setError(queryError.message);
-    else {
-      setError(null);
-      setFoods((data as FoodRow[]) ?? []);
-    }
-    setIsLoading(false);
-  };
-
   useEffect(() => {
-    let cancelled = false;
-    (async () => {
-      if (!cancelled) await fetchFoods();
-    })();
-    return () => {
-      cancelled = true;
-    };
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [coachId]);
+    if (!coachId) {
+      active.current = null;
+      setState({ coachId, foods: [], isLoading: false, error: null });
+      return;
+    }
+    // A fresh setup identity also separates StrictMode replay and A -> B -> A.
+    const scope: LoadScope = { coachId, request: 0 };
+    active.current = scope;
+    void fetchFoods(scope);
+    return () => { if (active.current === scope) active.current = null; };
+  }, [coachId, fetchFoods]);
 
-  const createFood: UseFoods['createFood'] = async ({ name, servingSize, calories, protein, carbs, fat, recipe }) => {
-    const { error: insertError } = await supabase.from('foods').insert({
-      coach_id: coachId,
-      name,
-      serving_size: servingSize || null,
-      calories: toNumOrNull(calories),
-      protein_g: toNumOrNull(protein),
-      carbs_g: toNumOrNull(carbs),
-      fat_g: toNumOrNull(fat),
-      recipe: recipe || null,
-    });
-    if (!insertError) await fetchFoods();
-    return { error: insertError?.message ?? null };
+  const refresh = useCallback(async () => {
+    const scope = active.current;
+    if (scope?.coachId === coachId && owner.current === coachId) await fetchFoods(scope);
+  }, [coachId, fetchFoods]);
+
+  const runMutation = async (operation: () => PromiseLike<{ error: { message: string } | null }>) => {
+    const scope = active.current;
+    if (!scope || scope.coachId !== coachId || owner.current !== coachId) return { error: 'The active coach changed. Please retry from the current account.' };
+    try {
+      const { error: mutationError } = await operation();
+      if (!mutationError) await fetchFoods(scope);
+      return { error: mutationError?.message ?? null };
+    } catch (cause) {
+      return { error: cause instanceof Error ? cause.message : 'Could not update foods. Please retry.' };
+    }
   };
 
-  const deleteFood = async (id: string) => {
-    const { error: deleteError } = await supabase.from('foods').delete().eq('id', id);
-    if (!deleteError) await fetchFoods();
-    return { error: deleteError?.message ?? null };
-  };
+  const createFood: UseFoods['createFood'] = async ({ name, servingSize, calories, protein, carbs, fat, recipe }) => runMutation(() => supabase.from('foods').insert({
+    coach_id: coachId,
+    name,
+    serving_size: servingSize || null,
+    calories: toNumOrNull(calories),
+    protein_g: toNumOrNull(protein),
+    carbs_g: toNumOrNull(carbs),
+    fat_g: toNumOrNull(fat),
+    recipe: recipe || null,
+  }));
 
-  return { foods, isLoading, error, createFood, deleteFood };
+  const deleteFood = async (id: string) => runMutation(() => supabase.from('foods').delete().eq('id', id));
+
+  const visible = state.coachId === coachId ? state : { foods: [], isLoading: Boolean(coachId), error: null };
+  return { foods: visible.foods, isLoading: visible.isLoading, error: visible.error, refresh, createFood, deleteFood };
 }
