@@ -5,6 +5,7 @@
 
 import { useCallback, useEffect, useRef, useState } from 'react';
 import { supabase } from '../lib/supabase';
+import { escapeExerciseSearch, EXERCISE_PAGE_SIZE } from '../lib/exerciseCatalogQuery';
 
 export type ExerciseType = 'regular' | 'isometric_yielding' | 'isometric_overcoming';
 export type MuscleRole = 'primary' | 'secondary';
@@ -66,7 +67,12 @@ export interface UseExercises {
   exercises: ExerciseRow[];
   isLoading: boolean;
   error: string | null;
+  search: string;
+  setSearch: (value: string) => void;
+  isLoadingMore: boolean;
+  hasMore: boolean;
   refresh: () => Promise<void>;
+  loadMore: () => Promise<void>;
   createExercise: (input: CreateExerciseInput) => Promise<{ error: string | null }>;
 }
 
@@ -94,38 +100,46 @@ function mapRow(r: RawExerciseRow): ExerciseRow {
 }
 
 type LoadedData = { exercises: ExerciseRow[] };
-type LoadScope = { owner: string; request: number };
-const emptyData = (): LoadedData => ({ exercises: [] });
+type LoadScope = { owner: string; search: string; request: number; loadingMore: boolean };
+type ExerciseState = LoadedData & { owner: string; search: string; isLoading: boolean; isLoadingMore: boolean; error: string | null; hasMore: boolean; nextOffset: number };
+const emptyData = (owner: string, search = ''): ExerciseState => ({ exercises: [], owner, search, isLoading: Boolean(owner), isLoadingMore: false, error: null, hasMore: false, nextOffset: 0 });
 
 export function useExercises(coachId: string): UseExercises {
-  const [state, setState] = useState<LoadedData & { isLoading: boolean; error: string | null; owner: string }>(
-    () => ({ ...emptyData(), owner: coachId, isLoading: Boolean(coachId), error: null }),
-  );
+  const [search, setSearchState] = useState('');
+  const [state, setState] = useState<ExerciseState>(() => emptyData(coachId));
   const owner = useRef(coachId);
   owner.current = coachId;
+  const searchRef = useRef(search);
+  searchRef.current = search;
   const active = useRef<LoadScope | null>(null);
-  const fetchExercises = useCallback(async (scope: LoadScope) => {
-    const current = () => active.current === scope && owner.current === scope.owner;
-    if (!current()) return;
+
+  const loadPage = useCallback(async (scope: LoadScope, offset: number, append: boolean) => {
+    if (active.current !== scope || owner.current !== scope.owner || searchRef.current !== scope.search) return;
     const request = ++scope.request;
-    setState((previous) => ({ ...(previous.owner === scope.owner ? previous : emptyData()), owner: scope.owner, isLoading: true, error: null }));
+    setState((previous) => ({
+      ...(previous.owner === scope.owner && previous.search === scope.search ? previous : emptyData(scope.owner, scope.search)),
+      owner: scope.owner, search: scope.search, isLoading: !append, isLoadingMore: append, error: null,
+    }));
     try {
-      // Own exercises + any shared/seeded ones (created_by_coach_id IS NULL).
-      // Other coaches' custom exercises stay out of this list even though
-      // exercises' SELECT RLS is open to any authenticated user — that
-      // policy exists for read paths like useExerciseCatalog.ts (workout
-      // logging lookups), not to blend every coach's private library
-      // together on this management page.
-      const { data, error: queryError } = await supabase
-        .from('exercises')
+      let query = supabase.from('exercises')
         .select(SELECT_COLUMNS)
-        .or(`created_by_coach_id.eq.${scope.owner},created_by_coach_id.is.null`)
-        .order('created_at', { ascending: false });
+        .or(`created_by_coach_id.eq.${scope.owner},created_by_coach_id.is.null`);
+      if (scope.search) query = query.ilike('name', `%${escapeExerciseSearch(scope.search)}%`);
+      const ordered = query.order('name', { ascending: true }).order('id', { ascending: true });
+      const pageQuery = ordered.range(offset, offset + EXERCISE_PAGE_SIZE - 1);
+      const { data, error: queryError } = await pageQuery;
       if (queryError) throw new Error(queryError.message);
-      const next: LoadedData = { exercises: ((data as unknown as RawExerciseRow[]) ?? []).map(mapRow) };
-      if (current() && scope.request === request) setState({ ...next, owner: scope.owner, isLoading: false, error: null });
+      const mapped = ((data as unknown as RawExerciseRow[]) ?? []).map(mapRow);
+      if (active.current !== scope || owner.current !== scope.owner || searchRef.current !== scope.search || scope.request !== request) return;
+      setState((previous) => {
+        if (previous.owner !== scope.owner || previous.search !== scope.search) return previous;
+        const exercises = append ? [...previous.exercises, ...mapped.filter((row) => !previous.exercises.some((loaded) => loaded.id === row.id))] : mapped;
+        return { ...previous, exercises, owner: scope.owner, search: scope.search, isLoading: false, isLoadingMore: false,
+          error: null, hasMore: mapped.length === EXERCISE_PAGE_SIZE, nextOffset: offset + mapped.length };
+      });
     } catch (cause) {
-      if (current() && scope.request === request) setState((previous) => ({ ...previous, isLoading: false,
+      if (active.current !== scope || owner.current !== scope.owner || searchRef.current !== scope.search || scope.request !== request) return;
+      setState((previous) => ({ ...previous, isLoading: false, isLoadingMore: false,
         error: cause instanceof Error ? cause.message : 'Could not load data. Please retry.' }));
     }
   }, []);
@@ -133,26 +147,46 @@ export function useExercises(coachId: string): UseExercises {
   useEffect(() => {
     if (!coachId) {
       active.current = null;
-      setState({ ...emptyData(), owner: coachId, isLoading: false, error: null });
+      setState(emptyData(coachId));
       return;
     }
-    const scope: LoadScope = { owner: coachId, request: 0 };
+    const scope: LoadScope = { owner: coachId, search, request: 0, loadingMore: false };
     active.current = scope;
-    void fetchExercises(scope);
-    return () => { if (active.current === scope) active.current = null; };
-  }, [coachId, fetchExercises]);
+    void loadPage(scope, 0, false);
+    return () => { if (active.current === scope) { active.current = null; scope.request += 1; } };
+  }, [coachId, search, loadPage]);
+
+  const updateSearch = useCallback((value: string) => {
+    if (value === searchRef.current) return;
+    searchRef.current = value;
+    if (active.current) active.current.request += 1;
+    setSearchState(value);
+    setState(emptyData(owner.current, value));
+  }, []);
 
   const refresh = useCallback(async () => {
     const scope = active.current;
-    if (scope?.owner === coachId && owner.current === coachId) await fetchExercises(scope);
-  }, [coachId, fetchExercises]);
+    if (scope?.owner === coachId && scope.search === searchRef.current && owner.current === coachId) await loadPage(scope, 0, false);
+  }, [coachId, loadPage]);
+
+  const loadMore = useCallback(async () => {
+    const scope = active.current;
+    if (!scope || scope.owner !== coachId || scope.search !== searchRef.current || owner.current !== coachId
+      || scope.loadingMore || !state.hasMore || state.isLoading || state.isLoadingMore || state.owner !== coachId || state.search !== scope.search) return;
+    scope.loadingMore = true;
+    try { await loadPage(scope, state.nextOffset, true); }
+    finally { scope.loadingMore = false; }
+  }, [coachId, loadPage, state.hasMore, state.isLoading, state.isLoadingMore, state.nextOffset, state.owner, state.search]);
 
   const runMutation = async (operation: (scope: LoadScope) => Promise<{ error: string | null }>) => {
     const scope = active.current;
     if (!scope || scope.owner !== coachId || owner.current !== coachId) return { error: 'The active account changed. Please retry from the current view.' };
     try {
       const result = await operation(scope);
-      if (!result.error && active.current === scope && owner.current === scope.owner) await fetchExercises(scope);
+      if (!result.error && active.current === scope && owner.current === scope.owner) {
+        if (searchRef.current) updateSearch('');
+        else await loadPage(scope, 0, false);
+      }
       return result;
     } catch (cause) {
       return { error: cause instanceof Error ? cause.message : 'Could not complete the operation. Please retry.' };
@@ -208,6 +242,8 @@ export function useExercises(coachId: string): UseExercises {
     return { error: null };
   });
 
-  const visible = state.owner === coachId ? state : { ...emptyData(), isLoading: Boolean(coachId), error: null };
-  return { exercises: visible.exercises, isLoading: visible.isLoading, error: visible.error, refresh, createExercise };
+  const visible = state.owner === coachId && state.search === search
+    ? state : emptyData(coachId, search);
+  return { exercises: visible.exercises, isLoading: visible.isLoading, error: visible.error, search, setSearch: updateSearch,
+    isLoadingMore: visible.isLoadingMore, hasMore: visible.hasMore, refresh, loadMore, createExercise };
 }

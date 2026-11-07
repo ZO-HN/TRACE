@@ -1,4 +1,5 @@
-import { useEffect, useState } from 'react';
+import { useEffect, useRef, useState } from 'react';
+import {Link} from 'react-router';
 import { Plus, Trash2, UsersRound, X } from 'lucide-react';
 import { Badge } from '@/components/ui/shadcn/badge';
 import {
@@ -110,21 +111,35 @@ function ManageMembersDialog({
   const [memberIds, setMemberIds] = useState<Set<string>>(new Set());
   const [isLoading, setIsLoading] = useState(false);
   const [pendingId, setPendingId] = useState<string | null>(null);
+  const [loadAttempt,setLoadAttempt]=useState(0);
+  const [memberError,setMemberError]=useState<string|null>(null);
+  const fetchLatest=useRef(fetchMemberIds);fetchLatest.current=fetchMemberIds;
+  const lease=useRef({alive:false});const writing=useRef(false);
+  const groupId=group?.id;
 
   useEffect(() => {
-    if (!group) return;
+    if (!groupId) return;
+    const scope={alive:true};lease.current=scope;
     setIsLoading(true);
-    void fetchMemberIds(group.id).then(({ memberIds: ids }) => {
-      setMemberIds(new Set(ids));
+    setMemberError(null);
+    void fetchLatest.current(groupId).then(({ memberIds: ids,error }) => {
+      if(!scope.alive)return;
+      if(error)setMemberError(error);else setMemberIds(new Set(ids));
       setIsLoading(false);
-    });
-  }, [group, fetchMemberIds]);
+    }).catch(cause=>{if(scope.alive){setMemberError(cause instanceof Error?cause.message:'Could not load group members.');setIsLoading(false);}});
+    return()=>{scope.alive=false;};
+  }, [groupId,loadAttempt]);
 
   const toggle = async (clientId: string, isMember: boolean) => {
-    if (!group) return;
+    const scope=lease.current;
+    if (!group||!scope.alive||writing.current||memberError||isLoading) return;
+    writing.current=true;
     setPendingId(clientId);
+    try{
     const { error } = isMember ? await removeMember(group.id, clientId) : await addMember(group.id, clientId);
-    if (!error) {
+    if(!scope.alive)return;
+    if (error) setMemberError(`${error} Reload members to confirm the saved state before changing it again.`);
+    else {
       setMemberIds((prev) => {
         const next = new Set(prev);
         if (isMember) next.delete(clientId);
@@ -132,7 +147,8 @@ function ManageMembersDialog({
         return next;
       });
     }
-    setPendingId(null);
+    }catch(cause){if(scope.alive)setMemberError(cause instanceof Error?cause.message:'Could not change group membership. Reload to confirm.');}
+    finally{writing.current=false;if(scope.alive)setPendingId(null);}
   };
 
   return (
@@ -144,7 +160,7 @@ function ManageMembersDialog({
 
         {isLoading ? (
           <div className="py-8 text-center text-sm text-muted-foreground">Loading...</div>
-        ) : clients.length === 0 ? (
+        ) : memberError ? <div role="alert">{memberError} <button onClick={()=>setLoadAttempt(n=>n+1)}>Reload members</button></div> : clients.length === 0 ? (
           <p className="text-sm text-muted-foreground py-4">No clients yet.</p>
         ) : (
           <div className="flex flex-col gap-1 max-h-96 overflow-y-auto">
@@ -154,7 +170,7 @@ function ManageMembersDialog({
                 <button
                   key={c.id}
                   type="button"
-                  disabled={pendingId === c.id}
+                  disabled={pendingId !== null}
                   onClick={() => void toggle(c.id, isMember)}
                   className="flex items-center justify-between h-11 px-3 rounded-lg hover:bg-background text-left disabled:opacity-50"
                 >
@@ -180,12 +196,11 @@ function ManageMembersDialog({
   );
 }
 
-export default function TrainingGroupsPage() {
-  const profile = useProfile();
-  const { programs } = usePrograms(profile.id);
+function TrainingGroupsWorkspace({coachId}:{coachId:string}) {
+  const { programs } = usePrograms(coachId);
   const { groups, isLoading, error, createGroup, deleteGroup, fetchMemberIds, addMember, removeMember } =
-    useTrainingGroups(profile.id);
-  const { clients } = useClients(profile.id);
+    useTrainingGroups(coachId);
+  const { clients,isLoading:rosterLoading,error:rosterError,refresh:reloadRoster } = useClients(coachId);
   const { toast } = useToast();
   const [open, setOpen] = useState(false);
   const [managingGroup, setManagingGroup] = useState<TrainingGroupRow | null>(null);
@@ -212,10 +227,11 @@ export default function TrainingGroupsPage() {
         </button>
       </div>
       <p className="text-sm text-muted-foreground -mt-2">
-        Group clients together to share programs, announcements, and check-ins.
+        Manage linked trainees together. In <Link to="/programs" className="underline">Programs</Link>, save the program days, select this group and activate its start date to deliver a shared cycle. Choosing a program when creating a group alone does not activate delivery. Membership changes affect fresh program opens; issued copies and history remain retained.
       </p>
 
       {error && <p className="text-sm text-danger">Could not load training groups: {error}</p>}
+      {rosterError&&<div role="alert">{rosterError} <button onClick={()=>void reloadRoster()}>Retry linked trainees</button></div>}
 
       {isLoading ? (
         <div className="py-24 text-center text-sm text-muted-foreground">Loading...</div>
@@ -241,6 +257,7 @@ export default function TrainingGroupsPage() {
               <div className="flex items-center gap-2">
                 <button
                   type="button"
+                  disabled={rosterLoading||Boolean(rosterError)}
                   onClick={() => setManagingGroup(g)}
                   className="flex items-center gap-1.5 h-9 px-3 rounded-lg border border-border text-xs font-semibold text-foreground hover:bg-background"
                 >
@@ -260,6 +277,7 @@ export default function TrainingGroupsPage() {
 
       <CreateGroupDialog open={open} onOpenChange={setOpen} programs={programs} onCreate={handleCreate} />
       <ManageMembersDialog
+        key={`${coachId}:${managingGroup?.id??'closed'}`}
         group={managingGroup}
         onOpenChange={(isOpen) => !isOpen && setManagingGroup(null)}
         clients={clients}
@@ -269,4 +287,10 @@ export default function TrainingGroupsPage() {
       />
     </div>
   );
+}
+
+export default function TrainingGroupsPage(){
+  const profile=useProfile();
+  if(!profile||profile.role!=='coach')return <p role="alert" className="p-6">A signed-in coach account is required.</p>;
+  return <TrainingGroupsWorkspace key={profile.id} coachId={profile.id}/>;
 }

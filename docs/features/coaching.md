@@ -1,23 +1,27 @@
 # Coaching, identity, media, and communication
 
-Status: mixed implemented paths and open integration/release gates. Owner: TRACE maintainers. Updated: 2026-10-31. Sources: RLS/RPCs, auth/check-in/chat/media/push modules, and diagnosis D01/D02/D05/D06/D08-D10/D13/D15/D17/D18/D20-D25.
+Status: mixed implemented paths and open integration/release gates. Owner: TRACE maintainers. Updated: 2026-11-05. Sources: RLS/RPCs, auth/check-in/chat/media/push modules, diagnosis D01/D02/D05/D06/D08-D10/D13/D15/D17/D18/D20-D25, and [D01 local evidence](../qa/media-entitlement-2026-11-05.md).
+
+Current local onboarding follow-up (7 November): account-owned step-save/resume, invite-derived atomic submission/receipt, roster questionnaire review, existing-account mobile email-code sign-in, explicit coach-role handoff and waiting-for-assignment states are implemented. These require the new canonical migration and actual email/browser/native acceptance before release. Existing submitted-coach questionnaire access is preserved; no corrections/retention policy was added. [Evidence and release order](../qa/onboarding-workflow-2026-11-07.md).
 
 ## Behavior required for acceptance
 
 - Coaches use the web workspace; trainees select/claim a coach or follow an authorized invite. Privilege and coach-link changes are controlled server-side. Handle the diagnosed mobile coach-role UX mismatch explicitly.
+- Completing an invited onboarding creates the trainee account's coach relationship, records the submitted answers for that coach, and copies the submitted full name into the trainee profile so the new client is identifiable in the coach's Clients roster. Reopening the invite must not switch an account already linked to a different coach.
 - Check-in responses belong to the trainee, use the scheduled due date, and receive server-stamped coach identity. Review fields are coach-controlled. See the [shared contract](../architecture/client-contract.md).
-- Keep standalone form checks separate from per-set clips. Media URL issuance must prove ownership/authorized relationship through trustworthy records, including coach reassignment/revocation behavior; attaching a known foreign key must not grant access.
+- Keep standalone form checks separate from per-set clips. Media URLs require a server-issued ownership registry entry. New/changed attachments must match registered owner and kind; owners can view their registered media, and the current coach can view attached per-set or standalone form videos. Reassignment revokes the former coach from newly issued URLs. Unregistered legacy references stay stored but receive no new URL; reupload is required. Existing signed URLs expire normally. `progress-photo` is now supported for its owning trainee. V2 write-once upload and size/type/ETag/signature-prefix verification precede attachment; V1 views seal an immutable server copy. Check-in files require a trainee-owned explicit answer and the audited current coach. Exact photo/form/avatar receipts preserve history on retry. [Finalization evidence](../qa/media-finalization-2026-11-08.md) records the local boundary; full decoding/scanning, cleanup/deletion, quotas, retention and hosted/native acceptance remain open.
 - Enforce the real browser SDK preflight headers and R2 bucket CORS as separate hops. Support a media kind on both upload and playback before exposing its success path.
 - Media finalization/cleanup must account for failed metadata writes, actual object size/type, deletion, quotas and retention. Current live object validation/lifecycle configuration is unverified.
 - Chat loads recent history, paginates older records, reconciles initial fetch/Realtime arrivals, and exposes failed delivery. Never present the oldest 200 messages as complete current history.
 - Notifications honor category/mute/quiet-hour preferences with explicit timezone/overnight behavior. Distinguish provider acceptance from delivery; inspect error tickets/receipts, handle invalid tokens, and route push-open events intentionally.
 - A notification inbox requires scoped persisted reads/unread state. An empty screen/preferences form is not an implemented inbox. Vault folders require resource records, access control and recipient delivery before being described as a delivered library.
+- A coach can assign an active private workout as a fixed ordered copy to one currently linked trainee. The copy contains its own prescription snapshot; editing the source later does not alter it, and a newer version requires another explicit assignment. The trainee starts that exact assigned template from the existing workout library. No assignment notification is sent. Local code and focused tests exist; hosted role, browser, authenticated mobile/device and deployment acceptance remain open in [assignment evidence](../qa/private-workout-assignment-2026-11-05.md).
 
 ## Acceptance
 
-- [ ] Two coaches/two trainees complete invite/claim/profile flows; forged role/admin/review/link writes fail.
+- [ ] Two coaches/two trainees complete invite/claim/profile flows; each completed invited trainee appears with their submitted name in only the invited coach's Clients roster and onboarding answers remain coach-readable; forged role/admin/review/link writes fail.
 - [ ] Submit/review a dated check-in, reload, and verify connected-coach access plus unrelated-account denial.
-- [ ] Upload/reopen per-set and standalone clips separately. Test owner, assigned coach, unrelated accounts, changed coach, fabricated reference, known foreign key, and expired URL.
+- [ ] Upload/reopen per-set and standalone clips separately. Local SQL/handler checks cover owner, current coach, unrelated accounts, coach reassignment, forged references and unregistered legacy keys. Deployed R2 round trips and expired URLs remain staging acceptance gates.
 - [ ] Progress photos pass capture/upload/metadata/reopen/comparison and privacy checks; current kind/playback gaps remain open.
 - [ ] OPTIONS permits the actual SDK headers; authenticated browser POST and direct R2 PUT succeed only under intended policies.
 - [ ] Conversations above 200 messages show newest content and older pagination without duplicates during switching/reconnect.

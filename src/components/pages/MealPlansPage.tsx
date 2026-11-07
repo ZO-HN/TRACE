@@ -1,3 +1,4 @@
+import PublishMealPlan from '@/components/coach/PublishMealPlan';
 import { useMemo, useRef, useState } from 'react';
 import { ChevronDown, ChevronUp, Flame, Plus, Trash2, UtensilsCrossed, X } from 'lucide-react';
 import { cn } from '@/lib/utils';
@@ -202,6 +203,8 @@ function MealPlanBuilder({
   const [kcalPerKg, setKcalPerKg] = useState('');
   const [manualCalories, setManualCalories] = useState('');
   const [saving, setSaving] = useState(false);
+  const savingRef = useRef(false);
+  const [saveError, setSaveError] = useState<string | null>(null);
 
   const maintenanceEstimate = useMemo(
     () => mifflinStJeor(sex, Number(age), Number(heightCm), Number(weightKg)),
@@ -272,7 +275,9 @@ function MealPlanBuilder({
     }));
 
   const handleSave = async () => {
-    setSaving(true);
+    if (savingRef.current) return;
+    savingRef.current = true; setSaving(true); setSaveError(null);
+    try {
     const { error } = await onSave({
       name: client ? `${client.first_name}'s plan` : 'Untitled plan',
       clientId,
@@ -296,12 +301,15 @@ function MealPlanBuilder({
         })),
       },
     });
-    setSaving(false);
     if (!error) onClose();
+    else setSaveError(error);
+    } catch (error) { setSaveError(error instanceof Error ? error.message : 'Could not save meal plan.'); }
+    finally { savingRef.current = false; setSaving(false); }
   };
 
   return (
     <div className="flex flex-col gap-4">
+      {saveError && <p role="alert" className="text-sm text-danger">{saveError}</p>}
       <div className="flex items-center justify-between">
         <div className="flex items-center gap-2 text-sm text-muted-foreground">
           Building for
@@ -441,7 +449,7 @@ function MealPlanBuilder({
               onClick={() => void handleSave()}
               className="h-10 w-fit px-4 rounded-lg bg-success text-white text-sm font-semibold hover:opacity-90 transition-opacity disabled:opacity-40"
             >
-              {saving ? 'Saving...' : 'Save meal plan'}
+              {saving ? 'Saving...' : 'Save meal plan draft'}
             </button>
           </CardContent>
         )}
@@ -632,7 +640,7 @@ export default function MealPlansPage() {
       <div className="flex items-center justify-between">
         <div>
           <h1 className="text-lg font-bold text-foreground">Meal plans</h1>
-          <p className="text-sm text-muted-foreground">Build reusable meal plans and assign them to clients.</p>
+          <p className="text-sm text-muted-foreground">Save meal-plan drafts, then explicitly publish a fixed copy to a trainee.</p>
         </div>
         <button
           type="button"
@@ -675,6 +683,7 @@ export default function MealPlansPage() {
                     {client ? `${client.first_name} ${client.last_name}` : 'No client assigned'}
                     {target != null && ` · ${target} kcal target`}
                   </p>
+                  <PublishMealPlan key={`${profile.id}:${p.id}`} coachId={profile.id} plan={p} clients={clients} />
                 </div>
                 <button
                   onClick={() => void deleteMealPlan(p.id)}

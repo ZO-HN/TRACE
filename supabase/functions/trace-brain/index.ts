@@ -15,6 +15,7 @@
 
 import { createClient } from 'jsr:@supabase/supabase-js@2';
 import { corsHeaders as CORS } from '../_shared/cors.ts';
+import { AI_AVAILABLE } from '../_shared/availability.ts';
 
 function json(status: number, body: unknown): Response {
   return new Response(JSON.stringify(body), {
@@ -53,6 +54,7 @@ Deno.serve(async (req: Request) => {
       error: authError,
     } = await asUser.auth.getUser();
     if (authError || !user) return json(401, { error: 'Invalid token' });
+    if (!AI_AVAILABLE) return json(503, { error: 'AI features are unavailable in TRACE V1.' });
 
     let body: unknown;
     try {

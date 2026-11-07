@@ -1,7 +1,7 @@
 import { useEffect, useMemo, useState, type FormEvent } from 'react';
 import { useLocation, Link } from 'react-router';
 import { hasOnboardingAnswer } from '@/lib/onboardingValidation';
-import { onboardingAccountError } from '@/lib/onboardingAccount';
+import { useClientOnboarding } from '@/hooks/useClientOnboarding';
 import {
   AlertTriangle,
   ArrowLeft,
@@ -512,14 +512,15 @@ export default function OnboardingWizardPage({ previewScreen, previewInviteId }:
   useEffect(() => {
     if (!inviteId) return;
     let cancelled = false;
+    setInvite(null);
     setInviteResolving(true);
     setInviteInvalid(false);
-    supabase
+    Promise.resolve(supabase
       .rpc('get_invite_link', { p_invite_id: inviteId })
-      .maybeSingle()
-      .then(({ data }) => {
+      .maybeSingle())
+      .then(({ data, error }) => {
         if (cancelled) return;
-        if (!data) {
+        if (error || !data) {
           setInviteInvalid(true);
         } else {
           const row = data as { coach_id: string; coach_first_name: string; screens_config: { k: string; e: boolean }[] };
@@ -530,16 +531,30 @@ export default function OnboardingWizardPage({ previewScreen, previewInviteId }:
           });
         }
         setInviteResolving(false);
-      });
+      }).catch(() => { if (!cancelled) { setInviteInvalid(true); setInviteResolving(false); } });
     return () => {
       cancelled = true;
     };
   }, [inviteId]);
 
   const legacyScreens = useMemo(() => (inviteId ? [] : parseInviteConfig(location.search)), [inviteId, location.search]);
-  const screens = useMemo(() => previewScreen ? [{ ...previewScreen, enabled: true }] : invite ? invite.screens : legacyScreens, [previewScreen, invite, legacyScreens]);
-  const coachName = invite ? invite.coachName : params.get('coach') || 'your coach';
-  const coachId = invite ? invite.coachId : params.get('coachId');
+  const [phase, setPhase] = useState<'intro' | 'auth' | 'form' | 'review' | 'done'>(previewScreen ? 'form' : 'intro');
+  const [stepIndex, setStepIndex] = useState(0);
+  const [linkCopied, setLinkCopied] = useState(false);
+  const [userId, setUserId] = useState<string | null>(null);
+  const [authChecked, setAuthChecked] = useState(false);
+  const [authEmail, setAuthEmail] = useState('');
+  const [authSubmitting, setAuthSubmitting] = useState(false);
+  const [authSent, setAuthSent] = useState(false);
+  const [authError, setAuthError] = useState<string | null>(null);
+  const onboarding = useClientOnboarding(userId, inviteId, isPreview);
+  const [previewAnswers, setPreviewAnswers] = useState<Record<string, Answer>>({});
+  const answers = isPreview ? previewAnswers : onboarding.answers;
+  const setAnswers = isPreview ? setPreviewAnswers : onboarding.setAnswers;
+  const submitting = onboarding.busy;
+  const submitError = onboarding.error;
+  const screens = useMemo(() => previewScreen ? [{ ...previewScreen, enabled: true }] : onboarding.draft ? decodeScreensConfig(onboarding.draft.form_config) : invite ? invite.screens : legacyScreens, [previewScreen, onboarding.draft, invite, legacyScreens]);
+  const coachName = onboarding.draft?.coach_name || (invite ? invite.coachName : params.get('coach') || 'your coach');
 
   const steps = useMemo(
     () =>
@@ -550,29 +565,31 @@ export default function OnboardingWizardPage({ previewScreen, previewInviteId }:
     [screens],
   );
 
-  const [phase, setPhase] = useState<'intro' | 'auth' | 'form' | 'review' | 'done'>(previewScreen ? 'form' : 'intro');
-  const [stepIndex, setStepIndex] = useState(0);
-  const [answers, setAnswers] = useState<Record<string, Answer>>({});
-  const [linkCopied, setLinkCopied] = useState(false);
-  const [userId, setUserId] = useState<string | null>(null);
-  const [authChecked, setAuthChecked] = useState(false);
-  const [authEmail, setAuthEmail] = useState('');
-  const [authSubmitting, setAuthSubmitting] = useState(false);
-  const [authSent, setAuthSent] = useState(false);
-  const [authError, setAuthError] = useState<string | null>(null);
-  const [submitting, setSubmitting] = useState(false);
-  const [submitError, setSubmitError] = useState<string | null>(null);
+
+  useEffect(() => {
+    setStepIndex(0);
+    setPhase(previewScreen ? 'form' : 'intro');
+  }, [userId, inviteId, previewScreen]);
+  useEffect(() => {
+    if (onboarding.draft?.submitted_response_id) setPhase('done');
+  }, [onboarding.draft]);
 
   useEffect(() => {
     if (isPreview) return;
-    supabase.auth.getSession().then(({ data }) => {
+    let alive = true;
+    let authEvent = false;
+    supabase.auth.getSession().then(({ data, error }) => {
+      if (!alive || authEvent) return;
       setUserId(data.session?.user.id ?? null);
+      setAuthError(error?.message ?? null);
       setAuthChecked(true);
-    });
+    }).catch(() => { if (alive && !authEvent) { setAuthError('Unable to check your session. Reload to try again.'); setAuthChecked(true); } });
     const { data: sub } = supabase.auth.onAuthStateChange((_event, session) => {
+      authEvent = true;
+      setAuthChecked(true);
       setUserId(session?.user.id ?? null);
     });
-    return () => sub.subscription.unsubscribe();
+    return () => { alive = false; sub.subscription.unsubscribe(); };
   }, [isPreview]);
 
   useEffect(() => {
@@ -587,8 +604,8 @@ export default function OnboardingWizardPage({ previewScreen, previewInviteId }:
 
   const setAnswer = (key: string, value: Answer) => setAnswers((a) => ({ ...a, [key]: value }));
 
-  const goNext = () => {
-    if (!canContinue) return;
+  const goNext = async () => {
+    if (!canContinue || (!isPreview && !(await onboarding.save()))) return;
     if (stepIndex + 1 >= steps.length) {
       setPhase('review');
     } else {
@@ -600,16 +617,15 @@ export default function OnboardingWizardPage({ previewScreen, previewInviteId }:
     e.preventDefault();
     setAuthSubmitting(true);
     setAuthError(null);
-    const { error } = await supabase.auth.signInWithOtp({
-      email: authEmail,
-      options: { shouldCreateUser: true, emailRedirectTo: window.location.href },
-    });
-    setAuthSubmitting(false);
-    if (error) {
-      setAuthError(error.message);
-      return;
-    }
-    setAuthSent(true);
+    try {
+      const { error } = await supabase.auth.signInWithOtp({
+        email: authEmail.trim(),
+        options: { shouldCreateUser: true, emailRedirectTo: window.location.href },
+      });
+      if (error) throw new Error(error.message);
+      setAuthSent(true);
+    } catch (error) { setAuthError(error instanceof Error ? error.message : 'Unable to send sign-in email. Try again.'); }
+    finally { setAuthSubmitting(false); }
   };
 
   const handleComplete = async () => {
@@ -623,41 +639,12 @@ export default function OnboardingWizardPage({ previewScreen, previewInviteId }:
       setPhase('done');
       return;
     }
-    if (!userId || !coachId) {
-      setSubmitError('Missing coach or account info — try reopening this link.');
-      return;
-    }
-    setSubmitting(true);
-    setSubmitError(null);
-
-    const { data: profileRow, error: profileError } = await supabase.from('profiles').select('role, coach_id').eq('id', userId).maybeSingle();
-    const accountError = profileError?.message ?? onboardingAccountError(profileRow, coachId);
-    if (accountError) {
-      setSubmitting(false);
-      setSubmitError(accountError);
-      return;
-    }
-    if (profileRow && profileRow.coach_id !== coachId) {
-      const { error: claimError } = await supabase.rpc('claim_coach_by_id', { p_coach_id: coachId });
-      if (claimError) {
-        setSubmitting(false);
-        setSubmitError(claimError.message);
-        return;
-      }
-    }
-
-    const { error: insertError } = await supabase
-      .from('onboarding_responses')
-      .insert({ trainee_id: userId, coach_id: coachId, answers });
-    setSubmitting(false);
-    if (insertError) {
-      setSubmitError(insertError.message);
-      return;
-    }
+    if (!(await onboarding.complete())) return;
     setPhase('done');
   };
 
   const jumpToStep = (key: string) => {
+    if (onboarding.editingLocked) return;
     const idx = steps.findIndex((s) => s.key === key);
     if (idx >= 0) {
       setStepIndex(idx);
@@ -690,7 +677,8 @@ export default function OnboardingWizardPage({ previewScreen, previewInviteId }:
     { key: 'nutrition', title: 'Nutrition', icon: UtensilsCrossed },
   ];
 
-  const goBack = () => {
+  const goBack = async () => {
+    if (!isPreview && !(await onboarding.save())) return;
     if (stepIndex === 0) {
       setPhase('intro');
     } else {
@@ -700,6 +688,12 @@ export default function OnboardingWizardPage({ previewScreen, previewInviteId }:
 
   const estMinutes = Math.max(2, Math.round(steps.length * 0.4));
 
+  if (!isPreview && userId && inviteId && (onboarding.loading || (!onboarding.draft && onboarding.error))) {
+    return <div className="min-h-screen flex flex-col items-center justify-center gap-4 p-6">
+      {onboarding.loading ? <Loader2 className="animate-spin" /> : <><p role="alert">{onboarding.error}</p><button onClick={() => void onboarding.reload()}>Retry loading saved answers</button><button onClick={() => void supabase.auth.signOut()}>Sign out to use a different account</button></>}
+    </div>;
+  }
+  if (!isPreview && !inviteId) return <div className="p-8">Ask your coach for a current invitation link. Older links cannot securely submit onboarding.</div>;
   if (inviteResolving) {
     return (
       <div className="min-h-screen flex items-center justify-center bg-background text-foreground p-6">
@@ -708,7 +702,7 @@ export default function OnboardingWizardPage({ previewScreen, previewInviteId }:
     );
   }
 
-  if (inviteInvalid) {
+  if (inviteInvalid && !onboarding.draft?.submitted_response_id) {
     return (
       <div className="min-h-screen flex items-center justify-center bg-background text-foreground p-6">
         <div className="max-w-sm text-center flex flex-col items-center gap-2">
@@ -776,13 +770,13 @@ export default function OnboardingWizardPage({ previewScreen, previewInviteId }:
         <div className="border-t border-border bg-surface px-6 py-5 flex flex-col items-center gap-3">
           <button
             type="button"
-            disabled={!authChecked}
+            disabled={!isPreview && !authChecked}
             onClick={() => setPhase(isPreview || userId ? 'form' : 'auth')}
             className="w-full max-w-2xl flex items-center justify-center gap-2 h-12 rounded-xl bg-primary text-primary-foreground text-base font-semibold hover:opacity-90 transition-opacity disabled:opacity-60"
           >
             Get Started <ArrowRight size={16} />
           </button>
-          {!coachId && (
+          {!invite && (
             <p className="text-xs text-danger text-center max-w-md">
               This link doesn't have a coach attached — ask your coach to re-share their invite link.
             </p>
@@ -927,15 +921,16 @@ export default function OnboardingWizardPage({ previewScreen, previewInviteId }:
         </div>
 
         <div className="border-t border-border bg-surface px-6 py-4 flex flex-col items-center gap-2 max-w-2xl mx-auto w-full">
-          {submitError && <p className="text-xs text-danger text-center">{submitError}</p>}
+          {submitError && <p role="alert" className="text-xs text-danger text-center">{submitError}</p>}
+          {onboarding.uncertain && <button type="button" disabled={submitting} onClick={() => void onboarding.reload()}>Reload submission status</button>}
           <button
             type="button"
-            disabled={submitting}
+            disabled={submitting || (!isPreview && !onboarding.draft)}
             onClick={() => void handleComplete()}
             className="w-full flex items-center justify-center gap-2 h-12 rounded-xl bg-primary text-primary-foreground text-base font-semibold hover:opacity-90 transition-opacity disabled:opacity-60"
           >
             {submitting && <Loader2 size={16} className="animate-spin" />}
-            {submitting ? 'Submitting...' : 'Complete onboarding'}
+            {submitting ? 'Submitting...' : onboarding.uncertain ? 'Retry same submission' : 'Complete onboarding'}
           </button>
         </div>
       </div>
@@ -968,11 +963,11 @@ export default function OnboardingWizardPage({ previewScreen, previewInviteId }:
           <div className="w-14 h-14 rounded-full bg-primary/15 border border-primary/30 flex items-center justify-center mb-1">
             <Check size={24} className="text-primary" />
           </div>
-          <span className="rounded-full bg-primary/10 text-primary text-xs font-semibold px-3 py-1.5">Application sent</span>
-          <h1 className="text-2xl font-extrabold">Thanks for reaching out to {displayCoach}</h1>
+          <span className="rounded-full bg-primary/10 text-primary text-xs font-semibold px-3 py-1.5">Client setup complete</span>
+          <h1 className="text-2xl font-extrabold">You're connected to {displayCoach}</h1>
           <p className="text-sm text-muted-foreground max-w-md">
             Your answers were sent to {displayCoach} and your account is linked to them. Download the TRACE app and sign in with the
-            same email to see your training and nutrition plan once {displayCoach.toLowerCase()} sets it up.
+            same email using an email code. Your coach still needs to assign your workout; this submission does not create a plan.
           </p>
 
           <div className="w-full rounded-xl border border-border p-5 mt-4 flex items-center justify-between gap-4 flex-wrap">
@@ -994,11 +989,11 @@ export default function OnboardingWizardPage({ previewScreen, previewInviteId }:
               {linkCopied ? <Check size={13} /> : <Copy size={13} />} {linkCopied ? 'Copied' : 'Copy this link'}
             </button>
           </div>
-          <p className="text-xs text-muted-foreground -mt-2">Share this page to finish onboarding on another device.</p>
+          <p className="text-xs text-muted-foreground -mt-2">Keep this link to reopen your confirmation while signed in to the same account.</p>
 
           <div className="w-full grid grid-cols-1 sm:grid-cols-3 gap-3 mt-2">
             {[
-              { n: 1, title: 'Install the TRACE app', body: 'Download the app on your phone using the App Store or Google Play links below.' },
+              { n: 1, title: 'Install the TRACE app', body: 'Ask your coach for the approved private-pilot installation link. Store distribution is not available yet.' },
               {
                 n: 2,
                 title: 'Log in with the same email',
@@ -1161,10 +1156,12 @@ export default function OnboardingWizardPage({ previewScreen, previewInviteId }:
           </div>
           <p className="text-sm text-foreground pt-1.5">{current.def.footerText}</p>
         </div>
+        {submitError && <div role="alert" className="text-sm text-danger"><p>{submitError}</p><p>Retry saving the same answers, or reload the saved version before editing.</p><button type="button" disabled={submitting} onClick={() => void onboarding.reload()}>Reload saved answers (replaces unsaved edits)</button></div>}
+        {!isPreview && <button type="button" disabled={submitting || onboarding.uncertain} onClick={() => void onboarding.save()}>Save answers for later</button>}
         <div className="flex items-center justify-between">
           <button
             type="button"
-            onClick={goBack}
+            disabled={submitting || onboarding.uncertain} onClick={goBack}
             className="flex items-center gap-1.5 h-11 px-4 rounded-lg border border-border text-sm font-medium text-foreground hover:bg-background transition-colors"
           >
             <ArrowLeft size={14} /> Back
@@ -1172,7 +1169,7 @@ export default function OnboardingWizardPage({ previewScreen, previewInviteId }:
           <button
             type="button"
             onClick={goNext}
-            disabled={!canContinue}
+            disabled={!canContinue || submitting || onboarding.uncertain || (!isPreview && !onboarding.draft)}
             className="flex items-center gap-1.5 h-11 px-5 rounded-lg bg-primary text-primary-foreground text-sm font-semibold hover:opacity-90 transition-opacity disabled:opacity-40 disabled:cursor-not-allowed"
           >
             {stepIndex + 1 >= steps.length ? 'Finish' : 'Next'} <ArrowRight size={14} />

@@ -12,8 +12,12 @@ export interface ChatPanelProps {
   peerLabel: string;
 }
 
-export default function ChatPanel({ myId, peerId, peerLabel }: ChatPanelProps) {
-  const { messages, send, error } = useDirectChat(myId, peerId);
+export default function ChatPanel(props: ChatPanelProps) {
+  return <ConversationPanel key={`${props.myId}:${props.peerId}`} {...props} />;
+}
+
+function ConversationPanel({ myId, peerId, peerLabel }: ChatPanelProps) {
+  const { messages, send, error, isLoading, loadingOlder, hasMore, loadOlder, refresh } = useDirectChat(myId, peerId);
   const [draft, setDraft] = useState('');
   const [sending, setSending] = useState(false);
 
@@ -37,7 +41,9 @@ export default function ChatPanel({ myId, peerId, peerLabel }: ChatPanelProps) {
       </div>
 
       <div className="flex-1 overflow-y-auto p-3 space-y-2 min-h-[8rem]">
-        {messages.length === 0 && (
+        {isLoading && <p className="text-xs text-gray-500">Loading messages…</p>}
+        {hasMore && <button type="button" disabled={loadingOlder} onClick={() => void loadOlder()} className="text-xs text-primary">{loadingOlder ? 'Loading…' : 'Load older messages'}</button>}
+        {!isLoading && !error && messages.length === 0 && (
           <p className="text-xs text-gray-500 text-center py-4">No messages yet.</p>
         )}
         {messages.map((m) => (
@@ -58,11 +64,13 @@ export default function ChatPanel({ myId, peerId, peerLabel }: ChatPanelProps) {
       </div>
 
       {error && (
-        <p className="px-4 py-1 text-xs text-red-400 border-t border-border">{error}</p>
+        <p className="px-4 py-1 text-xs text-red-400 border-t border-border">{error} <button type="button" onClick={() => void refresh()}>Refresh conversation</button></p>
       )}
 
       <div className="p-2 border-t border-border flex gap-2">
         <input
+          maxLength={4000}
+          disabled={sending}
           value={draft}
           onChange={(e) => setDraft(e.target.value)}
           onKeyDown={(e) => {

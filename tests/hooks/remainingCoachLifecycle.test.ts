@@ -20,6 +20,7 @@ vi.mock('../../src/lib/supabase', () => ({ supabase: {
       eq: (column: string, value: unknown) => { trace.filters.push([column, value]); return query; },
       or: (value: string) => { trace.or = value; return query; },
       order: () => query, maybeSingle: () => query, single: () => query,
+      range: () => query,
       insert: (payload: unknown) => { trace.method = 'insert'; trace.payload = payload; return query; },
       update: (payload: unknown) => { trace.method = 'update'; trace.payload = payload; return query; },
       delete: () => { trace.method = 'delete'; return query; },

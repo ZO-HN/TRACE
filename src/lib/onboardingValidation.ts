@@ -15,12 +15,12 @@ export function hasOnboardingAnswer(key: string, def: StepDef, value: unknown): 
     if (!value || typeof value !== 'object') return false;
     return ['protein', 'carbs', 'fat'].every(k => {
       const v = (value as Record<string, unknown>)[k];
-      return filled(v) && Number.isFinite(Number(v)) && Number(v) >= 0;
+      return filled(v) && /^\d+(\.\d+)?$/.test(v.trim()) && Number.isFinite(Number(v)) && Number(v) >= 0;
     });
   }
   if (!filled(value)) return false;
   if (def.kind === 'email') return /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(value.trim());
-  if (def.kind === 'height') return /^\d+'\d{1,2}$/.test(value) || (Number(value) >= 100 && Number(value) <= 250);
-  if (def.kind === 'weight') return Number.isFinite(Number(value)) && Number(value) > 0;
+  if (def.kind === 'height') return /^\d+'([0-9]|1[01])$/.test(value) || (Number(value) >= 100 && Number(value) <= 250);
+  if (def.kind === 'weight') return /^\d+(\.\d+)?$/.test(value.trim()) && Number.isFinite(Number(value)) && Number(value) > 0;
   return true;
 }

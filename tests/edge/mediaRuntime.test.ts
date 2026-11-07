@@ -6,7 +6,7 @@ import { describe, expect, it, vi } from 'vitest';
 
 type Handler = (request: Request) => Promise<Response>;
 type Name = 'r2-presign' | 'r2-get-url';
-type Failure = 'client' | 'auth' | 'lookup' | 'lookupError' | 'aws' | 'sign';
+type Failure = 'client' | 'auth' | 'lookup' | 'lookupError' | 'registry' | 'registryError' | 'aws' | 'sign';
 const upload = { kind: 'form-video', filename: 'clip.MP4', contentType: 'video/mp4', sizeBytes: 100 };
 const clipKey = 'form-video/owner/clip.mp4';
 const avatarKey = 'coach-image/owner/avatar.png';
@@ -17,20 +17,31 @@ const configs = ['SUPABASE_URL', 'SUPABASE_ANON_KEY', 'R2_ACCOUNT_ID', 'R2_BUCKE
 function loadHandler(name: Name, options: { failure?: Failure; denied?: boolean; invalidAuth?: boolean; missingUser?: boolean; missingConfig?: string; blankConfig?: boolean } = {}) {
   let handler: Handler | undefined;
   const privateError = new Error('fixture-private-secret / internal stack details');
+  let requestedKey=clipKey;
   const getUser = vi.fn(async (_jwt?: string) => {
     if (options.failure === 'auth') throw privateError;
     return { data: { user: options.missingUser ? null : { id: 'owner' } }, error: options.invalidAuth ? privateError : null };
   });
   const lookup = vi.fn(async () => {
     if (options.failure === 'lookup') throw privateError;
-    return { data: options.denied ? null : { id: 'visible' }, error: options.failure === 'lookupError' ? privateError : null };
+    const kind=requestedKey.split('/')[0],type=kind==='coach-image'?'image/png':'video/mp4';
+    return { data: options.denied ? null : {object_key:requestedKey,owner_id:'owner',kind,content_type:type,declared_size_bytes:100,
+      protocol_version:2,state:'ready',verified_key:requestedKey,actual_size_bytes:100,actual_content_type:type,verified_etag:'"verified"'}, error: options.failure === 'lookupError' ? privateError : null };
   });
-  const eq = vi.fn((_column: string, _value: unknown) => query);
+  const eq = vi.fn((column: string, value: unknown) => {if(column==='object_key')requestedKey=String(value);return query;});
   const query = { select: () => query, eq, maybeSingle: lookup };
-  const from = vi.fn((_table: string) => query);
+  const insert = vi.fn(async (_row: unknown) => {
+    if (options.failure === 'registry') throw privateError;
+    return { error: options.failure === 'registryError' ? privateError : null };
+  });
+  const from = vi.fn((_table: string) => ({ insert,select:()=>query }));
+  const rpc = vi.fn(async (_name: string, _args: unknown) => {
+    if (options.failure === 'lookup') throw privateError;
+    return { data: options.denied ? false : true, error: options.failure === 'lookupError' ? privateError : null };
+  });
   const client = vi.fn((..._args: unknown[]) => {
     if (options.failure === 'client') throw privateError;
-    return { auth: { getUser }, from };
+    return { auth: { getUser }, from, rpc };
   });
   const sign = vi.fn(async (_url: string, _options: unknown) => {
     if (options.failure === 'sign') throw privateError;
@@ -45,12 +56,13 @@ function loadHandler(name: Name, options: { failure?: Failure; denied?: boolean;
       compilerOptions: { module: ts.ModuleKind.CommonJS, target: ts.ScriptTarget.ES2022 }, fileName: file,
     });
     runInNewContext(outputText, {
-      module, exports: module.exports, Request, Response, crypto,
+      module, exports: module.exports, Request, Response, Headers, AbortSignal,TextEncoder,TextDecoder,crypto,
       Deno: { serve: (callback: Handler) => { handler = callback; }, env: { get: (key: string) => key === options.missingConfig ? (options.blankConfig ? '  ' : undefined) : 'fixture-' + key } },
       require: (specifier: string) => {
         if (specifier === 'jsr:@supabase/supabase-js@2') return { createClient: client };
-        if (specifier === 'https://esm.sh/aws4fetch@1.0.20') return { AwsClient: class { constructor(config: unknown) { aws(config); } sign = sign; } };
-        if (specifier === '../_shared/cors.ts') return load(resolve(dirname(file), specifier));
+        if (specifier === 'https://esm.sh/aws4fetch@1.0.20') return { AwsClient: class { constructor(config: unknown) { aws(config); } sign = sign;
+          fetch=async()=>new Response(null,{headers:{'content-length':'100','content-type':requestedKey.startsWith('coach-image')?'image/png':'video/mp4',etag:'"verified"'}}); } };
+        if (specifier.startsWith('../_shared/')||specifier.startsWith('./')) return load(resolve(dirname(file), specifier));
         throw new Error('Unexpected import: ' + specifier);
       },
     }, { filename: file });
@@ -58,7 +70,7 @@ function loadHandler(name: Name, options: { failure?: Failure; denied?: boolean;
   }
   load(resolve('supabase/functions', name, 'index.ts'));
   if (!handler) throw new Error('Handler not registered');
-  return { handler, client, getUser, lookup, from, eq, aws, sign };
+  return { handler, client, getUser, lookup, from, insert, rpc, eq, aws, sign };
 }
 function request(body: unknown, auth = 'Bearer valid') {
   return new Request('https://fixture.test', { method: 'POST', headers: { Authorization: auth }, body: JSON.stringify(body) });
@@ -121,14 +133,14 @@ describe.each<Name>(['r2-presign', 'r2-get-url'])('%s runtime boundary', (name) 
     expect(h.lookup).not.toHaveBeenCalled();
     expect(h.sign).not.toHaveBeenCalled();
   });
-  it.each(configs)('bounds absent/blank %s configuration', async (missingConfig) => {
+  it.each([...configs, 'SUPABASE_SERVICE_ROLE_KEY'])('bounds absent/blank %s configuration', async (missingConfig) => {
     for (const blankConfig of [false, true]) {
       const h = loadHandler(name, { missingConfig, blankConfig });
       await expectError(await h.handler(request(validBody)), 500);
       expect(h.sign).not.toHaveBeenCalled();
     }
   });
-  it.each<Failure>(['client', 'auth', 'aws', 'sign'])('bounds rejected %s dependency', async (failure) => {
+  it.each<Failure>(['client', 'auth', ...(name === 'r2-presign' ? ['registry', 'registryError'] as const : []), 'aws', 'sign'])('bounds rejected %s dependency', async (failure) => {
     const h = loadHandler(name, { failure });
     await expectError(await h.handler(request(validBody)), 500);
     if (failure !== 'sign') expect(h.sign).not.toHaveBeenCalled();
@@ -154,6 +166,10 @@ describe('upload policy compatibility', () => {
     const body = await response.json();
     expect(body).toEqual({ uploadUrl: 'https://signed.fixture/object', key: expect.stringMatching(new RegExp('^' + metadata.kind + '/owner/[a-f0-9-]+\\.mp4$')), expiresIn: 600 });
     expect(h.getUser).toHaveBeenCalledWith('valid');
+    expect(h.client).toHaveBeenNthCalledWith(2, 'fixture-SUPABASE_URL', 'fixture-SUPABASE_SERVICE_ROLE_KEY', { auth: { persistSession: false, autoRefreshToken: false } });
+    expect(h.from).toHaveBeenCalledWith('media_objects');
+    expect(h.insert).toHaveBeenCalledWith({ object_key: body.key, owner_id: 'owner', kind: metadata.kind, content_type: metadata.contentType, declared_size_bytes: metadata.sizeBytes });
+    expect(h.insert.mock.invocationCallOrder[0]).toBeLessThan(h.sign.mock.invocationCallOrder[0]);
     expect(h.sign).toHaveBeenCalledWith(expect.stringContaining('/' + body.key + '?X-Amz-Expires=600'), { method: 'PUT', aws: { signQuery: true } });
   });
   it.each([undefined, ''])('keeps omitted/empty filename compatibility (%s)', async (filename) => {
@@ -169,13 +185,11 @@ describe.each([clipKey, avatarKey])('playback path %s', (key) => {
     const h = loadHandler('r2-get-url');
     const response = await h.handler(request({ key, extra: 'compatible' }));
     expect(response.status).toBe(200);
-    expect(await response.json()).toEqual({ url: 'https://signed.fixture/object', expiresIn: 600 });
+    expect(await response.json()).toEqual({ url: 'https://signed.fixture/object', expiresIn: 600,contentType:key.startsWith('coach-image')?'image/png':'video/mp4' });
     expect(h.client).toHaveBeenCalledWith('fixture-SUPABASE_URL', 'fixture-SUPABASE_ANON_KEY', { global: { headers: { Authorization: 'Bearer valid' } } });
-    expect(h.from).toHaveBeenCalledWith(key === avatarKey ? 'profiles' : 'set_logs');
-    expect(h.eq).toHaveBeenCalledWith(key === avatarKey ? 'avatar_key' : 'form_video_s3_key', key);
-    if (key === avatarKey) expect(h.eq).toHaveBeenCalledWith('id', 'owner');
+    expect(h.rpc).toHaveBeenCalledWith('can_view_media', { p_key: key });
     expect(h.sign).toHaveBeenCalledWith(expect.stringContaining('/' + key + '?X-Amz-Expires=600'), { method: 'GET', aws: { signQuery: true } });
-    expect(h.lookup.mock.invocationCallOrder[0]).toBeLessThan(h.sign.mock.invocationCallOrder[0]);
+    expect(h.rpc.mock.invocationCallOrder[0]).toBeLessThan(h.sign.mock.invocationCallOrder[0]);
   });
   it('retains forbidden denial without signing', async () => {
     const h = loadHandler('r2-get-url', { denied: true });

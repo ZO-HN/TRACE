@@ -7,9 +7,11 @@ import { describe, expect, it, vi } from 'vitest';
 type Handler = (request: Request) => Promise<Response>;
 type Failure = 'authReject' | 'sessionReject' | 'sessionError' | 'insertReject' | 'insertError' | 'missingMessage' | 'clientReject';
 
+// Retained enabled-adapter runtime coverage uses a fixture-only availability flag.
+// The production-default disabled boundary is covered below.
 // Execute the actual Deno entry point; only configuration and external SDK calls
 // are controlled. This is not a deployed Auth/RLS/provider integration test.
-function loadHandler(options: { failure?: Failure; invalidAuth?: boolean; missingUser?: boolean; forbidden?: boolean; missingConfig?: string; blankConfig?: boolean } = {}) {
+function loadHandler(options: { aiEnabled?: boolean; failure?: Failure; invalidAuth?: boolean; missingUser?: boolean; forbidden?: boolean; missingConfig?: string; blankConfig?: boolean } = {}) {
   let handler: Handler | undefined;
   const secretError = new Error('private dependency details / fixture-secret');
   const getUser = vi.fn(async () => {
@@ -49,6 +51,7 @@ function loadHandler(options: { failure?: Failure; invalidAuth?: boolean; missin
       require: (specifier: string) => {
         if (specifier === 'jsr:@supabase/supabase-js@2') return { createClient: client };
         if (specifier === '../_shared/cors.ts') return load(resolve(dirname(file), specifier));
+        if (specifier === '../_shared/availability.ts') return { AI_AVAILABLE: options.aiEnabled ?? true };
         throw new Error(`Unexpected import: ${specifier}`);
       },
     }, { filename: file });
@@ -135,4 +138,10 @@ describe('trace-brain runtime boundary', () => {
     expect(message.content).toContain("TRACE Brain isn't fully configured yet");
     expect(message.content).toContain(content.slice(0, 80));
   });
+  it('keeps AI unavailable in V1 without querying sessions or saving prompts/replies', async () => {
+    const h = loadHandler({ aiEnabled: false });
+    await expectError(await h.handler(request({ sessionId: 'session', content: 'private entry' })), 503);
+    expect(h.lookup).not.toHaveBeenCalled(); expect(h.insert).not.toHaveBeenCalled(); expect(h.client).toHaveBeenCalledTimes(1);
+  });
+
 });

@@ -13,28 +13,7 @@
 import { createClient } from 'jsr:@supabase/supabase-js@2';
 import { AwsClient } from 'https://esm.sh/aws4fetch@1.0.20';
 import { corsHeaders as CORS } from '../_shared/cors.ts';
-
-const MB = 1024 * 1024;
-
-// Mirror of src/lib/storage/policy.ts — keep in sync. Never trust the client.
-const MEDIA_POLICY: Record<string, { contentTypes: string[]; maxBytes: number }> = {
-  'form-video': {
-    contentTypes: ['video/mp4', 'video/webm', 'video/quicktime'],
-    maxBytes: 50 * MB,
-  },
-  'meal-photo': {
-    contentTypes: ['image/jpeg', 'image/png', 'image/webp', 'image/heic'],
-    maxBytes: 10 * MB,
-  },
-  'coach-image': {
-    contentTypes: ['image/jpeg', 'image/png', 'image/webp'],
-    maxBytes: 10 * MB,
-  },
-  file: {
-    contentTypes: ['application/pdf', 'image/jpeg', 'image/png', 'image/webp'],
-    maxBytes: 25 * MB,
-  },
-};
+import {mediaPolicy} from '../_shared/mediaPolicy.ts';
 
 function json(status: number, body: unknown): Response {
   return new Response(JSON.stringify(body), {
@@ -78,9 +57,8 @@ Deno.serve(async (req: Request) => {
     if (!body || typeof body !== 'object' || Array.isArray(body)) {
       return json(400, { error: 'Expected a JSON object' });
     }
-    const { kind, filename, contentType, sizeBytes } = body as Record<string, unknown>;
-    const policy = typeof kind === 'string' && Object.prototype.hasOwnProperty.call(MEDIA_POLICY, kind)
-      ? MEDIA_POLICY[kind] : undefined;
+    const { kind, filename, contentType, sizeBytes, protocolVersion, operationId, ownerId } = body as Record<string, unknown>;
+    const policy = mediaPolicy(kind);
     if (!policy) return json(400, { error: 'Unknown media kind' });
     if (typeof contentType !== 'string' || !policy.contentTypes.includes(contentType)) {
       return json(400, { error: 'Disallowed content type' });
@@ -92,7 +70,11 @@ Deno.serve(async (req: Request) => {
     if (filename !== undefined && typeof filename !== 'string') {
       return json(400, { error: 'filename must be a string when supplied' });
     }
-    const key = `${kind}/${user.id}/${crypto.randomUUID()}${extFromName(filename ?? '')}`;
+    if(protocolVersion!==undefined&&protocolVersion!==1&&protocolVersion!==2)return json(400,{error:'Unknown upload protocol'});
+    const version=protocolVersion===2?2:1;
+    if(version===2&&(ownerId!==user.id||typeof operationId!=='string'||!/^([0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12})$/i.test(operationId)
+      ||!Number.isSafeInteger(sizeBytes)||(typeof filename==='string'&&filename.length>255)))return json(400,{error:'A captured owner and stable upload operation are required'});
+    let key = `${kind}/${user.id}/${crypto.randomUUID()}${extFromName(filename ?? '')}`;
 
     const accountId = Deno.env.get('R2_ACCOUNT_ID');
     const bucket = Deno.env.get('R2_BUCKET');
@@ -105,10 +87,16 @@ Deno.serve(async (req: Request) => {
     // Only this verified server path can issue ownership; clients cannot insert
     // registry rows. Never return a PUT URL if ownership could not be recorded.
     const admin = createClient(url, serviceKey, { auth: { persistSession: false, autoRefreshToken: false } });
-    const { error: registryError } = await admin.from('media_objects').insert({
-      object_key: key, owner_id: user.id, kind, content_type: contentType, declared_size_bytes: sizeBytes,
-    });
-    if (registryError) return json(500, { error: 'Could not process request' });
+    if(version===2){
+      const registered=await admin.rpc('register_media_upload',{p_owner_id:user.id,p_operation_id:operationId,p_kind:kind,p_content_type:contentType,p_size_bytes:sizeBytes});
+      if(registered.error||typeof registered.data!=='string'||registered.data!==`${kind}/${user.id}/${String(operationId).toLowerCase()}`)return json(500,{error:'Could not process request'});
+      key=registered.data;
+    }else{
+      const { error: registryError } = await admin.from('media_objects').insert({
+        object_key: key, owner_id: user.id, kind, content_type: contentType, declared_size_bytes: sizeBytes,
+      });
+      if (registryError) return json(500, { error: 'Could not process request' });
+    }
 
     const aws = new AwsClient({
       accessKeyId,
@@ -118,12 +106,13 @@ Deno.serve(async (req: Request) => {
     });
 
     const endpoint = `https://${accountId}.r2.cloudflarestorage.com/${bucket}/${key}`;
+    const uploadHeaders={'Content-Type':contentType,'If-None-Match':'*'};
     const signed = await aws.sign(`${endpoint}?X-Amz-Expires=600`, {
       method: 'PUT',
-      aws: { signQuery: true },
+      ...(version===2?{headers:uploadHeaders,aws:{signQuery:true,allHeaders:true}}:{aws:{signQuery:true}}),
     });
 
-    return json(200, { uploadUrl: signed.url, key, expiresIn: 600 });
+    return json(200, { uploadUrl: signed.url, key, expiresIn: 600,...(version===2?{protocolVersion:2,uploadHeaders}: {}) });
   } catch {
     return json(500, { error: 'Could not process request' });
   }

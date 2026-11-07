@@ -13,6 +13,7 @@
 import { createClient } from 'jsr:@supabase/supabase-js@2';
 import { AwsClient } from 'https://esm.sh/aws4fetch@1.0.20';
 import { corsHeaders as CORS } from '../_shared/cors.ts';
+import {objectPath,verifyMedia,type MediaObject} from '../_shared/verifyMedia.ts';
 
 function json(status: number, body: unknown): Response {
   return new Response(JSON.stringify(body), {
@@ -56,7 +57,7 @@ Deno.serve(async (req: Request) => {
 
     // The caller-scoped RPC checks server-issued ownership plus the current
     // attachment/coach relationship. A writable key reference alone grants nothing.
-    const { data: allowed, error: lookupError } = await asUser.rpc('can_view_media', { p_key: key });
+    const { data: allowed, error: lookupError } = await asUser.rpc('can_access_media_identity', { p_key: key });
     if (lookupError) return json(500, { error: 'Could not process request' });
     if (allowed !== true) return json(403, { error: 'Not authorized for this object' });
 
@@ -64,7 +65,8 @@ Deno.serve(async (req: Request) => {
     const bucket = Deno.env.get('R2_BUCKET');
     const accessKeyId = Deno.env.get('R2_ACCESS_KEY_ID');
     const secretAccessKey = Deno.env.get('R2_SECRET_ACCESS_KEY');
-    if (!accountId?.trim() || !bucket?.trim() || !accessKeyId?.trim() || !secretAccessKey?.trim()) {
+    const serviceKey=Deno.env.get('SUPABASE_SERVICE_ROLE_KEY');
+    if (!accountId?.trim() || !bucket?.trim() || !accessKeyId?.trim() || !secretAccessKey?.trim()||!serviceKey?.trim()) {
       return json(500, { error: 'Could not process request' });
     }
     const aws = new AwsClient({
@@ -74,13 +76,29 @@ Deno.serve(async (req: Request) => {
       region: 'auto',
     });
 
-    const endpoint = `https://${accountId}.r2.cloudflarestorage.com/${bucket}/${key}`;
+    const admin=createClient(url,serviceKey,{auth:{persistSession:false,autoRefreshToken:false}});
+    const registered=await admin.from('media_objects').select('object_key,owner_id,kind,content_type,declared_size_bytes,protocol_version,state,verified_key,actual_size_bytes,actual_content_type,verified_etag').eq('object_key',key).maybeSingle();
+    if(registered.error)return json(500,{error:'Could not process request'});
+    if(!registered.data)return json(403,{error:'Not authorized for this object'});
+    const endpointFor=(objectKey:string)=>`https://${accountId}.r2.cloudflarestorage.com/${bucket}/${objectPath(objectKey)}`;
+    let verifiedKey:string;
+    try{
+      verifiedKey=await verifyMedia(registered.data as MediaObject,{bucket,endpoint:endpointFor,fetch:(input,init)=>aws.fetch(input,init),markReady:async metadata=>{
+        const saved=await admin.rpc('mark_media_ready',{p_key:key,p_verified_key:metadata.key,p_size_bytes:metadata.size,p_content_type:metadata.contentType,p_etag:metadata.etag});
+        if(saved.error||typeof saved.data!=='string')throw new Error('Media verification failed');return saved.data;
+      }});
+    }catch{return json(409,{error:'Media could not be verified. Retry later or ask the owner to reupload.'});}
+    // Authorization is checked again after potentially slow object verification.
+    const current=await asUser.rpc('can_view_media',{p_key:key});
+    if(current.error)return json(500,{error:'Could not process request'});
+    if(current.data!==true)return json(403,{error:'Not authorized for this object'});
+    const endpoint = endpointFor(verifiedKey);
     const signed = await aws.sign(`${endpoint}?X-Amz-Expires=600`, {
       method: 'GET',
       aws: { signQuery: true },
     });
 
-    return json(200, { url: signed.url, expiresIn: 600 });
+    return json(200, { url: signed.url, expiresIn: 600,contentType:registered.data.content_type });
   } catch {
     return json(500, { error: 'Could not process request' });
   }

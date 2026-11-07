@@ -378,6 +378,15 @@ function ProfileTab({ form }: { form: ProfileForm }) {
           </div>
           {form.avatarUploading && <p className="text-xs text-muted-foreground self-end">Uploading...</p>}
           {form.avatarError && <p className="text-xs text-danger self-end">{form.avatarError}</p>}
+          {form.avatarUploads.length > 0 && <details className="text-xs self-end max-w-sm">
+            <summary>Previous avatar uploads</summary>
+            <p className="text-muted-foreground my-2">Confirm an interrupted upload. Confirming an older successful upload keeps your newer avatar.</p>
+            {form.avatarUploads.map(upload => <div key={upload.operation} className="flex gap-2 items-center py-1">
+              <span className="truncate">{upload.name} — {upload.phase === 'applied' ? 'confirmed' : 'confirmation pending'}</span>
+              <button type="button" className="underline shrink-0" disabled={form.avatarUploading} onClick={() => void form.resumeAvatar(upload.operation)}>Confirm</button>
+            </div>)}
+            {form.avatarHasMore && <button type="button" className="underline" onClick={form.loadMoreAvatars}>Older uploads</button>}
+          </details>}
         </CardContent>
       </Card>
 
@@ -1003,6 +1012,11 @@ function NotificationsTab() {
 }
 
 export default function SettingsPage() {
+  const profile = useProfile();
+  return <SettingsWorkspace key={profile.id} />;
+}
+
+function SettingsWorkspace() {
   const profile = useProfile();
   const refreshProfile = useRefreshProfile();
   const [tab, setTab] = useState<TabId>('profile');

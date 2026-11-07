@@ -1,9 +1,10 @@
+import { AI_AVAILABLE, AI_UNAVAILABLE_REASON } from '../../lib/aiAvailability';
 import { useMemo, useState } from 'react';
 import { AnimatePresence, motion } from 'framer-motion';
 import { AlertTriangle, ArrowUp, BarChart3, ClipboardCheck, Dumbbell, Loader2, Plus, UserPlus, Users } from 'lucide-react';
-import { Sheet, SheetContent } from '@/components/ui/shadcn/sheet';
-import { ScrollArea } from '@/components/ui/shadcn/scroll-area';
-import { useAiChat } from '@/hooks/useAiChat';
+import { Sheet, SheetContent, SheetTitle, SheetDescription } from '../ui/shadcn/sheet';
+import { ScrollArea } from '../ui/shadcn/scroll-area';
+import { useAiChat } from '../../hooks/useAiChat';
 
 const SUGGESTIONS = [
   { icon: Users, title: 'Review roster', subtitle: 'See who needs attention', prompt: 'Review my roster and flag anyone at risk' },
@@ -30,6 +31,11 @@ export default function CopilotDrawer({
   onOpenChange: (open: boolean) => void;
   userId: string;
 }) {
+  if (!AI_AVAILABLE) return <Sheet open={open} onOpenChange={onOpenChange}><SheetContent><SheetTitle>AI unavailable in V1</SheetTitle><SheetDescription className="mt-4">{AI_UNAVAILABLE_REASON}</SheetDescription><p className="text-sm text-muted-foreground mt-2">Use the roster, plans and check-in pages directly. No prompt is sent or saved by this panel.</p></SheetContent></Sheet>;
+  return <EnabledCopilotDrawer open={open} onOpenChange={onOpenChange} userId={userId} />;
+}
+
+function EnabledCopilotDrawer({open,onOpenChange,userId}:{open:boolean;onOpenChange:(open:boolean)=>void;userId:string}) {
   const { messages, send, startNewConversation, isReady, isThinking, error } = useAiChat(userId);
   const [prompt, setPrompt] = useState('');
 

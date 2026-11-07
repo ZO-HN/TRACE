@@ -85,6 +85,8 @@ The SQL suite specifically covers profile privilege restrictions, repeated worko
 
 **Repair/acceptance:** create trustworthy media ownership records at upload issuance/finalization, validate attachment ownership server-side, and authorize viewing through the actual permitted relationship. Test owner, connected coach, unrelated trainee/coach, changed coach, fabricated reference, and known foreign key. A prefix check can help but must not replace the intended coach access model.
 
+**Local implementation evidence (2026-11-05):** server-issued ownership registry, attachment validation, current-coach authorization and focused SQL/handler regressions are recorded in [D01 media entitlement evidence](media-entitlement-2026-11-05.md). Hosted migration, deployed Edge handlers, real R2 behavior and staging/device acceptance remain open; this local evidence does not close the release gate.
+
 Evidence: coach `supabase/functions/r2-get-url/index.ts`; `r2-presign/index.ts`; `supabase/migrations/20260717000000_init_trace.sql`; later set-log RLS migrations; temporary schema and Edge probes.
 
 ### D02 — P1 — Browser Edge Function CORS does not allow the installed SDK's request headers

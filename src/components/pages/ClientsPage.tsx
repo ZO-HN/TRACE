@@ -1,3 +1,4 @@
+import ClientOnboardingDetails from '@/components/coach/ClientOnboardingDetails';
 import { useMemo, useState } from 'react';
 import { ArrowUpDown, Check, Copy, Download, Link2, Plus, Search, Settings2, Tag, Trash2, UserMinus, UserPlus, Users } from 'lucide-react';
 import {
@@ -586,6 +587,7 @@ export default function ClientsPage() {
                   <span className="font-medium text-foreground">
                     {c.first_name} {c.last_name}
                   </span>
+                  <ClientOnboardingDetails coachId={profile.id} clientId={c.id} />
                 </div>
                 <span className="text-muted-foreground">{c.email}</span>
                 {visibleColumns.has('status') && (

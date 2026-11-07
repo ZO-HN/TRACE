@@ -14,7 +14,7 @@ Supabase owns structured records, Auth, RLS, and Realtime. R2 holds private bina
 
 Direct upload avoids proxying large payloads through the API and separates media scaling from relational workloads. It adds a second service to provision, monitor, and secure. Costs depend on current vendor terms and workload; historical price tables and free-tier capacity promises are removed.
 
-Compression, actual object validation, cleanup, retention, deletion, and private playback require explicit implementation and acceptance. No live lifecycle policy, resolution limit, or content verification is claimed here. See the [function contract](../../../supabase/functions/r2-presign/README.md), [coaching/media specification](../../features/coaching.md), and diagnosis findings D01/D02/D05/D06/D22.
+Actual size/type/signature-prefix verification and immutable playback binding are implemented locally; the function contract links current finalization evidence. Compression, full decoding/scanning, cleanup, retention and deletion remain separate work. No live lifecycle policy, resolution limit or hosted content verification is certified here. See the [function contract](../../../supabase/functions/r2-presign/README.md), [coaching/media specification](../../features/coaching.md), and diagnosis findings D01/D02/D05/D06/D22.
 
 ## Alternatives and revisit condition
 

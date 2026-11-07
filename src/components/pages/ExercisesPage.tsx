@@ -49,7 +49,7 @@ function ViewMenu({ visible, onToggle }: { visible: Set<ColumnKey>; onToggle: (k
 
 export default function ExercisesPage() {
   const profile = useProfile();
-  const { exercises, isLoading, error, createExercise } = useExercises(profile.id);
+  const { exercises, isLoading, error, search, setSearch, isLoadingMore, hasMore, refresh, loadMore, createExercise } = useExercises(profile.id);
   const [open, setOpen] = useState(false);
   const [visibleColumns, setVisibleColumns] = useState<Set<ColumnKey>>(
     new Set(TOGGLE_COLUMNS.map((c) => c.key)),
@@ -82,7 +82,15 @@ export default function ExercisesPage() {
         </div>
       </div>
 
-      {error && <p className="text-sm text-danger">Could not load exercises: {error}</p>}
+      <div className="flex items-center gap-2">
+        <label className="sr-only" htmlFor="exercise-search">Search exercises</label>
+        <input id="exercise-search" type="search" value={search} onChange={(event) => setSearch(event.target.value)}
+          placeholder="Search exercises" className="h-10 w-full max-w-md rounded-lg border border-border bg-card px-3 text-sm text-foreground" />
+        <button type="button" onClick={() => void refresh()} disabled={isLoading}
+          className="h-10 rounded-lg border border-border px-3 text-sm text-foreground hover:bg-surface disabled:opacity-50">Refresh</button>
+      </div>
+
+      {error && <p role="alert" className="text-sm text-danger">Could not load exercises: {error}</p>}
 
       <div className="rounded-xl border border-border bg-card overflow-hidden">
         <div className="grid gap-4 px-4 py-3 border-b border-border text-xs font-semibold text-muted-foreground" style={gridStyle}>
@@ -103,7 +111,7 @@ export default function ExercisesPage() {
         ) : exercises.length === 0 ? (
           <div className="flex flex-col items-center justify-center gap-3 py-16 text-center px-6">
             <BicepsFlexed size={32} className="text-muted-foreground" />
-            <p className="text-sm font-semibold text-foreground">No exercises yet</p>
+            <p className="text-sm font-semibold text-foreground">{search ? 'No matching exercises' : 'No exercises yet'}</p>
             <p className="text-xs text-muted-foreground max-w-sm">
               Build your exercise library — each entry tracks primary/secondary muscles, equipment, and coaching cues.
             </p>
@@ -148,6 +156,11 @@ export default function ExercisesPage() {
           </div>
         )}
       </div>
+
+      {hasMore && <button type="button" onClick={() => void loadMore()} disabled={isLoadingMore}
+        className="self-center h-10 rounded-lg border border-border px-4 text-sm text-foreground hover:bg-surface disabled:opacity-50">
+        {isLoadingMore ? 'Loading…' : 'Load more exercises'}
+      </button>}
 
       <NewExerciseDialog open={open} onOpenChange={setOpen} onCreate={createExercise} />
     </div>

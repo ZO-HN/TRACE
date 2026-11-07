@@ -1,4 +1,5 @@
 import { useState } from 'react';
+import MediaViewer from '../media/MediaViewer';
 import { ArrowLeft, ClipboardCheck, FileText, Plus, Trash2 } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { useProfile } from '@/components/layout/AppShell';
@@ -151,7 +152,8 @@ function ReviewDialog({
   onOpenChange: (open: boolean) => void;
   onSubmit: (id: string, notes: string) => Promise<{ error: string | null }>;
 }) {
-  const [notes, setNotes] = useState('');
+  const [notes, setNotes] = useState(checkIn?.coach_notes??'');
+  const [attachment,setAttachment]=useState<string|null>(null);
   const [submitting, setSubmitting] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
@@ -185,7 +187,10 @@ function ReviewDialog({
             entries.map(([question, answer]) => (
               <div key={question} className="rounded-lg border border-border bg-background p-2.5">
                 <p className="text-xs font-semibold text-muted-foreground">{question}</p>
-                <p className="text-sm text-foreground">{String(answer)}</p>
+                {answer&&typeof answer==='object'&&!Array.isArray(answer)&&'key'in answer&&typeof answer.key==='string'
+                  ? <><button className="text-sm underline" onClick={()=>setAttachment(value=>value===answer.key?null:String(answer.key))}>Open submitted attachment</button>
+                    {attachment===answer.key&&<MediaViewer objectKey={answer.key}/>}</>
+                  : <p className="text-sm text-foreground">{typeof answer==='object'?JSON.stringify(answer):String(answer)}</p>}
               </div>
             ))
           )}
@@ -783,7 +788,7 @@ export default function CheckInsPage() {
           </div>
         ))}
 
-      <ReviewDialog checkIn={reviewing} onOpenChange={(open) => !open && setReviewing(null)} onSubmit={markReviewed} />
+      <ReviewDialog key={`${profile.id}:${reviewing?.id??'closed'}`} checkIn={reviewing} onOpenChange={(open) => !open && setReviewing(null)} onSubmit={markReviewed} />
 
       <TemplatePickerDialog
         open={pickerOpen}

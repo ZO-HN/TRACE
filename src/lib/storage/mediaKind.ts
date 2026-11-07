@@ -6,6 +6,6 @@ export type RenderKind = 'video' | 'image' | 'other';
 export function renderKindFromKey(key: string): RenderKind {
   const prefix = key.split('/')[0];
   if (prefix === 'form-video') return 'video';
-  if (prefix === 'meal-photo' || prefix === 'coach-image') return 'image';
+  if (prefix === 'meal-photo' || prefix === 'coach-image' || prefix === 'progress-photo') return 'image';
   return 'other';
 }

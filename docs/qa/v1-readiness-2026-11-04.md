@@ -40,6 +40,8 @@ The intended acceptance journey is: an authorized coach signs in, invites/links 
 
 ## Approved decisions and remaining gates
 
+Update 2026-11-06: the [current pilot preflight](pilot-preflight-2026-11-06.md) supersedes this dated record's media/assignment implementation reservations, nutrition queue-bound validation, active-workout resume navigation and prescribed-rest findings. See the [5 November assignment record](private-workout-assignment-2026-11-05.md) for rest-prescription loading and fixed-copy implementation, and the [media record](media-entitlement-2026-11-05.md) for entitlement checks. Hosted deployment, real Auth/RLS/media and native acceptance remain open. The latest preflight identifies the actual six pending hosted migrations and backup-list result.
+
 The owner approved all three choices on 4 November:
 
 1. Private pilot with selected coaches and trainees.

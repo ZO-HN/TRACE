@@ -1,306 +1,98 @@
-import { useMemo, useState } from 'react';
-import { ChevronLeft, ChevronRight, LayoutDashboard, Plus, Search, X } from 'lucide-react';
-import { cn } from '@/lib/utils';
-import { useWorkoutLibrary, WORKOUT_CATEGORIES, type WorkoutCategory, type WorkoutOption } from '@/hooks/useWorkoutLibrary';
+import { useState } from 'react';
+import { useProfile } from '../layout/AppShell';
+import { useClients } from '../../hooks/useClients';
+import { useCoachPrivateWorkouts } from '../../hooks/useCoachPrivateWorkouts';
+import { useCalendarWrite, useCoachCalendar, type CalendarEvent } from '../../hooks/useCoachCalendar';
+import { expectedWorkoutSnapshot } from '../../lib/templates/assignment';
+import ProgramCalendar from '../coach/ProgramCalendar';
 
-const WEEKDAYS = ['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'];
-
-function dateKey(year: number, month: number, date: number) {
-  return `${year}-${String(month + 1).padStart(2, '0')}-${String(date).padStart(2, '0')}`;
+function dayKey(date: Date) {
+  return `${date.getFullYear()}-${String(date.getMonth() + 1).padStart(2, '0')}-${String(date.getDate()).padStart(2, '0')}`;
 }
 
-function buildMonthGrid(year: number, month: number) {
-  const firstOfMonth = new Date(year, month, 1);
-  const startOffset = firstOfMonth.getDay();
-  const daysInMonth = new Date(year, month + 1, 0).getDate();
-  const daysInPrevMonth = new Date(year, month, 0).getDate();
-
-  const cells: { date: number; inMonth: boolean }[] = [];
-  for (let i = startOffset - 1; i >= 0; i--) {
-    cells.push({ date: daysInPrevMonth - i, inMonth: false });
-  }
-  for (let d = 1; d <= daysInMonth; d++) {
-    cells.push({ date: d, inMonth: true });
-  }
-  while (cells.length % 7 !== 0 || cells.length < 42) {
-    cells.push({ date: cells.length - (startOffset + daysInMonth) + 1, inMonth: false });
-  }
-  return cells;
-}
-
-function WorkoutPickerModal({
-  library,
-  targetLabel,
-  onClose,
-  onAssign,
-}: {
-  library: WorkoutOption[];
-  targetLabel: string;
-  onClose: () => void;
-  onAssign: (workout: WorkoutOption) => void;
-}) {
-  const [query, setQuery] = useState('');
-  const [category, setCategory] = useState<WorkoutCategory | 'All'>('All');
-  const [selected, setSelected] = useState<WorkoutOption | null>(null);
-
-  const filtered = library.filter((w) => {
-    const matchesQuery = w.name.toLowerCase().includes(query.toLowerCase());
-    const matchesCategory = category === 'All' || w.category === category;
-    return matchesQuery && matchesCategory;
-  });
-
-  return (
-    <div className="fixed inset-0 z-40 bg-background/80 backdrop-blur-sm flex items-start justify-center p-6 pt-24">
-      <div className="w-full max-w-3xl rounded-xl border border-border bg-card shadow-xl overflow-hidden">
-        <div className="flex items-center gap-2 px-4 py-3 border-b border-border">
-          <Search size={16} className="text-muted-foreground shrink-0" />
-          <input
-            autoFocus
-            value={query}
-            onChange={(e) => setQuery(e.target.value)}
-            placeholder={`Search workouts for ${targetLabel}...`}
-            className="flex-1 bg-transparent text-sm text-foreground placeholder:text-muted-foreground outline-none"
-          />
-          <button onClick={onClose} className="p-1 rounded-md text-muted-foreground hover:text-foreground hover:bg-surface">
-            <X size={16} />
-          </button>
-        </div>
-
-        <div className="flex items-center gap-1.5 px-4 py-2 border-b border-border overflow-x-auto">
-          {(['All', ...WORKOUT_CATEGORIES] as const).map((c) => (
-            <button
-              key={c}
-              onClick={() => setCategory(c)}
-              className={cn(
-                'shrink-0 h-7 px-3 rounded-full text-xs font-medium transition-colors',
-                category === c
-                  ? 'bg-foreground text-background'
-                  : 'text-muted-foreground hover:bg-surface',
-              )}
-            >
-              {c}
-            </button>
-          ))}
-        </div>
-
-        <div className="flex h-80">
-          <div className="w-64 shrink-0 border-r border-border overflow-y-auto py-1">
-            {filtered.length === 0 ? (
-              <p className="text-xs text-muted-foreground text-center py-8 px-4">
-                {library.length === 0
-                  ? 'No workouts yet — create one in the Workouts tab.'
-                  : 'No workouts found.'}
-              </p>
-            ) : (
-              filtered.map((w) => (
-                <button
-                  key={w.id}
-                  onClick={() => setSelected(w)}
-                  className={cn(
-                    'w-full flex items-center gap-2.5 px-3 py-2 text-left transition-colors',
-                    selected?.id === w.id ? 'bg-primary/10' : 'hover:bg-surface',
-                  )}
-                >
-                  <div className="w-8 h-8 rounded-md bg-muted flex items-center justify-center shrink-0">
-                    <LayoutDashboard size={14} className="text-muted-foreground" />
-                  </div>
-                  <div className="min-w-0">
-                    <p className="text-sm font-medium text-foreground truncate">{w.name}</p>
-                    <p className="text-xs text-muted-foreground">
-                      {w.category} &middot;{w.author}
-                    </p>
-                  </div>
-                </button>
-              ))
-            )}
-          </div>
-
-          <div className="flex-1 flex flex-col items-center justify-center gap-2 p-6 text-center">
-            {selected ? (
-              <>
-                <div className="w-12 h-12 rounded-lg bg-muted flex items-center justify-center">
-                  <LayoutDashboard size={20} className="text-muted-foreground" />
-                </div>
-                <p className="text-base font-semibold text-foreground">{selected.name}</p>
-                <p className="text-xs text-muted-foreground">
-                  {selected.category} &middot; {selected.author}
-                </p>
-                <button
-                  onClick={() => onAssign(selected)}
-                  className="mt-3 h-9 px-4 rounded-lg bg-success text-white text-sm font-semibold hover:opacity-90 transition-opacity"
-                >
-                  Add to {targetLabel}
-                </button>
-              </>
-            ) : (
-              <>
-                <LayoutDashboard size={28} className="text-muted-foreground" />
-                <p className="text-base font-semibold text-foreground">Select a workout</p>
-                <p className="text-sm text-muted-foreground">Choose from the list to see exercises and details</p>
-              </>
-            )}
-          </div>
-        </div>
-      </div>
+function Calendar({ coachId }: { coachId: string }) {
+  const [month, setMonth] = useState(() => dayKey(new Date()).slice(0, 7));
+  const [trainee, setTrainee] = useState('');
+  const [workout, setWorkout] = useState('');
+  const [date, setDate] = useState(() => dayKey(new Date()));
+  const [edit, setEdit] = useState<CalendarEvent | null>(null);
+  const [editDate, setEditDate] = useState('');
+  const roster = useClients(coachId);
+  const library = useCoachPrivateWorkouts(coachId);
+  const from = `${month}-01`;
+  const [year, monthNumber] = month.split('-').map(Number);
+  const to = dayKey(new Date(year, monthNumber, 0));
+  const calendar = useCoachCalendar(coachId, from, to, trainee || undefined);
+  const write = useCalendarWrite(coachId);
+  const blocked = write.busy || write.pending;
+  const save = async () => {
+    const selected = library.rows.find(row => row.id === workout);
+    if (!selected || !trainee || !date) return;
+    if (await write.schedule({ p_operation_id: crypto.randomUUID(), p_event_id: crypto.randomUUID(),
+      p_template_id: crypto.randomUUID(), p_source_template_id: selected.id, p_trainee_id: trainee,
+      p_date: date, p_expected_snapshot: expectedWorkoutSnapshot(selected) })) await calendar.refresh();
+  };
+  const change = async (cancelled: boolean) => {
+    if (!edit || !editDate) return;
+    if (await write.change({ p_operation_id: crypto.randomUUID(), p_event_id: edit.id,
+      p_expected_revision: edit.revision, p_date: editDate, p_cancelled: cancelled })) {
+      setEdit(null); await calendar.refresh();
+    }
+  };
+  return <div className="p-6 space-y-5">
+    <h1 className="text-lg font-bold">Coach calendar</h1>
+    <p className="text-sm text-muted-foreground">Schedule a fixed workout copy for a linked trainee on a local calendar date. Editing its source does not change this copy. Programs and groups have a separate update policy.</p>
+    <div className="flex gap-3 flex-wrap items-end">
+      <label>Month <input aria-label="Calendar month" type="month" min="2000-01" max="2100-12" value={month} onChange={e => { if (e.target.value) { setMonth(e.target.value); setEdit(null); } }} className="block border border-border bg-card rounded p-2" /></label>
+      <label>Trainee <select aria-label="Calendar trainee" disabled={blocked || roster.isLoading || Boolean(roster.error)} value={trainee} onChange={e => { setTrainee(e.target.value); setEdit(null); }} className="block border border-border bg-card rounded p-2">
+        <option value="">All linked trainees</option>{roster.clients.map(client => <option key={client.id} value={client.id}>{client.first_name} {client.last_name}</option>)}
+      </select></label>
+      <button onClick={() => void calendar.refresh()} className="border rounded p-2">Reload calendar</button>
     </div>
-  );
+    {roster.isLoading && <p role="status">Loading linked trainees…</p>}
+    {roster.error && <div role="alert">{roster.error} <button onClick={() => void roster.refresh()}>Retry trainees</button></div>}
+    {!roster.isLoading && !roster.error && !roster.clients.length && <p>No linked trainees. Complete onboarding before scheduling.</p>}
+    <section className="border border-border rounded-xl p-4 space-y-3" aria-label="Schedule workout">
+      <h2 className="font-semibold">Schedule one workout</h2>
+      <label className="block">Private workout <select aria-label="Calendar workout" disabled={blocked || library.loading || Boolean(library.error)} value={workout} onChange={e => setWorkout(e.target.value)} className="block border bg-card rounded p-2">
+        <option value="">Choose a saved workout</option>{library.rows.filter(row => row.template_items.length > 0).map(row => <option key={row.id} value={row.id}>{row.name}</option>)}
+      </select></label>
+      {library.loading && <p role="status">Loading workouts…</p>}
+      {library.error && <div role="alert">{library.error} <button onClick={() => void library.refresh()}>Retry workouts</button></div>}
+      {!library.loading && !library.error && !library.rows.some(row => row.template_items.length > 0) && <p>Create a saved private workout with exercises in Workouts first.</p>}
+      <label className="block">Date <input aria-label="Workout date" type="date" min="2000-01-01" max="2100-12-31" disabled={blocked} value={date} onChange={e => setDate(e.target.value)} className="block border bg-card rounded p-2" /></label>
+      <button disabled={blocked || !trainee || !workout || !date || Boolean(roster.error) || Boolean(library.error)} onClick={() => void save()} className="rounded bg-primary text-primary-foreground p-2 disabled:opacity-50">Save dated assignment</button>
+      {!trainee && <p className="text-sm">Select one linked trainee to schedule.</p>}
+    </section>
+    {write.busy && <p role="status">Saving calendar…</p>}
+    {write.error && <div role="alert" className="text-red-400">{write.error}</div>}
+    {write.pending && !write.busy && <div className="space-y-2">
+      <p>Input is held for the exact pending operation. Retry to confirm a lost response. After a definitive validation error, reload the page and inspect saved assignments before starting again.</p>
+      <button onClick={() => void write.retry().then(async ok => { if (ok) { setEdit(null); await calendar.refresh(); } })} className="border rounded p-2">Retry pending calendar save</button>
+    </div>}
+    <section aria-label="Saved calendar" className="space-y-3">
+      <h2 className="font-semibold">Saved assignments for {month}</h2>
+      {calendar.loading && <p role="status">Loading calendar…</p>}
+      {calendar.error && <div role="alert">{calendar.error} <button onClick={() => void calendar.refresh()}>Retry calendar</button></div>}
+      {!calendar.loading && !calendar.error && !calendar.rows.length && <p>No assignments for this selection.</p>}
+      {calendar.rows.map(event => <article key={event.id} className="border border-border rounded-xl p-3 space-y-2">
+        <p className="font-semibold">{event.scheduled_date} · {event.workout_name}{event.cancelled ? ' · Cancelled' : ''}</p>
+        <p className="text-sm">{roster.clients.find(client => client.id === event.trainee_id)?.first_name ?? 'Trainee'} · revision {event.revision}</p>
+        {!event.cancelled && <button disabled={blocked} onClick={() => { setEdit(event); setEditDate(event.scheduled_date); }} className="border rounded p-2">Move or cancel</button>}
+        {edit?.id === event.id && <div className="flex flex-wrap gap-2 items-center">
+          <input aria-label="Rescheduled date" type="date" min="2000-01-01" max="2100-12-31" disabled={blocked} value={editDate} onChange={e => setEditDate(e.target.value)} className="border bg-card rounded p-2" />
+          <button disabled={blocked || !editDate} onClick={() => void change(false)} className="border rounded p-2">Save new date</button>
+          <button disabled={blocked} onClick={() => void change(true)} className="border rounded p-2">Cancel planned event</button>
+        </div>}
+      </article>)}
+    </section>
+    {trainee?<ProgramCalendar key={`${coachId}:${trainee}:${from}:${to}`} traineeId={trainee} from={from} to={to}/>:<p>Select a trainee to read their live program/group calendar.</p>}
+    <p className="text-sm text-muted-foreground">Recorded sessions cannot be moved or cancelled. Cancellation removes a planned event, not the workout copy or recorded history. A workout already downloaded or started offline remains recoverable and can sync later. Dates are planning labels, not access restrictions.</p>
+  </div>;
 }
 
 export default function CalendarPage() {
-  const today = new Date();
-  const todayKey = dateKey(today.getFullYear(), today.getMonth(), today.getDate());
-  const library = useWorkoutLibrary();
-  const [cursor, setCursor] = useState(new Date(today.getFullYear(), today.getMonth(), 1));
-  const [assignments, setAssignments] = useState<Record<string, WorkoutOption[]>>({});
-  const [pickerDate, setPickerDate] = useState<{ key: string; label: string } | null>(null);
-
-  const cells = buildMonthGrid(cursor.getFullYear(), cursor.getMonth());
-  const monthLabel = cursor.toLocaleDateString(undefined, { month: 'long', year: 'numeric' });
-
-  const goToMonth = (delta: number) => {
-    setCursor((c) => new Date(c.getFullYear(), c.getMonth() + delta, 1));
-  };
-
-  const isToday = (date: number, inMonth: boolean) =>
-    inMonth &&
-    date === today.getDate() &&
-    cursor.getMonth() === today.getMonth() &&
-    cursor.getFullYear() === today.getFullYear();
-
-  const isPast = (date: number, inMonth: boolean) => {
-    if (!inMonth) return false;
-    return dateKey(cursor.getFullYear(), cursor.getMonth(), date) < todayKey;
-  };
-
-  const hasEvents = useMemo(() => Object.values(assignments).some((v) => v.length > 0), [assignments]);
-
-  const openPicker = (date: number) => {
-    const key = dateKey(cursor.getFullYear(), cursor.getMonth(), date);
-    const label = new Date(cursor.getFullYear(), cursor.getMonth(), date).toLocaleDateString(undefined, {
-      month: 'short',
-      day: 'numeric',
-    });
-    setPickerDate({ key, label });
-  };
-
-  const assignWorkout = (workout: WorkoutOption) => {
-    if (!pickerDate) return;
-    setAssignments((prev) => ({
-      ...prev,
-      [pickerDate.key]: [...(prev[pickerDate.key] ?? []), workout],
-    }));
-    setPickerDate(null);
-  };
-
-  return (
-    <div className="p-6 flex flex-col gap-4">
-      <div className="flex items-center justify-between">
-        <h1 className="text-lg font-bold text-foreground">{monthLabel}</h1>
-        <div className="flex items-center gap-2">
-          <button
-            onClick={() => setCursor(new Date(today.getFullYear(), today.getMonth(), 1))}
-            className="h-9 px-3 rounded-lg border border-border text-sm font-medium text-foreground hover:bg-surface transition-colors"
-          >
-            Today
-          </button>
-          <button
-            onClick={() => goToMonth(-1)}
-            className="w-9 h-9 flex items-center justify-center rounded-lg border border-border text-muted-foreground hover:text-foreground hover:bg-surface transition-colors"
-          >
-            <ChevronLeft size={16} />
-          </button>
-          <button
-            onClick={() => goToMonth(1)}
-            className="w-9 h-9 flex items-center justify-center rounded-lg border border-border text-muted-foreground hover:text-foreground hover:bg-surface transition-colors"
-          >
-            <ChevronRight size={16} />
-          </button>
-        </div>
-      </div>
-
-      <div className="rounded-xl border border-border bg-card overflow-hidden">
-        <div className="grid grid-cols-7 border-b border-border">
-          {WEEKDAYS.map((w) => (
-            <div key={w} className="px-3 py-2 text-xs font-semibold text-muted-foreground text-center">
-              {w}
-            </div>
-          ))}
-        </div>
-        <div className="grid grid-cols-7">
-          {cells.map((cell, i) => {
-            const key = cell.inMonth ? dateKey(cursor.getFullYear(), cursor.getMonth(), cell.date) : '';
-            const events = cell.inMonth ? (assignments[key] ?? []) : [];
-            const past = isPast(cell.date, cell.inMonth);
-            const canAdd = cell.inMonth && !past;
-
-            return (
-              <div
-                key={i}
-                className={cn(
-                  'group relative h-24 border-b border-r border-border last:border-r-0 p-2 flex flex-col gap-1 [&:nth-child(7n)]:border-r-0',
-                  !cell.inMonth && 'bg-background/40',
-                  isToday(cell.date, cell.inMonth) && 'ring-1 ring-inset ring-primary',
-                )}
-              >
-                <div className="flex items-center justify-between">
-                  <span
-                    className={cn(
-                      'inline-flex items-center justify-center w-6 h-6 rounded-full text-xs',
-                      isToday(cell.date, cell.inMonth)
-                        ? 'bg-primary text-primary-foreground font-semibold'
-                        : cell.inMonth
-                          ? 'text-foreground'
-                          : 'text-muted-foreground/50',
-                    )}
-                  >
-                    {cell.date}
-                  </span>
-                  {canAdd && (
-                    <button
-                      onClick={() => openPicker(cell.date)}
-                      aria-label="Add workout"
-                      className="w-5 h-5 rounded-md flex items-center justify-center text-muted-foreground opacity-0 group-hover:opacity-100 hover:bg-surface hover:text-foreground transition-opacity"
-                    >
-                      <Plus size={13} />
-                    </button>
-                  )}
-                </div>
-
-                <div className="flex flex-col gap-1 overflow-y-auto">
-                  {events.map((ev, idx) => (
-                    <div
-                      key={`${ev.id}-${idx}`}
-                      className={cn(
-                        'flex items-center gap-1 px-1.5 py-1 rounded-md text-xs font-medium truncate',
-                        past ? 'bg-muted text-muted-foreground' : 'bg-primary/10 text-foreground',
-                      )}
-                      title={ev.name}
-                    >
-                      <LayoutDashboard size={10} className="shrink-0" />
-                      <span className="truncate">{ev.name}</span>
-                    </div>
-                  ))}
-                </div>
-              </div>
-            );
-          })}
-        </div>
-      </div>
-
-      <p className="text-xs text-muted-foreground text-center">
-        {hasEvents
-          ? 'Workouts can be scheduled for today or any future date — past workouts stay visible here for reference.'
-          : 'No events scheduled yet — hover a day (today or later) and press + to assign a workout.'}
-      </p>
-
-      {pickerDate && (
-        <WorkoutPickerModal
-          library={library}
-          targetLabel={pickerDate.label}
-          onClose={() => setPickerDate(null)}
-          onAssign={assignWorkout}
-        />
-      )}
-    </div>
-  );
+  const profile = useProfile();
+  if (!profile || profile.role !== 'coach') return <p role="alert" className="p-6">A signed-in coach account is required.</p>;
+  return <Calendar key={profile.id} coachId={profile.id} />;
 }

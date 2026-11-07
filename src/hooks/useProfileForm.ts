@@ -6,13 +6,12 @@
 
 import { useState } from 'react';
 import { supabase } from '../lib/supabase';
+import { useAvatarUpload } from './useAvatarUpload';
 import type { TraceProfile } from './useTraceUser';
 
 export const HEIGHT_OPTIONS = ['152 cm', '160 cm', '168 cm', '175 cm', '182 cm', '190 cm', '198 cm'];
 export const BIOLOGICAL_SEX_OPTIONS = ['Prefer not to say', 'Male', 'Female'];
 const DEFAULT_HEIGHT_CM = 182;
-const AVATAR_CONTENT_TYPES = ['image/jpeg', 'image/png', 'image/webp'];
-const AVATAR_MAX_BYTES = 10 * 1024 * 1024;
 
 function cmToHeightLabel(cm: number | null): string {
   if (cm == null) return `${DEFAULT_HEIGHT_CM} cm`;
@@ -51,8 +50,7 @@ export function useProfileForm(profile: TraceProfile, refreshProfile: () => Prom
   const [saveAllSaving, setSaveAllSaving] = useState(false);
   const [saveAllError, setSaveAllError] = useState<string | null>(null);
 
-  const [avatarUploading, setAvatarUploading] = useState(false);
-  const [avatarError, setAvatarError] = useState<string | null>(null);
+  const avatar = useAvatarUpload(profile.id, profile.avatar_key, refreshProfile);
 
   const isFirstNameDirty = firstName.trim() !== (profile.first_name ?? '');
   const isLastNameDirty = lastName.trim() !== (profile.last_name ?? '');
@@ -175,46 +173,6 @@ export function useProfileForm(profile: TraceProfile, refreshProfile: () => Prom
     return result;
   };
 
-  const uploadAvatar = async (file: File) => {
-    setAvatarError(null);
-    if (!AVATAR_CONTENT_TYPES.includes(file.type)) {
-      setAvatarError('Avatars must be a JPEG, PNG, or WebP image.');
-      return;
-    }
-    if (file.size > AVATAR_MAX_BYTES) {
-      setAvatarError('Avatar must be under 10MB.');
-      return;
-    }
-    setAvatarUploading(true);
-    try {
-      const { data, error: presignError } = await supabase.functions.invoke<{
-        uploadUrl: string;
-        key: string;
-      }>('r2-presign', {
-        body: { kind: 'coach-image', filename: file.name, contentType: file.type, sizeBytes: file.size },
-      });
-      if (presignError || !data) throw new Error(presignError?.message ?? 'Could not start upload');
-
-      const putResponse = await fetch(data.uploadUrl, {
-        method: 'PUT',
-        headers: { 'Content-Type': file.type },
-        body: file,
-      });
-      if (!putResponse.ok) throw new Error('Upload to storage failed');
-
-      const { error: updateError } = await supabase
-        .from('profiles')
-        .update({ avatar_key: data.key })
-        .eq('id', profile.id);
-      if (updateError) throw new Error(updateError.message);
-
-      await refreshProfile();
-    } catch (err) {
-      setAvatarError(err instanceof Error ? err.message : 'Avatar upload failed');
-    } finally {
-      setAvatarUploading(false);
-    }
-  };
 
   return {
     firstName, setFirstName,
@@ -241,9 +199,7 @@ export function useProfileForm(profile: TraceProfile, refreshProfile: () => Prom
     discard,
 
     avatarKey: profile.avatar_key,
-    avatarUploading,
-    avatarError,
-    uploadAvatar,
+    ...avatar,
   };
 }
 

@@ -23,5 +23,5 @@ export function mergeMessage(
   msg: DirectMessage,
 ): DirectMessage[] {
   if (list.some((m) => m.id === msg.id)) return list;
-  return [...list, msg].sort((x, y) => x.created_at.localeCompare(y.created_at));
+  return [...list, msg].sort((x, y) => (x.created_at ?? '').localeCompare(y.created_at ?? '') || x.id.localeCompare(y.id));
 }

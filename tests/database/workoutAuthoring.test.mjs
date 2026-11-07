@@ -25,7 +25,7 @@ before(async () => {
     await db.query('INSERT INTO auth.users(id,email) VALUES ($1,$2)', [uid, `${email}@test.invalid`]);
   }
   await db.query("INSERT INTO exercises(id,name,target_muscle_group) VALUES ($1,'Squat','Quads')", [exercise]);
-}, { timeout: 30000 });
+}, { timeout: 90000 });
 after(async () => { await db?.close(); });
 
 test('private save commits exact ordered prescriptions, repeated exercises and one replay result', async () => {

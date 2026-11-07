@@ -1,11 +1,12 @@
 // Resolve a private R2 object key to a short-lived viewable URL via the
-// r2-get-url edge function (authorization enforced server-side by set_logs RLS).
+// r2-get-url edge function (registry/attachment/relationship and readiness enforced server-side).
 
 import { supabase } from '../supabase';
 
 export interface SignedGet {
   url: string;
   expiresIn: number;
+  contentType?: string;
 }
 
 export async function getMediaUrl(key: string): Promise<SignedGet> {

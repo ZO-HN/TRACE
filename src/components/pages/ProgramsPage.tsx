@@ -10,6 +10,7 @@ import { Label, Input, Textarea, Select } from '@/components/ui/shadcn/field';
 import { useProfile } from '@/components/layout/AppShell';
 import { usePrograms } from '@/hooks/usePrograms';
 import { useToast } from '@/components/ui/toast';
+import CoachProgramEditor from '../coach/CoachProgramEditor';
 
 const columns = ['Title', 'Category', 'Created At'];
 const categories = [
@@ -91,11 +92,11 @@ function CreateProgramDialog({
   );
 }
 
-export default function ProgramsPage() {
-  const profile = useProfile();
-  const { programs, isLoading, error, createProgram, deleteProgram } = usePrograms(profile.id);
+function ProgramsWorkspace({coachId}:{coachId:string}) {
+  const { programs, isLoading, error, createProgram, deleteProgram } = usePrograms(coachId);
   const { toast } = useToast();
   const [open, setOpen] = useState(false);
+  const [selected, setSelected] = useState<{id:string;name:string}|null>(null);
 
   const handleCreate = async (name: string, description: string, category: string) => {
     const result = await createProgram({ name, description, category });
@@ -149,12 +150,14 @@ export default function ProgramsPage() {
             <div key={p.id} className="grid grid-cols-3 gap-4 px-4 py-3 border-b border-border last:border-b-0 items-center text-sm">
               <div>
                 <p className="font-medium text-foreground">{p.name}</p>
+                <button disabled={Boolean(selected)} onClick={()=>setSelected({id:p.id,name:p.name})} className="text-sm underline disabled:opacity-50">Edit days and delivery</button>
                 {p.description && <p className="text-xs text-muted-foreground line-clamp-1">{p.description}</p>}
               </div>
               <span className="text-muted-foreground">{p.category ?? '—'}</span>
               <div className="flex items-center justify-between">
                 <span className="text-muted-foreground">{new Date(p.created_at).toLocaleDateString()}</span>
                 <button
+                  disabled={selected?.id === p.id}
                   onClick={() => void deleteProgram(p.id)}
                   className="text-muted-foreground hover:text-danger p-1.5 rounded-md hover:bg-background"
                 >
@@ -166,7 +169,14 @@ export default function ProgramsPage() {
         )}
       </div>
 
+      {selected&&<CoachProgramEditor key={`${coachId}:${selected.id}`} coachId={coachId} programId={selected.id} name={selected.name} onClose={()=>setSelected(null)}/>}
       <CreateProgramDialog open={open} onOpenChange={setOpen} onCreate={handleCreate} />
     </div>
   );
+}
+
+export default function ProgramsPage(){
+  const profile=useProfile();
+  if(!profile||profile.role!=='coach')return <p role="alert" className="p-6">A signed-in coach account is required.</p>;
+  return <ProgramsWorkspace key={profile.id} coachId={profile.id}/>;
 }

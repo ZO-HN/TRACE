@@ -46,6 +46,12 @@ function useEffect(setup: Effect['setup'], deps?: unknown[]) {
 }
 export const reactHooks = {
   useState, useEffect,
+  useMemo(factory: () => unknown, deps: unknown[]) {
+    const root = active, i = root.cursor++;
+    const previous = root.slots[i] as { deps: unknown[]; value: unknown } | undefined;
+    if (!previous || !same(previous.deps, deps)) root.slots[i] = { deps, value: factory() };
+    return (root.slots[i] as { value: unknown }).value;
+  },
   useRef(initial: unknown) { const root = active, i = root.cursor++; return root.slots[i] ??= { current: initial }; },
   useCallback(callback: unknown, deps: unknown[]) {
     const root = active, i = root.cursor++;

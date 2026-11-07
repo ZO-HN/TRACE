@@ -2,6 +2,7 @@ import { afterEach, beforeEach, expect, it, vi } from 'vitest';
 import type { ReactElement } from 'react';
 import { HookHarness, cleanup, settle } from '../hooks/hookHarness';
 import TemplateBuilder from '../../src/components/coach/TemplateBuilder';
+import WorkoutAssignmentDialog from '../../src/components/coach/WorkoutAssignmentDialog';
 import WorkoutsPage from '../../src/components/pages/WorkoutsPage';
 
 // Executes actual component handlers and hooks with controlled effects/transport.
@@ -11,6 +12,7 @@ vi.mock('react', async (importOriginal) => ({
   ...(await import('../hooks/hookHarness')).reactHooks,
 }));
 const api = vi.hoisted(() => ({ rpc: vi.fn(), read: vi.fn() }));
+const roster = vi.hoisted(() => ({ clients: [{ id: 'trainee', first_name: 'Trainee', last_name: 'One' }], isLoading: false, error: null as string | null, refresh: vi.fn() }));
 vi.mock('../../src/components/layout/AppShell', () => ({ useProfile: () => ({ id: 'coach', role: 'coach' }) }));
 vi.mock('../../src/lib/supabase', () => ({ supabase: {
   rpc: (...args: unknown[]) => api.rpc(...args),
@@ -20,6 +22,7 @@ vi.mock('../../src/lib/supabase', () => ({ supabase: {
     return query;
   },
 } }));
+vi.mock('../../src/hooks/useClients', () => ({ useClients: () => roster }));
 type Element = ReactElement<Record<string, any>>;
 function nodes(value: any): Element[] {
   if (Array.isArray(value)) return value.flatMap(nodes);
@@ -45,6 +48,27 @@ beforeEach(() => {
   api.rpc.mockReset().mockImplementation(async (_name, payload) => ({ data: payload.p_template_id, error: null }));
 });
 afterEach(cleanup);
+
+it('assigns a single currently linked trainee and keeps the delivery explanation visible', async () => {
+  const assigned = vi.fn();
+  api.rpc.mockImplementation(async (_name, payload) => ({ data: payload.p_assigned_template_id, error: null }));
+  const hook = new HookHarness(() => WorkoutAssignmentDialog({ coachId: 'coach', workout: {
+    id: 'source', name: 'Saved workout', description: null, created_at: '2026-11-05', template_items: [],
+  }, onAssigned: assigned }));
+  button(hook.current, 'Assign…').props.onClick(); await settle();
+  expect(text(hook.current)).toContain('Later source changes require a new explicit assignment');
+  field(hook.current, 'Trainee').props.onChange({ target: { value: 'trainee' } }); await settle();
+  await button(hook.current, 'Assign fixed copy').props.onClick(); await settle();
+  expect(api.rpc.mock.calls[0][0]).toBe('assign_workout_template');
+  expect(api.rpc.mock.calls[0][1].p_trainee_id).toBe('trainee');
+  expect(assigned).toHaveBeenCalledWith(api.rpc.mock.calls[0][1].p_assigned_template_id);
+  expect(nodes(hook.current).some((node) => node.props.role === 'dialog')).toBe(false);
+  button(hook.current, 'Assign…').props.onClick(); await settle();
+  field(hook.current, 'Trainee').props.onChange({ target: { value: 'trainee' } }); await settle();
+  await button(hook.current, 'Assign fixed copy').props.onClick(); await settle();
+  expect(api.rpc.mock.calls[1][1].p_operation_id).not.toBe(api.rpc.mock.calls[0][1].p_operation_id);
+  expect(api.rpc.mock.calls[1][1].p_assigned_template_id).not.toBe(api.rpc.mock.calls[0][1].p_assigned_template_id);
+});
 
 it('adds/removes/reorders prescriptions and retains failed input and retry IDs across close/reopen', async () => {
   const onSaved = vi.fn(); const hook = new HookHarness(() => TemplateBuilder({ coachId: 'coach', onSaved }));
@@ -80,7 +104,7 @@ it('the routed page mounts the durable builder and reads prescriptions again on 
   const hook = new HookHarness(renderRoute); await settle();
   expect(nodes(hook.current).some((node) => node.type === TemplateBuilder)).toBe(true);
   expect(text(hook.current)).toContain('Persisted workout'); expect(text(hook.current)).toContain('4 sets × 6 reps · RPE 8 · Rest 150s');
-  expect(text(hook.current)).toContain('Assignment unavailable');
+  expect(text(hook.current)).toContain('Assigning creates a separate version');
   hook.unmount(); const reloaded = new HookHarness(renderRoute); await settle();
   expect(api.read).toHaveBeenCalledTimes(2); expect(text(reloaded.current)).toContain('Stored description');
 });

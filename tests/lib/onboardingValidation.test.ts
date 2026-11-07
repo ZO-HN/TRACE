@@ -17,4 +17,7 @@ it('validates email, date and complete numeric macros', () => {
   expect(hasOnboardingAnswer('dob', STEP_DEFS.dob, { month: 'February', day: '31', year: '2000' })).toBe(false);
   expect(hasOnboardingAnswer('daily-macros', STEP_DEFS['daily-macros'], { protein: '100', carbs: '', fat: '50' })).toBe(false);
   expect(hasOnboardingAnswer('daily-macros', STEP_DEFS['daily-macros'], { protein: '100', carbs: '200', fat: '50' })).toBe(true);
+  expect(hasOnboardingAnswer('height', STEP_DEFS.height, "5'99")).toBe(false);
+  expect(hasOnboardingAnswer('weight', STEP_DEFS.weight, '1e2')).toBe(false);
+  expect(hasOnboardingAnswer('daily-macros', STEP_DEFS['daily-macros'], { protein: '1e2', carbs: '200', fat: '50' })).toBe(false);
 });

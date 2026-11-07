@@ -3,6 +3,7 @@ import { Dumbbell } from 'lucide-react';
 import { useProfile } from '../layout/AppShell';
 import { useCoachPrivateWorkouts } from '../../hooks/useCoachPrivateWorkouts';
 import TemplateBuilder from '../coach/TemplateBuilder';
+import WorkoutAssignmentDialog from '../coach/WorkoutAssignmentDialog';
 
 function PrivateWorkoutLibrary({ coachId }: { coachId: string }) {
   const { rows, loading, error, refresh } = useCoachPrivateWorkouts(coachId);
@@ -15,7 +16,7 @@ function PrivateWorkoutLibrary({ coachId }: { coachId: string }) {
         <TemplateBuilder coachId={coachId} onSaved={(id) => { setSaved(id); void refresh(); }} />
       </div>
     </div>
-    <p className="text-sm text-muted-foreground">Your private workout library. Assignment, programs and calendar delivery are not available here yet.</p>
+    <p className="text-sm text-muted-foreground">Your private workout library. Assignments create a fixed copy for one linked trainee.</p>
     {saved && <p role="status" className="text-sm text-success">Workout saved. Reload the library to read its stored prescription.</p>}
     {loading && <p role="status">Loading workouts…</p>}
     {error && <div role="alert" className="text-sm text-red-400">Could not load workouts: {error} <button type="button" onClick={() => void refresh()}>Retry</button></div>}
@@ -32,7 +33,10 @@ function PrivateWorkoutLibrary({ coachId }: { coachId: string }) {
           {item.position}. {item.exercise?.name ?? 'Exercise unavailable'} — {item.target_sets} sets × {item.target_reps} reps{item.target_rpe == null ? '' : ` · RPE ${item.target_rpe}`} · Rest {item.rest_seconds}s
         </li>)}
       </ol>
-      <p className="mt-3 text-sm text-muted-foreground">Assignment unavailable: delivery behavior is pending.</p>
+      <div className="mt-3 flex items-center justify-between">
+        <p className="text-sm text-muted-foreground">Assigning creates a separate version; future changes need another assignment.</p>
+        <WorkoutAssignmentDialog coachId={coachId} workout={workout} onAssigned={() => void refresh()} />
+      </div>
     </details>)}
   </div>;
 }

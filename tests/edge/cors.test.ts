@@ -6,7 +6,7 @@ import { createClient } from '@supabase/supabase-js';
 import ts from 'typescript';
 import { describe, expect, it, vi } from 'vitest';
 
-const functions = ['r2-presign', 'r2-get-url', 'trace-brain'] as const;
+const functions = ['r2-presign', 'r2-get-url', 'r2-finalize', 'trace-brain'] as const;
 type FunctionName = typeof functions[number];
 type Handler = (request: Request) => Promise<Response>;
 
@@ -20,10 +20,12 @@ function loadHandler(name: FunctionName, { validToken = true, visible = true, in
   }));
   const query = {
     select: () => query, eq: () => query, insert: () => query,
-    maybeSingle: async () => ({ data: visible ? { id: 'fixture-row' } : null }),
+    maybeSingle: async () => ({ data: visible ? {object_key:'form-video/fixture-user/clip.mp4',owner_id:'fixture-user',kind:'form-video',content_type:'video/mp4',declared_size_bytes:100,
+      protocol_version:2,state:'ready',verified_key:'form-video/fixture-user/clip.mp4',actual_size_bytes:100,actual_content_type:'video/mp4',verified_etag:'"verified"'} : null }),
     single: async () => ({ data: insertFails ? null : { id: 'reply', content: 'fixture reply' }, error: insertFails ? {} : null }),
   };
-  const client = vi.fn(() => ({ auth: { getUser }, from: () => query }));
+  const client = vi.fn(() => ({ auth: { getUser }, from: () => query,
+    rpc: async () => ({ data: visible, error: null }) }));
   const sign = vi.fn(async (url: string) => ({ url }));
   function load(file: string): { [key: string]: unknown } {
     const module = { exports: {} };
@@ -32,12 +34,12 @@ function loadHandler(name: FunctionName, { validToken = true, visible = true, in
       fileName: file,
     });
     runInNewContext(outputText, {
-      module, exports: module.exports, Request, Response, crypto,
+      module, exports: module.exports, Request, Response,Headers,AbortSignal,TextEncoder,TextDecoder,crypto,
       Deno: { serve: (callback: Handler) => { handler = callback; }, env: { get: () => 'fixture-config' } },
       require: (specifier: string) => {
         if (specifier === 'jsr:@supabase/supabase-js@2') return { createClient: client };
-        if (specifier === 'https://esm.sh/aws4fetch@1.0.20') return { AwsClient: class { sign = sign; } };
-        if (specifier === '../_shared/cors.ts') return load(resolve(dirname(file), specifier));
+        if (specifier === 'https://esm.sh/aws4fetch@1.0.20') return { AwsClient: class { sign = sign; fetch=async()=>new Response(null,{headers:{'content-length':'100','content-type':'video/mp4',etag:'"verified"'}}); } };
+        if (specifier.startsWith('../_shared/')||specifier.startsWith('./')) return load(resolve(dirname(file), specifier));
         throw new Error(`Unexpected handler import: ${specifier}`);
       },
     }, { filename: file });
@@ -51,6 +53,7 @@ function loadHandler(name: FunctionName, { validToken = true, visible = true, in
 function bodyFor(name: FunctionName) {
   if (name === 'r2-presign') return { kind: 'form-video', filename: 'clip.mp4', contentType: 'video/mp4', sizeBytes: 100 };
   if (name === 'r2-get-url') return { key: 'form-video/fixture-user/clip.mp4' };
+  if(name==='r2-finalize')return {key:'form-video/fixture-user/clip.mp4',ownerId:'fixture-user'};
   return { sessionId: 'session', content: 'Hello' };
 }
 
@@ -87,10 +90,15 @@ describe.each(functions)('%s browser CORS contract', (name) => {
       } },
     });
     const { data, error } = await sdk.functions.invoke(name, { body: bodyFor(name) });
+    if (name === 'trace-brain') {
+      expect(error).not.toBeNull();
+      expect(await error!.context.json()).toEqual({ error: 'AI features are unavailable in TRACE V1.' });
+      return;
+    }
     expect(error).toBeNull();
     if (name === 'r2-presign') expect(data).toMatchObject({ key: expect.stringMatching(/^form-video\/fixture-user\/.+\.mp4$/), uploadUrl: expect.any(String), expiresIn: 600 });
     else if (name === 'r2-get-url') expect(data).toMatchObject({ url: expect.any(String), expiresIn: 600 });
-    else expect(data).toMatchObject({ message: { id: 'reply' } });
+
   });
 
   it.each([
@@ -102,7 +110,7 @@ describe.each(functions)('%s browser CORS contract', (name) => {
   ])('keeps CORS on $label without issuing URLs', async ({ method, auth, body, status, validToken }) => {
     const { handler, client, sign } = loadHandler(name, { validToken });
     const response = await handler(new Request('https://fixture.test', { method, headers: { Authorization: auth }, body }));
-    expect(response.status).toBe(status);
+    expect(response.status).toBe(name === 'trace-brain' && auth === 'Bearer valid' && method === 'POST' ? 503 : status);
     expectCors(response);
     expect(await response.json()).toHaveProperty('error');
     expect(sign).not.toHaveBeenCalled();
@@ -112,16 +120,16 @@ describe.each(functions)('%s browser CORS contract', (name) => {
   if (name !== 'r2-presign') it('keeps CORS on denied object/session access', async () => {
     const { handler, sign } = loadHandler(name, { visible: false });
     const response = await handler(new Request('https://fixture.test', { method: 'POST', headers: { Authorization: 'Bearer valid' }, body: JSON.stringify(bodyFor(name)) }));
-    expect(response.status).toBe(403);
+    expect(response.status).toBe(name === 'trace-brain' ? 503 : 403);
     expectCors(response);
     expect(sign).not.toHaveBeenCalled();
   });
 
-  if (name === 'trace-brain') it('keeps CORS on a handled database failure', async () => {
+  if (name === 'trace-brain') it('keeps CORS while V1 AI remains unavailable', async () => {
     const { handler } = loadHandler(name, { insertFails: true });
     const response = await handler(new Request('https://fixture.test', { method: 'POST', headers: { Authorization: 'Bearer valid' }, body: JSON.stringify(bodyFor(name)) }));
-    expect(response.status).toBe(500);
+    expect(response.status).toBe(503);
     expectCors(response);
-    expect(await response.json()).toEqual({ error: 'Could not save reply' });
+    expect(await response.json()).toEqual({ error: 'AI features are unavailable in TRACE V1.' });
   });
 });

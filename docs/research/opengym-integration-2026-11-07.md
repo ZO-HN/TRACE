@@ -1,0 +1,31 @@
+# openGym exercise catalogue integration review
+
+Status: source and schema review only; no dataset/media imported and no product or schema change approved. Owner: TRACE maintainers. Checked 2026-11-07 (Asia/Singapore). Upstream identity: [DuarteSantos8/openGym](https://github.com/DuarteSantos8/openGym), GitHub says it is the canonical home and GitLab is a push mirror. The `main` ref resolved read-only to `8fb98b16861a2728652302a7e6e30c50548493a0`; release v1.4.0 is separately identified by GitHub as `28b7e4d` (released 2026-10-09). `main` is moving; any future evaluation/import should pin and recheck an immutable revision.
+
+## What is available
+
+Upstream README/release notes describe 5,632 exercises. The catalogue guide says each exercise is a JSON file at `catalogue/exercises/<id>.json`, translations are separate `catalogue/i18n/<lang>.json` files, and media is in `catalogue/media/still/<id>.webp` and `catalogue/media/clip/<id>.mp4`. Fields documented and confirmed in example JSON include stable string ID, name, body part, equipment, target muscle, secondary muscles, category, description, instruction steps, and optional female-variant/variant links. Optional `muscleMap` can encode more specific muscle involvement. This is structured data well suited to a staged mapping; upstream does not publish a single downloadable dataset artifact or API contract in these files.
+
+## Rights are split by content type
+
+- The repository's [LICENSE](https://github.com/DuarteSantos8/openGym/blob/main/LICENSE) is AGPL-3.0 for openGym code; this alone does not grant rights to all catalogue contents.
+- [NOTICE.md](https://github.com/DuarteSantos8/openGym/blob/main/NOTICE.md) says 1,324 entries marked `textSource: "exercisedb"` retain names, muscles, and instructions from ExerciseDB v1, supplied through `hasaneyldrm/exercises-dataset` under the reproduced MIT license. It says the remaining/newer entries, all descriptions, muscle-map corrections, and translations were written for openGym and are covered by AGPL. [Catalogue README](https://github.com/DuarteSantos8/openGym/blob/main/catalogue/README.md) also describes the older 1,324 as MIT and asks contributors to write text themselves rather than copy from other datasets.
+- Still images and animations have a separate, explicit restriction. The upstream [media notice](https://github.com/DuarteSantos8/openGym/blob/main/catalogue/media/NOTICE.md) attributes them to Gym visual and says its license is to openGym only; third parties cannot extract, copy, hotlink, or integrate them into independent apps/sites/products and need their own Gym visual license. This applies even to the 180px assets in the public repository. **Do not reuse these assets in TRACE without a separate license directly from Gym visual.**
+
+The public notice provides a useful rights split, but does not independently establish the upstream authors' authority/chain of title for every exercise text field, nor the full scope of the underlying ExerciseDB/Hasan MIT grant. For a commercial or durable redistribution decision, get written confirmation covering the specific text subset, modifications/derivatives, attribution, and intended use; do not infer media permission from text permission or the repository's AGPL badge.
+
+## TRACE mapping and recommendation
+
+The current `public.exercises` schema (`20260717000000_init_trace.sql`, expanded by `20260805000001_exercise_details.sql`) has `name`, `target_muscle_group`, `equipment_type`, `is_custom`, `created_by_coach_id`, `reference_video_url`, `category`, `description`, `exercise_type`, `movement_profile`, `exercise_position`, bodyweight/unilateral flags, `coaching_cues`, and `equipment_tags`; `exercise_muscles` stores normalized muscle groups with primary/secondary roles. Likely mapping: upstream name → name; body part/category → category only after mapping to TRACE's constrained values; equipment → equipment type/tags; target and secondary muscles → curated `exercise_muscles` links (and legacy target field); description → description; steps → reviewed coaching cues or a separately designed instructions field. Upstream IDs/source URLs and text/media licensing provenance have no dedicated columns today. Do not treat a media path as `reference_video_url` or import rows without source identity, deduplication, and accepted attribution/provenance handling.
+
+Recommendation: **technically feasible for metadata, not currently cleared as a blanket full-catalog import; media is explicitly unavailable for reuse under the upstream notice.** Start only with a small, human-reviewed metadata sample from the clearly marked MIT `textSource` subset after rights/provenance confirmation. Keep clips/stills out of scope unless separately licensed from Gym visual. Before a production-scale import, decide source ID/provenance and license attribution representation, map taxonomy against TRACE's constraints, deduplicate by meaning rather than names alone, and evaluate the license implications of AGPL-covered newer text. No schema migration or app change is proposed by this research note.
+
+## Sources and limits
+
+- [Canonical GitHub repository and README](https://github.com/DuarteSantos8/openGym)
+- [Catalogue format and contribution rules](https://github.com/DuarteSantos8/openGym/blob/main/catalogue/README.md)
+- [Rights and third-party notices](https://github.com/DuarteSantos8/openGym/blob/main/NOTICE.md) and [media-specific notice](https://github.com/DuarteSantos8/openGym/blob/main/catalogue/media/NOTICE.md)
+- [v1.4.0 release](https://github.com/DuarteSantos8/openGym/releases/tag/v1.4.0)
+- TRACE schema migrations listed above.
+
+Counts/terms may change. The pinned main SHA was read from the Git remote ref without fetching a repository tree; no files, data, or media were downloaded, and there was no runtime/API probe. This is a source-based engineering review, not legal advice or a license opinion. Open questions: does Gym visual offer TRACE a suitable written license and on what terms; can upstream confirm chain-of-title and intended commercial redistribution for the distinct text subsets; should any AGPL-covered text be excluded from a proprietary TRACE catalog or handled through an approved compatible licensing approach?

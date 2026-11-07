@@ -20,8 +20,8 @@ D02 implementation update (2026-10-31): the three browser-facing Edge handlers n
 ## Decisions requiring product ownership
 
 - Food dataset/license and serving conversion/provenance; coach versus adaptive targets; whether/how personal goals/health summaries become coach-visible.
-- Shared AI funding, opt-in data routing, provider/credential ownership, retention/limits, and continued BYO-key support. The earlier BYO-key choice remains current; server-side unification is proposed.
-- Precise coach-to-trainee program/calendar/nutrition assignment and versioning semantics; distinct personal-program models remain preserved.
+- AI is unavailable for V1 (owner decision, 7 November). Funding, opt-in data routing, provider/credential ownership, account isolation and retention/limits remain decisions for a future explicitly enabled release; earlier BYO-key code is retained inactive.
+- Program/group updates automatically affect upcoming delivery; started/completed/offline work must retain its captured history (owner decision, 7 November). Standalone workout copies remain fixed. Full meal-plan publication is now locally implemented with dated immutable nutrition copies; remaining program/calendar implementation and hosted/native acceptance stay open. Preserve distinct personal-program models.
 - Media ownership/finalization/deletion/retention policy and permitted coach access after relationship changes.
 - Native release identity/signing/distribution, supported app versions, EAS/webhook provisioning, privacy/terms destinations, and backup/restore responsibility.
 - Wearable platforms/import deduplication, gym equipment overrides versus location directory, solo entry, and video calling. These are separate scope, not implicit baseline requirements.

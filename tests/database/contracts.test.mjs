@@ -23,7 +23,9 @@ before(async () => {
   await asUser(clientA, () => db.query('SELECT claim_coach_by_id($1)', [coachA]));
   await asUser(clientB, () => db.query('SELECT claim_coach_by_id($1)', [coachB]));
   await db.query("INSERT INTO exercises(id,name,target_muscle_group) VALUES ($1,'Squat','Quads')", [id(10)]);
-}, { timeout: 30000 });
+// Cold local WASM schema setup has exceeded 30s with the full pilot migrations.
+// This changes only fixture setup's budget, not assertions or operation limits.
+}, { timeout: 90000 });
 after(async () => { await db?.close(); });
 
 test('canonical mobile baseline is safe on a database where drafts were already applied', async () => {
@@ -42,13 +44,18 @@ test('profile editing cannot promote an account or change its coach', async () =
 });
 
 test('assigned workout -> repeated session delivery -> sets -> isolated coach read', async () => {
+  let assignedId;
   await asUser(coachA, async () => {
-    await db.query("INSERT INTO workout_templates(id,creator_id,name,scope,assigned_trainee_id) VALUES ($1,$2,'Assigned','ASSIGNED',$3)",[id(20),coachA,clientA]);
-    await db.query('INSERT INTO template_items(template_id,exercise_id,position) VALUES ($1,$2,1)',[id(20),id(10)]);
+    await db.query("INSERT INTO workout_templates(id,creator_id,name,description,scope) VALUES ($1,$2,'Assigned',NULL,'PRIVATE')",[id(20),coachA]);
+    await db.query('INSERT INTO template_items(template_id,exercise_id,position,target_sets,target_reps,target_rpe,rest_seconds) VALUES ($1,$2,1,3,8,NULL,90)',[id(20),id(10)]);
+    const result = await db.query('SELECT assign_workout_template($1,$2,$3,$4,$5,$6::jsonb) AS id',[
+      id(23),id(24),id(20),coachA,clientA,JSON.stringify({name:'Assigned',description:null,
+        items:[{exercise_id:id(10),position:1,target_sets:3,target_reps:8,target_rpe:null,rest_seconds:90}]})]);
+    assignedId = result.rows[0].id;
   });
-  const session = { id:id(21),user_id:clientA,template_id:id(20),session_name:'Assigned',duration_seconds:120,completed_at:new Date().toISOString() };
+  const session = { id:id(21),user_id:clientA,template_id:assignedId,session_name:'Assigned',duration_seconds:120,completed_at:new Date().toISOString() };
   await asUser(clientA, async () => {
-    assert.equal((await rows('SELECT * FROM template_items WHERE template_id=$1',[id(20)])).length,1);
+    assert.equal((await rows('SELECT * FROM template_items WHERE template_id=$1',[assignedId])).length,1);
     await db.query('SELECT sync_workout_session($1)',[JSON.stringify(session)]);
     await db.query('SELECT sync_workout_session($1)',[JSON.stringify(session)]);
     await db.query('SELECT sync_workout_session($1)',[JSON.stringify({...session,duration_seconds:300})]);
@@ -60,7 +67,7 @@ test('assigned workout -> repeated session delivery -> sets -> isolated coach re
   await asUser(coachA, async () => assert.equal((await rows('SELECT * FROM set_logs WHERE id=$1',[id(22)])).length,1));
   await asUser(coachB, async () => assert.equal((await rows('SELECT * FROM set_logs WHERE id=$1',[id(22)])).length,0));
   await asUser(clientB, async () => {
-    assert.equal((await rows('SELECT * FROM workout_templates WHERE id=$1',[id(20)])).length,0);
+    assert.equal((await rows('SELECT * FROM workout_templates WHERE id=$1',[assignedId])).length,0);
     await assert.rejects(db.query('SELECT sync_workout_session($1)',[JSON.stringify({...session,user_id:clientB,template_id:null})]), /another account/);
     await assert.rejects(db.query('SELECT sync_workout_session($1)',[JSON.stringify({...session,id:id(23),user_id:clientB})]), /unavailable/);
   });
@@ -83,10 +90,11 @@ test('cardio add/delete drives only the owning coach summary; days are inclusive
 
 test('check-in and form review round trips are isolated between coaches', async () => {
   await asUser(coachA, () => db.query("INSERT INTO check_in_templates(id,coach_id,name) VALUES ($1,$2,'Weekly')",[id(40),coachA]));
+  await db.query("INSERT INTO media_objects(object_key,owner_id,kind,content_type,declared_size_bytes) VALUES ($1,$2,'form-video','video/mp4',100)", [`form-video/${clientA}/test.mp4`, clientA]);
   await asUser(clientA, async () => {
     await assert.rejects(db.query("INSERT INTO form_checks(client_id,status,coach_notes) VALUES ($1,'reviewed','Forged')",[clientA]), /row-level security/);
     await db.query("INSERT INTO check_ins(id,client_id,template_id,status,scheduled_for,responses) VALUES ($1,$2,$3,'submitted',CURRENT_DATE,'{}')",[id(41),clientA,id(40)]);
-    await db.query("INSERT INTO form_checks(id,client_id,exercise_id,video_key) VALUES ($1,$2,$3,'form-video/test.mp4')",[id(42),clientA,id(10)]);
+    await db.query('INSERT INTO form_checks(id,client_id,exercise_id,video_key) VALUES ($1,$2,$3,$4)',[id(42),clientA,id(10),`form-video/${clientA}/test.mp4`]);
     assert.equal((await rows('SELECT coach_id FROM check_ins WHERE id=$1',[id(41)]))[0].coach_id,coachA);
   });
   await asUser(clientB, async () => {
@@ -199,4 +207,14 @@ test('folder rename/delete is owner-only and deleting a folder preserves workout
 test('optional local seed executes against the complete canonical schema', async () => {
   await db.exec(await readFile(new URL('../../supabase/seed.sql', import.meta.url), 'utf8'));
   assert.equal((await rows("SELECT * FROM landing_pages WHERE slug='john'")).length,1);
+});
+
+test('new nutrition diary dates preserve their captured day without rewriting legacy timestamps or access', async () => {
+  await asUser(clientA, () => db.query("INSERT INTO nutrition_logs(id,user_id,method,description,logged_at,recorded_date,protein_g,calories) VALUES($1,$2,'TYPED','Captured day','2026-11-06T16:05:00Z','2026-11-07',0.2,100)",[id(900),clientA]));
+  const record=(await rows('SELECT recorded_date::text AS day,logged_at,protein_g FROM nutrition_logs WHERE id=$1',[id(900)]))[0];
+  assert.equal(record.day,'2026-11-07');assert.equal(new Date(record.logged_at).toISOString(),'2026-11-06T16:05:00.000Z');assert.equal(Number(record.protein_g),0.2);
+  await asUser(clientA,()=>db.query("INSERT INTO nutrition_logs(id,user_id,method,logged_at,calories) VALUES($1,$2,'TYPED','2026-11-06T16:05:00Z',100)",[id(901),clientA]));
+  assert.equal((await rows('SELECT recorded_date FROM nutrition_logs WHERE id=$1',[id(901)]))[0].recorded_date,null);
+  assert.equal((await asUser(clientB,()=>rows('SELECT id FROM nutrition_logs WHERE id=$1',[id(900)]))).length,0);
+  assert.equal((await asUser(coachB,()=>rows('SELECT id FROM nutrition_logs WHERE id=$1',[id(900)]))).length,0);
 });

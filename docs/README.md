@@ -18,8 +18,23 @@ Maintained: 2026-10-31. Owner: TRACE maintainers. This is the shared documentati
 | Prepare the next development phase | [Working-copy baseline and commit plan](development/phase-baseline-2026-10-31.md) |
 | Provision or release | [Backend](operations/backend-provisioning.md), [web](operations/web-deployment.md), [cross-app rollout](operations/cross-app-rollout.md), [mobile](../../TRACE-client/docs/operations/mobile-release.md) |
 | Verify behavior | [Shared acceptance](qa/cross-app-acceptance.md), [mobile acceptance](../../TRACE-client/docs/qa/mobile-acceptance.md), [D02 Edge CORS evidence](qa/edge-cors-2026-10-31.md), [coach lifecycle verification](qa/remaining-coach-lifecycle-stage1-2026-11-01.md) |
+| Inspect current UI routes and controls | [Source-verified UI navigation map](qa/ui-navigation-map-2026-11-05.md) |
 | Inspect the frozen local candidate | [1 November local candidate evidence](qa/local-candidate-2026-11-01.md) |
+| Review private workout assignment | [5 November assignment evidence](qa/private-workout-assignment-2026-11-05.md) |
 | Assess the initial version-one release | [4 November V1 readiness](qa/v1-readiness-2026-11-04.md) |
+| Inspect the latest work-in-progress GitHub checkpoint | [8 November synchronization evidence](qa/github-checkpoint-2026-11-08.md) |
+| Review current pilot rollout gates | [6 November repairs and hosted preflight](qa/pilot-preflight-2026-11-06.md) |
+| Review onboarding implementation and handoff | [7 November local workflow evidence](qa/onboarding-workflow-2026-11-07.md) |
+| Review saved meals and coach nutrition delivery | [7 November nutrition delivery evidence](qa/nutrition-delivery-2026-11-07.md) |
+| Review human-message recovery and V1 AI scope | [7 November messaging and AI evidence](qa/messages-and-ai-scope-2026-11-07.md) |
+| Plan client workflow and missing-feature completion | [Client workflow completion plan](planning/client-workflow-completion-plan-2026-11-06.md) |
+| Review program/calendar/group delivery design | [Program delivery design](planning/program-delivery-design-2026-11-07.md) |
+| Review persisted one-off calendar delivery | [8 November calendar evidence](qa/coach-calendar-2026-11-08.md) |
+| Plan private resource delivery | [Resource-vault delivery design](planning/vault-resource-delivery-design-2026-11-08.md) |
+| Review verified uploads and recoverable attachments | [8 November media finalization evidence](qa/media-finalization-2026-11-08.md) |
+| Review live coach program/group delivery | [8 November program delivery evidence](qa/live-coach-programs-2026-11-08.md) |
+| Assess OpenGym exercise reuse | [OpenGym source and licensing review](research/opengym-integration-2026-11-07.md) |
+| Choose exercise catalog sources | [Exercise datasets and visual-media shortlist](research/exercise-datasets-2026-11-06.md) |
 | Respond to failures | [Operations and recovery](operations/recovery.md) |
 | Create a spec/decision/release record | [Templates](templates/README.md) |
 | Trace consolidated sources | [Source register](sources.md), [Android testing evidence](../../TRACE-client/docs/releases/android-testing-baseline.md) |

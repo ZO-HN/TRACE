@@ -298,6 +298,59 @@ export type Database = { public: { Tables: {
       { foreignKeyName: "client_invites_coach_id_fkey"; columns: ["coach_id"]; isOneToOne: false; referencedRelation: "profiles"; referencedColumns: ["id"] },
     ];
   };
+  "client_onboarding_drafts": {
+    Row: {
+      "id": string;
+      "trainee_id": string;
+      "invite_id": string;
+      "coach_id": string;
+      "coach_name": string;
+      "form_version": number;
+      "form_config": Json;
+      "answers": Json;
+      "revision": number;
+      "submitted_response_id": string | null;
+      "submission_operation_id": string | null;
+      "submission_revision": number | null;
+      "updated_at": string;
+    };
+    Insert: {
+      "id"?: string;
+      "trainee_id": string;
+      "invite_id": string;
+      "coach_id": string;
+      "coach_name": string;
+      "form_version"?: number;
+      "form_config": Json;
+      "answers"?: Json;
+      "revision"?: number;
+      "submitted_response_id"?: string | null;
+      "submission_operation_id"?: string | null;
+      "submission_revision"?: number | null;
+      "updated_at"?: string;
+    };
+    Update: {
+      "id"?: string;
+      "trainee_id"?: string;
+      "invite_id"?: string;
+      "coach_id"?: string;
+      "coach_name"?: string;
+      "form_version"?: number;
+      "form_config"?: Json;
+      "answers"?: Json;
+      "revision"?: number;
+      "submitted_response_id"?: string | null;
+      "submission_operation_id"?: string | null;
+      "submission_revision"?: number | null;
+      "updated_at"?: string;
+    };
+    Relationships: [
+      { foreignKeyName: "client_onboarding_drafts_coach_id_fkey"; columns: ["coach_id"]; isOneToOne: false; referencedRelation: "profiles"; referencedColumns: ["id"] },
+      { foreignKeyName: "client_onboarding_drafts_invite_id_fkey"; columns: ["invite_id"]; isOneToOne: false; referencedRelation: "client_invites"; referencedColumns: ["id"] },
+      { foreignKeyName: "client_onboarding_drafts_submitted_response_id_fkey"; columns: ["submitted_response_id"]; isOneToOne: false; referencedRelation: "onboarding_responses"; referencedColumns: ["id"] },
+      { foreignKeyName: "client_onboarding_drafts_trainee_id_fkey"; columns: ["trainee_id"]; isOneToOne: false; referencedRelation: "profiles"; referencedColumns: ["id"] },
+    ];
+  };
   "client_tag_assignments": {
     Row: {
       "tag_id": string;
@@ -368,6 +421,77 @@ export type Database = { public: { Tables: {
       { foreignKeyName: "coach_allowlist_invited_by_fkey"; columns: ["invited_by"]; isOneToOne: false; referencedRelation: "profiles"; referencedColumns: ["id"] },
     ];
   };
+  "coach_calendar_assignments": {
+    Row: {
+      "id": string;
+      "operation_id": string;
+      "coach_id": string;
+      "trainee_id": string;
+      "template_id": string;
+      "workout_name": string;
+      "scheduled_date": string;
+      "cancelled": boolean;
+      "revision": number;
+      "created_at": string;
+      "request": Json;
+    };
+    Insert: {
+      "id": string;
+      "operation_id": string;
+      "coach_id": string;
+      "trainee_id": string;
+      "template_id": string;
+      "workout_name": string;
+      "scheduled_date": string;
+      "cancelled"?: boolean;
+      "revision"?: number;
+      "created_at"?: string;
+      "request": Json;
+    };
+    Update: {
+      "id"?: string;
+      "operation_id"?: string;
+      "coach_id"?: string;
+      "trainee_id"?: string;
+      "template_id"?: string;
+      "workout_name"?: string;
+      "scheduled_date"?: string;
+      "cancelled"?: boolean;
+      "revision"?: number;
+      "created_at"?: string;
+      "request"?: Json;
+    };
+    Relationships: [
+      { foreignKeyName: "coach_calendar_assignments_coach_id_fkey"; columns: ["coach_id"]; isOneToOne: false; referencedRelation: "profiles"; referencedColumns: ["id"] },
+      { foreignKeyName: "coach_calendar_assignments_template_id_fkey"; columns: ["template_id"]; isOneToOne: false; referencedRelation: "workout_templates"; referencedColumns: ["id"] },
+      { foreignKeyName: "coach_calendar_assignments_trainee_id_fkey"; columns: ["trainee_id"]; isOneToOne: false; referencedRelation: "profiles"; referencedColumns: ["id"] },
+    ];
+  };
+  "coach_calendar_change_operations": {
+    Row: {
+      "operation_id": string;
+      "coach_id": string;
+      "event_id": string;
+      "request": Json;
+      "result_revision": number;
+    };
+    Insert: {
+      "operation_id": string;
+      "coach_id": string;
+      "event_id": string;
+      "request": Json;
+      "result_revision": number;
+    };
+    Update: {
+      "operation_id"?: string;
+      "coach_id"?: string;
+      "event_id"?: string;
+      "request"?: Json;
+      "result_revision"?: number;
+    };
+    Relationships: [
+    ];
+  };
   "coach_extensions": {
     Row: {
       "coach_id": string;
@@ -401,6 +525,170 @@ export type Database = { public: { Tables: {
     };
     Relationships: [
       { foreignKeyName: "coach_extensions_coach_id_fkey"; columns: ["coach_id"]; isOneToOne: false; referencedRelation: "profiles"; referencedColumns: ["id"] },
+    ];
+  };
+  "coach_program_deliveries": {
+    Row: {
+      "id": string;
+      "coach_id": string;
+      "program_id": string;
+      "trainee_id": string | null;
+      "group_id": string | null;
+      "start_date": string;
+      "active": boolean;
+      "revision": number;
+    };
+    Insert: {
+      "id": string;
+      "coach_id": string;
+      "program_id": string;
+      "trainee_id"?: string | null;
+      "group_id"?: string | null;
+      "start_date": string;
+      "active": boolean;
+      "revision": number;
+    };
+    Update: {
+      "id"?: string;
+      "coach_id"?: string;
+      "program_id"?: string;
+      "trainee_id"?: string | null;
+      "group_id"?: string | null;
+      "start_date"?: string;
+      "active"?: boolean;
+      "revision"?: number;
+    };
+    Relationships: [
+      { foreignKeyName: "coach_program_deliveries_coach_id_fkey"; columns: ["coach_id"]; isOneToOne: false; referencedRelation: "profiles"; referencedColumns: ["id"] },
+      { foreignKeyName: "coach_program_deliveries_group_id_fkey"; columns: ["group_id"]; isOneToOne: false; referencedRelation: "training_groups"; referencedColumns: ["id"] },
+      { foreignKeyName: "coach_program_deliveries_program_id_fkey"; columns: ["program_id"]; isOneToOne: false; referencedRelation: "programs"; referencedColumns: ["id"] },
+      { foreignKeyName: "coach_program_deliveries_trainee_id_fkey"; columns: ["trainee_id"]; isOneToOne: false; referencedRelation: "profiles"; referencedColumns: ["id"] },
+    ];
+  };
+  "coach_program_grants": {
+    Row: {
+      "id": string;
+      "trainee_id": string;
+      "coach_id": string;
+      "program_id": string;
+      "slot_id": string;
+      "anchor_date": string;
+      "scheduled_date": string;
+      "revision": number;
+      "fingerprint": string;
+      "snapshot": Json;
+      "template_id": string;
+      "issued_at": string;
+    };
+    Insert: {
+      "id": string;
+      "trainee_id": string;
+      "coach_id": string;
+      "program_id": string;
+      "slot_id": string;
+      "anchor_date": string;
+      "scheduled_date": string;
+      "revision": number;
+      "fingerprint": string;
+      "snapshot": Json;
+      "template_id": string;
+      "issued_at"?: string;
+    };
+    Update: {
+      "id"?: string;
+      "trainee_id"?: string;
+      "coach_id"?: string;
+      "program_id"?: string;
+      "slot_id"?: string;
+      "anchor_date"?: string;
+      "scheduled_date"?: string;
+      "revision"?: number;
+      "fingerprint"?: string;
+      "snapshot"?: Json;
+      "template_id"?: string;
+      "issued_at"?: string;
+    };
+    Relationships: [
+      { foreignKeyName: "coach_program_grants_coach_id_fkey"; columns: ["coach_id"]; isOneToOne: false; referencedRelation: "profiles"; referencedColumns: ["id"] },
+      { foreignKeyName: "coach_program_grants_template_id_fkey"; columns: ["template_id"]; isOneToOne: false; referencedRelation: "workout_templates"; referencedColumns: ["id"] },
+      { foreignKeyName: "coach_program_grants_trainee_id_fkey"; columns: ["trainee_id"]; isOneToOne: false; referencedRelation: "profiles"; referencedColumns: ["id"] },
+    ];
+  };
+  "coach_program_heads": {
+    Row: {
+      "program_id": string;
+      "coach_id": string;
+      "revision": number;
+      "slots": Json;
+      "updated_at": string;
+    };
+    Insert: {
+      "program_id": string;
+      "coach_id": string;
+      "revision": number;
+      "slots": Json;
+      "updated_at"?: string;
+    };
+    Update: {
+      "program_id"?: string;
+      "coach_id"?: string;
+      "revision"?: number;
+      "slots"?: Json;
+      "updated_at"?: string;
+    };
+    Relationships: [
+      { foreignKeyName: "coach_program_heads_coach_id_fkey"; columns: ["coach_id"]; isOneToOne: false; referencedRelation: "profiles"; referencedColumns: ["id"] },
+      { foreignKeyName: "coach_program_heads_program_id_fkey"; columns: ["program_id"]; isOneToOne: false; referencedRelation: "programs"; referencedColumns: ["id"] },
+    ];
+  };
+  "coach_program_operations": {
+    Row: {
+      "operation_id": string;
+      "coach_id": string;
+      "kind": string;
+      "request": Json;
+      "result": Json;
+    };
+    Insert: {
+      "operation_id": string;
+      "coach_id": string;
+      "kind": string;
+      "request": Json;
+      "result": Json;
+    };
+    Update: {
+      "operation_id"?: string;
+      "coach_id"?: string;
+      "kind"?: string;
+      "request"?: Json;
+      "result"?: Json;
+    };
+    Relationships: [
+    ];
+  };
+  "coach_program_versions": {
+    Row: {
+      "program_id": string;
+      "coach_id": string;
+      "revision": number;
+      "slots": Json;
+      "saved_at": string;
+    };
+    Insert: {
+      "program_id": string;
+      "coach_id": string;
+      "revision": number;
+      "slots": Json;
+      "saved_at"?: string;
+    };
+    Update: {
+      "program_id"?: string;
+      "coach_id"?: string;
+      "revision"?: number;
+      "slots"?: Json;
+      "saved_at"?: string;
+    };
+    Relationships: [
     ];
   };
   "coach_trainee_relations": {
@@ -776,6 +1064,48 @@ export type Database = { public: { Tables: {
       { foreignKeyName: "landing_pages_coach_id_fkey"; columns: ["coach_id"]; isOneToOne: false; referencedRelation: "profiles"; referencedColumns: ["id"] },
     ];
   };
+  "meal_plan_assignments": {
+    Row: {
+      "id": string;
+      "operation_id": string;
+      "coach_id": string;
+      "trainee_id": string;
+      "source_plan_id": string;
+      "source_data": Json;
+      "name": string;
+      "start_date": string;
+      "published_at": string;
+      "snapshot": Json;
+    };
+    Insert: {
+      "id": string;
+      "operation_id": string;
+      "coach_id": string;
+      "trainee_id": string;
+      "source_plan_id": string;
+      "source_data": Json;
+      "name": string;
+      "start_date": string;
+      "published_at"?: string;
+      "snapshot": Json;
+    };
+    Update: {
+      "id"?: string;
+      "operation_id"?: string;
+      "coach_id"?: string;
+      "trainee_id"?: string;
+      "source_plan_id"?: string;
+      "source_data"?: Json;
+      "name"?: string;
+      "start_date"?: string;
+      "published_at"?: string;
+      "snapshot"?: Json;
+    };
+    Relationships: [
+      { foreignKeyName: "meal_plan_assignments_coach_id_fkey"; columns: ["coach_id"]; isOneToOne: false; referencedRelation: "profiles"; referencedColumns: ["id"] },
+      { foreignKeyName: "meal_plan_assignments_trainee_id_fkey"; columns: ["trainee_id"]; isOneToOne: false; referencedRelation: "profiles"; referencedColumns: ["id"] },
+    ];
+  };
   "meal_plans": {
     Row: {
       "id": string;
@@ -804,6 +1134,29 @@ export type Database = { public: { Tables: {
     Relationships: [
       { foreignKeyName: "meal_plans_client_id_fkey"; columns: ["client_id"]; isOneToOne: false; referencedRelation: "profiles"; referencedColumns: ["id"] },
       { foreignKeyName: "meal_plans_coach_id_fkey"; columns: ["coach_id"]; isOneToOne: false; referencedRelation: "profiles"; referencedColumns: ["id"] },
+    ];
+  };
+  "meal_save_operations": {
+    Row: {
+      "operation_id": string;
+      "user_id": string;
+      "template_id": string;
+      "request": Json;
+    };
+    Insert: {
+      "operation_id": string;
+      "user_id": string;
+      "template_id": string;
+      "request": Json;
+    };
+    Update: {
+      "operation_id"?: string;
+      "user_id"?: string;
+      "template_id"?: string;
+      "request"?: Json;
+    };
+    Relationships: [
+      { foreignKeyName: "meal_save_operations_user_id_fkey"; columns: ["user_id"]; isOneToOne: false; referencedRelation: "profiles"; referencedColumns: ["id"] },
     ];
   };
   "meal_template_items": {
@@ -903,6 +1256,81 @@ export type Database = { public: { Tables: {
       { foreignKeyName: "meals_coach_id_fkey"; columns: ["coach_id"]; isOneToOne: false; referencedRelation: "profiles"; referencedColumns: ["id"] },
     ];
   };
+  "media_objects": {
+    Row: {
+      "object_key": string;
+      "owner_id": string;
+      "kind": string;
+      "content_type": string;
+      "declared_size_bytes": number;
+      "issued_at": string;
+      "protocol_version": number;
+      "upload_operation_id": string | null;
+      "state": string;
+      "verified_key": string | null;
+      "actual_size_bytes": number | null;
+      "actual_content_type": string | null;
+      "verified_etag": string | null;
+      "verified_at": string | null;
+    };
+    Insert: {
+      "object_key": string;
+      "owner_id": string;
+      "kind": string;
+      "content_type": string;
+      "declared_size_bytes": number;
+      "issued_at"?: string;
+      "protocol_version"?: number;
+      "upload_operation_id"?: string | null;
+      "state"?: string;
+      "verified_key"?: string | null;
+      "actual_size_bytes"?: number | null;
+      "actual_content_type"?: string | null;
+      "verified_etag"?: string | null;
+      "verified_at"?: string | null;
+    };
+    Update: {
+      "object_key"?: string;
+      "owner_id"?: string;
+      "kind"?: string;
+      "content_type"?: string;
+      "declared_size_bytes"?: number;
+      "issued_at"?: string;
+      "protocol_version"?: number;
+      "upload_operation_id"?: string | null;
+      "state"?: string;
+      "verified_key"?: string | null;
+      "actual_size_bytes"?: number | null;
+      "actual_content_type"?: string | null;
+      "verified_etag"?: string | null;
+      "verified_at"?: string | null;
+    };
+    Relationships: [
+      { foreignKeyName: "media_objects_owner_id_fkey"; columns: ["owner_id"]; isOneToOne: false; referencedRelation: "profiles"; referencedColumns: ["id"] },
+    ];
+  };
+  "media_submission_operations": {
+    Row: {
+      "operation_id": string;
+      "owner_id": string;
+      "kind": string;
+      "request": Json;
+    };
+    Insert: {
+      "operation_id": string;
+      "owner_id": string;
+      "kind": string;
+      "request": Json;
+    };
+    Update: {
+      "operation_id"?: string;
+      "owner_id"?: string;
+      "kind"?: string;
+      "request"?: Json;
+    };
+    Relationships: [
+    ];
+  };
   "muscle_groups": {
     Row: {
       "id": string;
@@ -995,6 +1423,7 @@ export type Database = { public: { Tables: {
       "fiber_g": number | null;
       "sugar_g": number | null;
       "meal_slot": number | null;
+      "recorded_date": string | null;
     };
     Insert: {
       "id"?: string;
@@ -1010,6 +1439,7 @@ export type Database = { public: { Tables: {
       "fiber_g"?: number | null;
       "sugar_g"?: number | null;
       "meal_slot"?: number | null;
+      "recorded_date"?: string | null;
     };
     Update: {
       "id"?: string;
@@ -1025,6 +1455,7 @@ export type Database = { public: { Tables: {
       "fiber_g"?: number | null;
       "sugar_g"?: number | null;
       "meal_slot"?: number | null;
+      "recorded_date"?: string | null;
     };
     Relationships: [
       { foreignKeyName: "nutrition_logs_user_id_fkey"; columns: ["user_id"]; isOneToOne: false; referencedRelation: "profiles"; referencedColumns: ["id"] },
@@ -1037,6 +1468,12 @@ export type Database = { public: { Tables: {
       "coach_id": string;
       "answers": Json;
       "submitted_at": string | null;
+      "invite_id": string | null;
+      "operation_id": string | null;
+      "form_version": number | null;
+      "form_config": Json | null;
+      "reviewed_at": string | null;
+      "reviewed_by": string | null;
     };
     Insert: {
       "id"?: string;
@@ -1044,6 +1481,12 @@ export type Database = { public: { Tables: {
       "coach_id": string;
       "answers"?: Json;
       "submitted_at"?: string | null;
+      "invite_id"?: string | null;
+      "operation_id"?: string | null;
+      "form_version"?: number | null;
+      "form_config"?: Json | null;
+      "reviewed_at"?: string | null;
+      "reviewed_by"?: string | null;
     };
     Update: {
       "id"?: string;
@@ -1051,9 +1494,17 @@ export type Database = { public: { Tables: {
       "coach_id"?: string;
       "answers"?: Json;
       "submitted_at"?: string | null;
+      "invite_id"?: string | null;
+      "operation_id"?: string | null;
+      "form_version"?: number | null;
+      "form_config"?: Json | null;
+      "reviewed_at"?: string | null;
+      "reviewed_by"?: string | null;
     };
     Relationships: [
       { foreignKeyName: "onboarding_responses_coach_id_fkey"; columns: ["coach_id"]; isOneToOne: false; referencedRelation: "profiles"; referencedColumns: ["id"] },
+      { foreignKeyName: "onboarding_responses_invite_id_fkey"; columns: ["invite_id"]; isOneToOne: false; referencedRelation: "client_invites"; referencedColumns: ["id"] },
+      { foreignKeyName: "onboarding_responses_reviewed_by_fkey"; columns: ["reviewed_by"]; isOneToOne: false; referencedRelation: "profiles"; referencedColumns: ["id"] },
       { foreignKeyName: "onboarding_responses_trainee_id_fkey"; columns: ["trainee_id"]; isOneToOne: false; referencedRelation: "profiles"; referencedColumns: ["id"] },
     ];
   };
@@ -1593,6 +2044,137 @@ export type Database = { public: { Tables: {
       { foreignKeyName: "vault_folders_coach_id_fkey"; columns: ["coach_id"]; isOneToOne: false; referencedRelation: "profiles"; referencedColumns: ["id"] },
     ];
   };
+  "vault_resource_create_operations": {
+    Row: {
+      "operation_id": string;
+      "resource_id": string;
+      "coach_id": string;
+      "request": Json;
+      "created_at": string;
+    };
+    Insert: {
+      "operation_id": string;
+      "resource_id": string;
+      "coach_id": string;
+      "request": Json;
+      "created_at"?: string;
+    };
+    Update: {
+      "operation_id"?: string;
+      "resource_id"?: string;
+      "coach_id"?: string;
+      "request"?: Json;
+      "created_at"?: string;
+    };
+    Relationships: [
+      { foreignKeyName: "vault_resource_create_operations_coach_id_fkey"; columns: ["coach_id"]; isOneToOne: false; referencedRelation: "profiles"; referencedColumns: ["id"] },
+      { foreignKeyName: "vault_resource_create_operations_resource_id_fkey"; columns: ["resource_id"]; isOneToOne: false; referencedRelation: "vault_resources"; referencedColumns: ["id"] },
+    ];
+  };
+  "vault_resource_publication_operations": {
+    Row: {
+      "operation_id": string;
+      "publication_id": string;
+      "coach_id": string;
+      "request": Json;
+      "created_at": string;
+    };
+    Insert: {
+      "operation_id": string;
+      "publication_id": string;
+      "coach_id": string;
+      "request": Json;
+      "created_at"?: string;
+    };
+    Update: {
+      "operation_id"?: string;
+      "publication_id"?: string;
+      "coach_id"?: string;
+      "request"?: Json;
+      "created_at"?: string;
+    };
+    Relationships: [
+      { foreignKeyName: "vault_resource_publication_operations_coach_id_fkey"; columns: ["coach_id"]; isOneToOne: false; referencedRelation: "profiles"; referencedColumns: ["id"] },
+      { foreignKeyName: "vault_resource_publication_operations_publication_id_fkey"; columns: ["publication_id"]; isOneToOne: false; referencedRelation: "vault_resource_publications"; referencedColumns: ["id"] },
+    ];
+  };
+  "vault_resource_publications": {
+    Row: {
+      "id": string;
+      "resource_id": string;
+      "coach_id": string;
+      "trainee_id": string;
+      "published_at": string;
+      "revoked_at": string | null;
+      "revocation_reason": string | null;
+    };
+    Insert: {
+      "id": string;
+      "resource_id": string;
+      "coach_id": string;
+      "trainee_id": string;
+      "published_at"?: string;
+      "revoked_at"?: string | null;
+      "revocation_reason"?: string | null;
+    };
+    Update: {
+      "id"?: string;
+      "resource_id"?: string;
+      "coach_id"?: string;
+      "trainee_id"?: string;
+      "published_at"?: string;
+      "revoked_at"?: string | null;
+      "revocation_reason"?: string | null;
+    };
+    Relationships: [
+      { foreignKeyName: "vault_resource_publications_coach_id_fkey"; columns: ["coach_id"]; isOneToOne: false; referencedRelation: "profiles"; referencedColumns: ["id"] },
+      { foreignKeyName: "vault_resource_publications_resource_id_fkey"; columns: ["resource_id"]; isOneToOne: false; referencedRelation: "vault_resources"; referencedColumns: ["id"] },
+      { foreignKeyName: "vault_resource_publications_trainee_id_fkey"; columns: ["trainee_id"]; isOneToOne: false; referencedRelation: "profiles"; referencedColumns: ["id"] },
+    ];
+  };
+  "vault_resources": {
+    Row: {
+      "id": string;
+      "coach_id": string;
+      "folder_id": string | null;
+      "title": string;
+      "description": string | null;
+      "filename": string;
+      "media_key": string;
+      "content_type": string;
+      "size_bytes": number;
+      "created_at": string;
+    };
+    Insert: {
+      "id": string;
+      "coach_id": string;
+      "folder_id"?: string | null;
+      "title": string;
+      "description"?: string | null;
+      "filename": string;
+      "media_key": string;
+      "content_type": string;
+      "size_bytes": number;
+      "created_at"?: string;
+    };
+    Update: {
+      "id"?: string;
+      "coach_id"?: string;
+      "folder_id"?: string | null;
+      "title"?: string;
+      "description"?: string | null;
+      "filename"?: string;
+      "media_key"?: string;
+      "content_type"?: string;
+      "size_bytes"?: number;
+      "created_at"?: string;
+    };
+    Relationships: [
+      { foreignKeyName: "vault_resources_coach_id_fkey"; columns: ["coach_id"]; isOneToOne: false; referencedRelation: "profiles"; referencedColumns: ["id"] },
+      { foreignKeyName: "vault_resources_folder_id_fkey"; columns: ["folder_id"]; isOneToOne: false; referencedRelation: "vault_folders"; referencedColumns: ["id"] },
+      { foreignKeyName: "vault_resources_media_key_fkey"; columns: ["media_key"]; isOneToOne: false; referencedRelation: "media_objects"; referencedColumns: ["object_key"] },
+    ];
+  };
   "water_logs": {
     Row: {
       "id": string;
@@ -1658,6 +2240,42 @@ export type Database = { public: { Tables: {
     };
     Relationships: [
       { foreignKeyName: "wearable_biometrics_user_id_fkey"; columns: ["user_id"]; isOneToOne: false; referencedRelation: "profiles"; referencedColumns: ["id"] },
+    ];
+  };
+  "workout_assignment_operations": {
+    Row: {
+      "operation_id": string;
+      "assigned_template_id": string;
+      "source_template_id": string;
+      "coach_id": string;
+      "trainee_id": string;
+      "request": Json;
+      "source_snapshot": Json;
+      "assigned_at": string;
+    };
+    Insert: {
+      "operation_id": string;
+      "assigned_template_id": string;
+      "source_template_id": string;
+      "coach_id": string;
+      "trainee_id": string;
+      "request": Json;
+      "source_snapshot": Json;
+      "assigned_at"?: string;
+    };
+    Update: {
+      "operation_id"?: string;
+      "assigned_template_id"?: string;
+      "source_template_id"?: string;
+      "coach_id"?: string;
+      "trainee_id"?: string;
+      "request"?: Json;
+      "source_snapshot"?: Json;
+      "assigned_at"?: string;
+    };
+    Relationships: [
+      { foreignKeyName: "workout_assignment_operations_coach_id_fkey"; columns: ["coach_id"]; isOneToOne: false; referencedRelation: "profiles"; referencedColumns: ["id"] },
+      { foreignKeyName: "workout_assignment_operations_trainee_id_fkey"; columns: ["trainee_id"]; isOneToOne: false; referencedRelation: "profiles"; referencedColumns: ["id"] },
     ];
   };
   "workout_folders": {
@@ -1799,6 +2417,7 @@ export type Database = { public: { Tables: {
       "scope": Database['public']['Enums']["template_scope"];
       "assigned_trainee_id": string | null;
       "folder_id": string | null;
+      "delivery_kind": string;
     };
     Insert: {
       "id"?: string;
@@ -1812,6 +2431,7 @@ export type Database = { public: { Tables: {
       "scope"?: Database['public']['Enums']["template_scope"];
       "assigned_trainee_id"?: string | null;
       "folder_id"?: string | null;
+      "delivery_kind"?: string;
     };
     Update: {
       "id"?: string;
@@ -1825,6 +2445,7 @@ export type Database = { public: { Tables: {
       "scope"?: Database['public']['Enums']["template_scope"];
       "assigned_trainee_id"?: string | null;
       "folder_id"?: string | null;
+      "delivery_kind"?: string;
     };
     Relationships: [
       { foreignKeyName: "workout_templates_assigned_trainee_id_fkey"; columns: ["assigned_trainee_id"]; isOneToOne: false; referencedRelation: "profiles"; referencedColumns: ["id"] },
@@ -1833,30 +2454,61 @@ export type Database = { public: { Tables: {
     ];
   };
 }; Views: { [_ in never]: never }; Functions: {
+  "assign_workout_template": { Args: { "p_operation_id": string; "p_assigned_template_id": string; "p_source_template_id": string; "p_coach_id": string; "p_trainee_id": string; "p_expected_snapshot": Json }; Returns: string };
+  "can_access_media_identity": { Args: { "p_key": string }; Returns: boolean };
+  "can_view_media": { Args: { "p_key": string }; Returns: boolean };
+  "change_coach_calendar": { Args: { "p_operation_id": string; "p_event_id": string; "p_coach_id": string; "p_expected_revision": number; "p_date": string; "p_cancelled": boolean }; Returns: number };
   "claim_coach_by_code": { Args: { "p_code": string }; Returns: undefined };
   "claim_coach_by_id": { Args: { "p_coach_id": string }; Returns: undefined };
+  "complete_client_onboarding": { Args: { "p_draft_id": string; "p_operation_id": string; "p_expected_revision": number }; Returns: string };
+  "create_vault_resource": { Args: { "p_operation_id": string; "p_resource_id": string; "p_coach_id": string; "p_folder_id": string; "p_title": string; "p_description": string; "p_filename": string; "p_media_key": string }; Returns: string };
   "generate_coach_code": { Args: Record<string, never>; Returns: string };
+  "get_client_onboarding": { Args: { "p_invite_id": string }; Returns: Json };
   "get_coach_cardio_summary": { Args: { "p_coach_id": string; "p_days"?: number }; Returns: { "client_id": string; "client_name": string; "cardio_sessions": number; "cardio_minutes": number }[] };
   "get_coach_dashboard_stats": { Args: { "p_coach_id": string }; Returns: { "new_signups_7d": number; "workouts_7d": number; "churned_count": number }[] };
   "get_coach_nutrition_summary": { Args: { "p_coach_id": string; "p_days"?: number }; Returns: { "client_id": string; "client_name": string; "log_count": number; "avg_calories": number }[] };
+  "get_coach_program_schedule": { Args: { "p_trainee_id": string; "p_from": string; "p_to": string }; Returns: Json };
   "get_coach_roster_telemetry": { Args: { "p_coach_id": string }; Returns: { "trainee_id": string; "first_name": string; "last_name": string; "experience_level": Database['public']['Enums']["experience_tier"]; "total_sessions": number; "latest_hrv": number; "latest_sleep_score": number; "latest_readiness_score": number; "latest_biometric_date": string }[] };
   "get_coach_slot_count": { Args: { "p_coach_id": string }; Returns: number };
   "get_coach_steps_summary": { Args: { "p_coach_id": string; "p_days"?: number }; Returns: { "client_id": string; "client_name": string; "avg_daily_steps": number; "days_logged": number }[] };
   "get_coach_weekly_wins": { Args: { "p_coach_id": string }; Returns: { "client_id": string; "client_name": string; "exercise_name": string; "weight_kg": number; "reps": number; "estimated_1rm": number; "achieved_at": string }[] };
+  "get_current_meal_plan": { Args: { "p_trainee_id": string; "p_date": string }; Returns: Json };
+  "get_direct_messages_page": { Args: { "p_owner_id": string; "p_peer_id": string; "p_before"?: string; "p_before_id"?: string; "p_limit"?: number }; Returns: { "id": string; "sender_id": string; "recipient_id": string; "content": string; "created_at": string; "read_at": string }[] };
   "get_exercise_leaderboard": { Args: { "p_exercise_id": string }; Returns: { "user_id": string; "display_name": string; "weight_lbs": number; "reps": number; "rpe": number; "volume": number; "sets": number }[] };
   "get_exercise_stats": { Args: { "p_user_id": string; "p_exercise_id": string; "p_days"?: number }; Returns: { "session_date": string; "total_volume_kg": number; "top_weight_kg": number; "top_estimated_1rm": number; "total_sets": number }[] };
   "get_invite_link": { Args: { "p_invite_id": string }; Returns: { "coach_id": string; "coach_first_name": string; "screens_config": Json }[] };
   "get_muscle_analytics": { Args: { "p_user_id": string; "p_days"?: number }; Returns: { "target_muscle_group": string; "total_volume_kg": number; "total_sets": number }[] };
   "get_personal_records": { Args: { "p_user_id": string }; Returns: { "exercise_id": string; "exercise_name": string; "target_muscle_group": string; "best_estimated_1rm": number; "best_weight_kg": number; "best_reps": number; "achieved_at": string }[] };
   "is_coach": { Args: { "uid": string }; Returns: boolean };
+  "is_current_coach_of": { Args: { "p_owner_id": string }; Returns: boolean };
+  "is_fixed_workout": { Args: { "p_template_id": string }; Returns: boolean };
   "join_program_by_token": { Args: { "p_token": string }; Returns: string };
   "list_available_coaches": { Args: Record<string, never>; Returns: { "id": string; "first_name": string; "last_name": string; "coach_code": string }[] };
   "list_coach_roster": { Args: Record<string, never>; Returns: { "id": string; "display_name": string }[] };
+  "mark_media_ready": { Args: { "p_key": string; "p_verified_key": string; "p_size_bytes": number; "p_content_type": string; "p_etag": string }; Returns: string };
+  "media_size_limit": { Args: { "p_kind": string }; Returns: number };
+  "onboarding_form_v1": { Args: { "p_config": Json }; Returns: Json };
+  "open_coach_program_workout": { Args: { "p_operation_id": string; "p_trainee_id": string; "p_program_id": string; "p_slot_id": string; "p_anchor_date": string; "p_expected_revision": number }; Returns: string };
+  "publish_meal_plan": { Args: { "p_operation_id": string; "p_assignment_id": string; "p_coach_id": string; "p_plan_id": string; "p_trainee_id": string; "p_start_date": string; "p_expected_data": Json }; Returns: string };
+  "publish_vault_resource": { Args: { "p_operation_id": string; "p_publication_id": string; "p_coach_id": string; "p_resource_id": string; "p_trainee_id": string }; Returns: string };
+  "register_media_upload": { Args: { "p_owner_id": string; "p_operation_id": string; "p_kind": string; "p_content_type": string; "p_size_bytes": number }; Returns: string };
+  "require_media_owner": { Args: { "p_key": string; "p_owner_id": string; "p_kind": string }; Returns: undefined };
+  "review_client_onboarding": { Args: { "p_response_id": string }; Returns: string };
   "revoke_invite_link": { Args: { "p_coach_id": string }; Returns: undefined };
   "rotate_invite_link": { Args: { "p_coach_id": string; "p_screens_config": Json }; Returns: string };
+  "save_client_onboarding": { Args: { "p_draft_id": string; "p_expected_revision": number; "p_answers": Json }; Returns: Json };
+  "save_coach_program": { Args: { "p_operation_id": string; "p_program_id": string; "p_coach_id": string; "p_expected_revision": number; "p_slots": Json }; Returns: number };
+  "save_personal_meal": { Args: { "p_operation_id": string; "p_template_id": string; "p_user_id": string; "p_name": string; "p_items": Json }; Returns: string };
+  "save_progress_photo": { Args: { "p_operation_id": string; "p_owner_id": string; "p_key": string; "p_date": string; "p_note"?: string }; Returns: string };
   "save_workout_template": { Args: { "p_operation_id": string; "p_template_id": string; "p_creator_id": string; "p_name": string; "p_description": string; "p_items": Json }; Returns: string };
+  "schedule_coach_workout": { Args: { "p_operation_id": string; "p_event_id": string; "p_template_id": string; "p_source_template_id": string; "p_coach_id": string; "p_trainee_id": string; "p_date": string; "p_expected_snapshot": Json }; Returns: string };
+  "send_direct_message": { Args: { "p_message_id": string; "p_sender_id": string; "p_recipient_id": string; "p_content": string }; Returns: Json };
   "set_client_churned": { Args: { "p_client_id": string; "p_churned": boolean }; Returns: undefined };
+  "set_coach_program_delivery": { Args: { "p_operation_id": string; "p_delivery_id": string; "p_program_id": string; "p_coach_id": string; "p_start_date": string; "p_active": boolean; "p_expected_revision": number; "p_trainee_id"?: string; "p_group_id"?: string }; Returns: number };
+  "set_verified_avatar": { Args: { "p_operation_id": string; "p_owner_id": string; "p_key": string; "p_expected_key"?: string }; Returns: string };
+  "submit_form_check": { Args: { "p_operation_id": string; "p_owner_id": string; "p_key": string; "p_exercise_id"?: string }; Returns: string };
   "sync_workout_session": { Args: { "p_session": Json }; Returns: string };
+  "validate_onboarding_v1": { Args: { "p_answers": Json; "p_form": Json; "p_complete": boolean }; Returns: undefined };
 }; Enums: {
   "chat_sender": "USER" | "ASSISTANT";
   "check_in_status": "scheduled" | "submitted" | "reviewed";
